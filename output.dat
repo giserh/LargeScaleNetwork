@@ -1,0 +1,51 @@
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: TRANS	Sampling rate:0.1	kUL: 100	kUU: 50
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/test01
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat
+RL
+*******************************************************************
+Saving controlled vocabulary to ./data/Features/CHI_fv.dat...
+5898 features are selected!
+Creating feature vectors, wait...
+RL
+Text feature generated for 7519 documents...
+Feature vector contructed for 7519 documents...
+871 435 544 1137 4532 
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 43.81 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 43.36 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 38.47 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 43.27 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 54.90 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 45.87 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 47.15 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 48.10 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 44.82 seconds...
+Transductive Learning[C:Logistic Regression[C:5, F:123746, L:0.50], k:100, k':50] Train/Test finished in 40.22 seconds...
+*************************************************
+The final result is as follows:
+The total number of classes is 5
+Class 0:	precision(0.739+/-0.051)	recall(0.736+/-0.033)
+Class 1:	precision(0.789+/-0.089)	recall(0.421+/-0.062)
+Class 2:	precision(0.772+/-0.078)	recall(0.295+/-0.061)
+Class 3:	precision(0.670+/-0.060)	recall(0.438+/-0.041)
+Class 4:	precision(0.795+/-0.018)	recall(1.000+/-0.000)
+	0	1	2	3	4	P
+0	641	118	68	29	15	0.7359
+1	21	134	12	4	2	0.7746
+2	15	11	138	12	1	0.7797
+3	32	53	75	480	75	0.6713
+4	162	119	251	612	4439	0.7951
+R	0.7359	0.3080	0.2537	0.4222	0.9795	0.7756
+F1	0.7359	0.4408	0.3828	0.5184	0.8777
