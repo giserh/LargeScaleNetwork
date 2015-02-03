@@ -1,0 +1,8 @@
+#!/bin/bash
+for i in 50 100 150 200 
+do 
+	for j in 50 100 150 200
+	do
+		./run -cs 5 -s TRANS -c LR -sr 1.0 -kUL $i -kUU $j ./data/amazon/test01 | tee exp2.output$i$j
+	done 	
+done

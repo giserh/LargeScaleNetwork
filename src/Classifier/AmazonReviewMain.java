@@ -59,13 +59,13 @@ public class AmazonReviewMain {
 		//If (0-0.5), then we take the head part; if (0.5-1), we take the tail part.
 //		double spTrain = 0.2; //The start percentage of the train set. 
 //		double epTrain = 1.0; //The end percentage of the train set.
-//		String excelPath = "./data/ReviewRating.xls";
 		
-//		//This part is used to verify the relationship between the number of reviews and ratings.		
+		//This part is used to verify the relationship between the number of reviews and ratings.		
 //		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, featureLocation, Ngram, lengthThreshold);
 //		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+//		String excelPath = "./data/ReviewRating.xls";
 //		analyzer.saveReviewRating(excelPath);
-//		
+	
 		
 		/****Pre-process the data.*****/
 		//Feture selection.
@@ -108,10 +108,6 @@ public class AmazonReviewMain {
 				//myLR.setDebugOutput(debugOutput);
 				System.out.format("---------------------------------------------------------------------\n");
 				myLR.crossValidation(CVFold, corpus);
-//				myLR.crossValidation2(CVFold, corpus);//Use the movie reviews for testing the codes.
-//				System.out.format("\nThe total number of reviews is %d. The training range is [ %.1f, %.1f ].\n", corpus.getSize(), spTrain, epTrain);
-//				myLR.crossValidation3(0.0, 0.8, corpus);
-//				myLR.crossValidation3(0.2, 1.0, corpus);
 				//myLR.saveModel(modelPath + "LR.model");
 			} else if(classifier.equals("SVM")){
 				System.out.println("Start SVM, wait...");

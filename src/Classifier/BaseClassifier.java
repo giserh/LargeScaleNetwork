@@ -115,7 +115,7 @@ public abstract class BaseClassifier {
 		long start = System.currentTimeMillis();
 		train();
 		test();
-		System.out.format("%s Train/Test finished in %.2f seconds.\n", this.toString(), (System.currentTimeMillis() - start) / 1000.0);
+		//System.out.format("%s Train/Test finished in %.2f seconds.\n", this.toString(), (System.currentTimeMillis() - start) / 1000.0);
 		m_trainSet.clear();
 		m_testSet.clear();
 		calculateMeanVariance(m_precisionsRecalls);
@@ -147,27 +147,34 @@ public abstract class BaseClassifier {
 		long start = System.currentTimeMillis();
 		train();
 		test();
-		System.out.format("%s Train/Test finished in %.2f seconds...\n",
-				this.toString(), (System.currentTimeMillis() - start) / 1000.0);
+		System.out.format("%s Train/Test finished in %.2f seconds...\n", this.toString(), (System.currentTimeMillis() - start) / 1000.0);
 		m_trainSet.clear();
 		m_testSet.clear();
-		calculateMeanVariance(m_precisionsRecalls);
+		//In ttest, there is only one folder, so we only get the average precision, average recall, average F.
+		calculateMeanVariance(m_precisionsRecalls);//*****@@ttest******
 	}
 	
 	abstract public void saveModel(String modelLocation);
 	
 	//Calculate the precision and recall for one folder tests.
 	public double[][] calculatePreRec(int[][] tpTable) {
+//		double PreSum = 0, RecSum = 0, FSum = 0;//ttest
 		double[][] PreRecOfOneFold = new double[m_classNo][2];
 		for (int i = 0; i < m_classNo; i++) {
 			PreRecOfOneFold[i][0] = (double) tpTable[i][i] / (Utils.sumOfRow(tpTable, i) + 0.001);// Precision of the class.
 			PreRecOfOneFold[i][1] = (double) tpTable[i][i] / (Utils.sumOfColumn(tpTable, i) + 0.001);// Recall of the class.
+//			PreSum += PreRecOfOneFold[i][0];
+//			RecSum += PreRecOfOneFold[i][1];
 			
 			for(int j=0; j< m_classNo; j++) {
 				m_confusionMat[i][j] += tpTable[i][j];
 				tpTable[i][j] = 0; // clear the result in each fold
 			}
 		}
+//		PreSum = PreSum / 5;
+//		RecSum = RecSum / 5;
+//		FSum = 2 * PreSum * RecSum / (PreSum + RecSum);
+//		System.out.format("precision %.3f recall %.3f F1 %.3f\n", PreSum, RecSum, FSum);
 		return PreRecOfOneFold;
 	}
 	
@@ -252,7 +259,7 @@ public abstract class BaseClassifier {
 		for(int i = 0; i < m_classNo; i++)
 			System.out.format("Class %d:\tprecision(%.3f+/-%.3f)\trecall(%.3f+/-%.3f)\n", i, metrix[i][0], metrix[i][2], metrix[i][1], metrix[i][3]);
 		
-		printConfusionMat();
+		printConfusionMat();//*****@@ttest******
 		System.out.println("---------------------------------------------------------------------");
 		return metrix;
 	}

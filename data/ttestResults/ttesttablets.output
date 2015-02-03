@@ -1,0 +1,628 @@
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datXXSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+0 features are selected!
+Creating feature vectors, wait...
+XXText feature generated for 0 documents...
+Feature vector contructed for 0 documents...
+0 0 0 0 0 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0083PWAPW.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+2023 features are selected!
+Creating feature vectors, wait...
+Text feature generated for 2300 documents...
+Feature vector contructed for 2300 documents...
+92 67 106 334 1701 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B0083PWAPW.json
+precision 0.340 recall 0.320 F1 0.330
+precision 0.345 recall 0.245 F1 0.286
+precision 0.420 recall 0.258 F1 0.320
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00BWYRF7E.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+1421 features are selected!
+Creating feature vectors, wait...
+Text feature generated for 1870 documents...
+Feature vector contructed for 1870 documents...
+64 79 116 319 1292 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B00BWYRF7E.json
+precision 0.688 recall 0.437 F1 0.535
+precision 0.531 recall 0.303 F1 0.386
+precision 0.478 recall 0.292 F1 0.363
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B008GFRE5A.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+1859 features are selected!
+Creating feature vectors, wait...
+Text feature generated for 2089 documents...
+Feature vector contructed for 2089 documents...
+90 95 145 286 1473 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B008GFRE5A.json
+precision 0.570 recall 0.331 F1 0.419
+precision 0.427 recall 0.265 F1 0.327
+precision 0.442 recall 0.273 F1 0.337
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B008GFRDL0.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datDTSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+1099 features are selected!
+Creating feature vectors, wait...
+DTText feature generated for 1276 documents...
+Feature vector contructed for 1276 documents...
+52 52 104 188 880 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B008GFRDL0.json
+precision 0.536 recall 0.325 F1 0.405
+precision 0.437 recall 0.234 F1 0.304
+precision 0.445 recall 0.240 F1 0.312
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00BHJS3C0.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+954 features are selected!
+Creating feature vectors, wait...
+Text feature generated for 1450 documents...
+Feature vector contructed for 1450 documents...
+33 39 56 241 1081 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B00BHJS3C0.json
+precision 0.424 recall 0.255 F1 0.319
+precision 0.421 recall 0.247 F1 0.311
+precision 0.465 recall 0.254 F1 0.328
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00CYQR5E2.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+1010 features are selected!
+Creating feature vectors, wait...
+Text feature generated for 1496 documents...
+Feature vector contructed for 1496 documents...
+49 64 95 277 1011 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B00CYQR5E2.json
+precision 0.294 recall 0.246 F1 0.268
+precision 0.412 recall 0.251 F1 0.312
+precision 0.365 recall 0.259 F1 0.303
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B001I907I2.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+1014 features are selected!
+Creating feature vectors, wait...
+Text feature generated for 1587 documents...
+Feature vector contructed for 1587 documents...
+89 65 80 218 1135 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B001I907I2.json
+precision 0.289 recall 0.278 F1 0.283
+precision 0.317 recall 0.261 F1 0.286
+precision 0.491 recall 0.245 F1 0.327
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00CUTT4HY.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datDTRLSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+988 features are selected!
+Creating feature vectors, wait...
+DTRLText feature generated for 1437 documents...
+Feature vector contructed for 1437 documents...
+43 68 87 254 985 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B00CUTT4HY.json
+precision 0.337 recall 0.255 F1 0.290
+precision 0.402 recall 0.249 F1 0.308
+precision 0.383 recall 0.257 F1 0.307
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0051VVOB2.json
+--------------------------------------------------------------------------------------
+Performing feature selection, wait...
+--------------------------------------------------------------------------------------
+Parameters of feature selection:
+Selection method: CHI	DF cut: 10	Range: [0.4,0.999]
+Feature file: ./data/Features/CHI_fv.dat	Statistics file: ./data/Features/CHI_fv_stat.dat
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datRLSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+1970 features are selected!
+Creating feature vectors, wait...
+RLText feature generated for 1400 documents...
+Feature vector contructed for 1400 documents...
+73 25 33 253 1016 
+Start logistic regression, wait...
+--------------------------------------
+./data/amazon/ttest/tablets/B0051VVOB2.json
+precision 0.410 recall 0.361 F1 0.384
+precision 0.366 recall 0.224 F1 0.277
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datXXSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+0 features are selected!
+XXText feature generated for 0 documents...
+Feature vector contructed for 0 documents...
+0 0 0 0 0 
+--------------------------------------
+./data/amazon/ttest/tablets
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0083PWAPW.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datSaving controlled vocabulary to ./data/Features/CHI_fv.dat...
+2023 features are selected!
+Text feature generated for 2300 documents...
+Feature vector contructed for 2300 documents...
+92 67 106 334 1701 
+--------------------------------------
+./data/amazon/ttest/tablets/B0083PWAPW.json
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datXXXX0 0 0 0 0 
+--------------------------------------
+./data/amazon/ttest/tablets
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0083PWAPW.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat92 67 106 334 1701 
+--------------------------------------
+./data/amazon/ttest/tablets/B0083PWAPW.json
+precision 0.352 recall 0.275 F1 0.309
+precision 0.348 recall 0.246 F1 0.288
+precision 0.422 recall 0.257 F1 0.319
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00BWYRF7E.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat64 79 116 319 1292 
+--------------------------------------
+./data/amazon/ttest/tablets/B00BWYRF7E.json
+precision 0.411 recall 0.305 F1 0.350
+precision 0.314 recall 0.258 F1 0.283
+precision 0.393 recall 0.264 F1 0.316
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B008GFRE5A.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat90 95 145 286 1473 
+--------------------------------------
+./data/amazon/ttest/tablets/B008GFRE5A.json
+precision 0.425 recall 0.316 F1 0.362
+precision 0.381 recall 0.264 F1 0.312
+precision 0.410 recall 0.273 F1 0.328
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B008GFRDL0.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datDTDT52 52 104 188 880 
+--------------------------------------
+./data/amazon/ttest/tablets/B008GFRDL0.json
+precision 0.642 recall 0.353 F1 0.455
+precision 0.520 recall 0.243 F1 0.332
+precision 0.523 recall 0.246 F1 0.334
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00BHJS3C0.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat33 39 56 241 1081 
+--------------------------------------
+./data/amazon/ttest/tablets/B00BHJS3C0.json
+precision 0.229 recall 0.218 F1 0.223
+precision 0.423 recall 0.238 F1 0.304
+precision 0.532 recall 0.248 F1 0.339
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00CYQR5E2.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat49 64 95 277 1011 
+--------------------------------------
+./data/amazon/ttest/tablets/B00CYQR5E2.json
+precision 0.293 recall 0.251 F1 0.270
+precision 0.355 recall 0.255 F1 0.297
+precision 0.326 recall 0.260 F1 0.289
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B001I907I2.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat89 65 80 218 1135 
+--------------------------------------
+./data/amazon/ttest/tablets/B001I907I2.json
+precision 0.398 recall 0.289 F1 0.334
+precision 0.378 recall 0.266 F1 0.312
+precision 0.430 recall 0.249 F1 0.316
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00CUTT4HY.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datDTRLDTRL43 68 87 254 985 
+--------------------------------------
+./data/amazon/ttest/tablets/B00CUTT4HY.json
+precision 0.272 recall 0.227 F1 0.248
+precision 0.387 recall 0.242 F1 0.298
+precision 0.376 recall 0.253 F1 0.303
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0051VVOB2.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datRLRL73 25 33 253 1016 
+--------------------------------------
+./data/amazon/ttest/tablets/B0051VVOB2.json
+precision 0.302 recall 0.289 F1 0.295
+precision 0.264 recall 0.209 F1 0.233
+precision 0.306 recall 0.225 F1 0.260
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0047DVWLW.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat157 89 130 307 1722 
+--------------------------------------
+./data/amazon/ttest/tablets/B0047DVWLW.json
+precision 0.793 recall 0.384 F1 0.518
+precision 0.637 recall 0.300 F1 0.408
+precision 0.606 recall 0.284 F1 0.387
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00CYQQMCS.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat73 75 113 271 1120 
+--------------------------------------
+./data/amazon/ttest/tablets/B00CYQQMCS.json
+precision 0.344 recall 0.274 F1 0.305
+precision 0.470 recall 0.269 F1 0.342
+precision 0.426 recall 0.269 F1 0.330
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00CUTO69K.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat58 57 88 232 975 
+--------------------------------------
+./data/amazon/ttest/tablets/B00CUTO69K.json
+precision 0.450 recall 0.361 F1 0.400
+precision 0.471 recall 0.270 F1 0.343
+precision 0.490 recall 0.276 F1 0.353
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00D4BO224.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat30 37 81 244 1138 
+--------------------------------------
+./data/amazon/ttest/tablets/B00D4BO224.json
+precision 0.255 recall 0.242 F1 0.248
+precision 0.234 recall 0.246 F1 0.240
+precision 0.310 recall 0.256 F1 0.280
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0047DVXR0.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat107 56 81 227 1065 
+--------------------------------------
+./data/amazon/ttest/tablets/B0047DVXR0.json
+precision 0.594 recall 0.359 F1 0.447
+precision 0.464 recall 0.265 F1 0.337
+precision 0.395 recall 0.246 F1 0.303
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00AFKCASA.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat55 60 87 169 828 
+--------------------------------------
+./data/amazon/ttest/tablets/B00AFKCASA.json
+precision 0.605 recall 0.352 F1 0.445
+precision 0.528 recall 0.250 F1 0.340
+precision 0.533 recall 0.256 F1 0.346
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B008GFREAU.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat99 112 181 364 1754 
+--------------------------------------
+./data/amazon/ttest/tablets/B008GFREAU.json
+precision 0.397 recall 0.345 F1 0.369
+precision 0.355 recall 0.252 F1 0.295
+precision 0.391 recall 0.268 F1 0.318
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00BWYVWLO.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat47 62 96 208 935 
+--------------------------------------
+./data/amazon/ttest/tablets/B00BWYVWLO.json
+precision 0.269 recall 0.276 F1 0.272
+precision 0.277 recall 0.240 F1 0.257
+precision 0.277 recall 0.240 F1 0.257
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00BWYQ9YE.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat49 52 83 221 894 
+--------------------------------------
+./data/amazon/ttest/tablets/B00BWYQ9YE.json
+precision 0.195 recall 0.214 F1 0.204
+precision 0.249 recall 0.226 F1 0.237
+precision 0.323 recall 0.233 F1 0.271
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B00CUU1CGY.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat55 71 88 233 938 
+--------------------------------------
+./data/amazon/ttest/tablets/B00CUU1CGY.json
+precision 0.401 recall 0.304 F1 0.346
+precision 0.648 recall 0.294 F1 0.404
+precision 0.452 recall 0.278 F1 0.344
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/tablets/B0083Q04IQ.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat239 136 233 354 1094 
+--------------------------------------
+./data/amazon/ttest/tablets/B0083Q04IQ.json
+precision 0.499 recall 0.448 F1 0.472
+precision 0.422 recall 0.411 F1 0.417
+precision 0.413 recall 0.408 F1 0.410

@@ -201,7 +201,7 @@ public abstract class Analyzer {
 		
 		m_featureNames = selector.getSelectedFeatures();
 		SaveCV(location, featureSelection, startProb, endProb, threshold); // Save all the features and probabilities we get after analyzing.
-		System.out.println(m_featureNames.size() + " features are selected!");
+		//System.out.println(m_featureNames.size() + " features are selected!");
 	}
 	
 	//Save all the features and feature stat into a file.
@@ -209,7 +209,7 @@ public abstract class Analyzer {
 		if (featureLocation==null || featureLocation.isEmpty())
 			return;
 		
-		System.out.format("Saving controlled vocabulary to %s...\n", featureLocation);
+		//System.out.format("Saving controlled vocabulary to %s...\n", featureLocation);
 		PrintWriter writer = new PrintWriter(new File(featureLocation));
 		//print out the configurations as comments
 		writer.format("#NGram:%d\n", m_Ngram);
@@ -269,7 +269,7 @@ public abstract class Analyzer {
 				m_preDocs.add(doc);
 			}
 		}
-		System.out.format("Time-series feature set for %d documents!\n", m_corpus.getSize());
+		//System.out.format("Time-series feature set for %d documents!\n", m_corpus.getSize());
 	}
 	
 	// added by Md. Mustafizur Rahman for Topic Modelling

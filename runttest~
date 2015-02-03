@@ -1,0 +1,5 @@
+#!/bin/bash
+for i in `find ./data/amazon/ttest/laptops`
+do
+	./run -cs 5 -s SUP -c LR $i | tee -a ttestlaptops.output
+done

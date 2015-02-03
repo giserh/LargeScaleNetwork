@@ -167,7 +167,6 @@ public class SemiSupervised extends BaseClassifier{
 	//Train the data set.
 	public void train(Collection<_Doc> trainSet){
 		init();
-		
 		m_classifier.train(trainSet);
 		
 		//Randomly pick some training documents as the labeled documents.

@@ -1,0 +1,318 @@
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datXXXX0 0 0 0 0 
+--------------------------------------
+./data/amazon/ttest/TVs
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+The search direction is not a descent direction.
+precision 0.000 recall 0.000 F1 NaN
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00CBQNB0C.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat101 62 110 280 602 
+--------------------------------------
+./data/amazon/ttest/TVs/B00CBQNB0C.json
+precision 0.375 recall 0.396 F1 0.386
+precision 0.381 recall 0.364 F1 0.372
+precision 0.402 recall 0.365 F1 0.383
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00CI3BP06.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat101 62 110 280 602 
+--------------------------------------
+./data/amazon/ttest/TVs/B00CI3BP06.json
+precision 0.577 recall 0.481 F1 0.525
+precision 0.439 recall 0.384 F1 0.409
+precision 0.432 recall 0.375 F1 0.401
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B009LG6B1G.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat186 111 208 540 1154 
+--------------------------------------
+./data/amazon/ttest/TVs/B009LG6B1G.json
+precision 0.439 recall 0.408 F1 0.423
+precision 0.605 recall 0.414 F1 0.492
+precision 0.505 recall 0.401 F1 0.447
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00C5B18CQ.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat101 62 110 280 602 
+--------------------------------------
+./data/amazon/ttest/TVs/B00C5B18CQ.json
+precision 0.461 recall 0.450 F1 0.455
+precision 0.412 recall 0.382 F1 0.397
+precision 0.417 recall 0.375 F1 0.395
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00BKWSSO2.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat186 111 208 540 1154 
+--------------------------------------
+./data/amazon/ttest/TVs/B00BKWSSO2.json
+precision 0.413 recall 0.376 F1 0.394
+precision 0.553 recall 0.404 F1 0.467
+precision 0.491 recall 0.396 F1 0.438
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00BF9MZY4.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat186 111 208 540 1154 
+--------------------------------------
+./data/amazon/ttest/TVs/B00BF9MZY4.json
+precision 0.476 recall 0.415 F1 0.443
+precision 0.545 recall 0.419 F1 0.474
+precision 0.489 recall 0.405 F1 0.443
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00CI3BIT4.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat186 111 208 540 1154 
+--------------------------------------
+./data/amazon/ttest/TVs/B00CI3BIT4.json
+precision 0.437 recall 0.406 F1 0.421
+precision 0.562 recall 0.412 F1 0.476
+precision 0.502 recall 0.401 F1 0.446
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B007I5JT4S.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat9 36 137 529 2289 
+--------------------------------------
+./data/amazon/ttest/TVs/B007I5JT4S.json
+precision 0.226 recall 0.219 F1 0.222
+precision 0.229 recall 0.224 F1 0.226
+precision 0.312 recall 0.234 F1 0.267
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B0074FGLUM.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datCC209 127 217 583 1594 
+--------------------------------------
+./data/amazon/ttest/TVs/B0074FGLUM.json
+precision 0.572 recall 0.404 F1 0.474
+precision 0.557 recall 0.410 F1 0.472
+precision 0.468 recall 0.393 F1 0.427
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B0012S4APK.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat120 125 212 653 1890 
+--------------------------------------
+./data/amazon/ttest/TVs/B0012S4APK.json
+precision 0.335 recall 0.293 F1 0.313
+precision 0.416 recall 0.323 F1 0.364
+precision 0.439 recall 0.325 F1 0.374
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B0096YOQRY.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat186 111 208 540 1154 
+--------------------------------------
+./data/amazon/ttest/TVs/B0096YOQRY.json
+precision 0.557 recall 0.396 F1 0.463
+precision 0.581 recall 0.408 F1 0.479
+precision 0.513 recall 0.398 F1 0.449
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00F5OEOKS.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat101 62 110 280 602 
+--------------------------------------
+./data/amazon/ttest/TVs/B00F5OEOKS.json
+precision 0.677 recall 0.438 F1 0.532
+precision 0.609 recall 0.377 F1 0.465
+precision 0.484 recall 0.373 F1 0.421
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B009LG6AWG.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat186 111 208 540 1154 
+--------------------------------------
+./data/amazon/ttest/TVs/B009LG6AWG.json
+precision 0.490 recall 0.441 F1 0.464
+precision 0.625 recall 0.430 F1 0.510
+precision 0.520 recall 0.411 F1 0.459
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B0074FGP4Y.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datCC209 127 217 583 1594 
+--------------------------------------
+./data/amazon/ttest/TVs/B0074FGP4Y.json
+precision 0.499 recall 0.393 F1 0.440
+precision 0.548 recall 0.408 F1 0.468
+precision 0.466 recall 0.393 F1 0.426
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00CBQNB7K.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat101 62 110 280 602 
+--------------------------------------
+./data/amazon/ttest/TVs/B00CBQNB7K.json
+precision 0.466 recall 0.368 F1 0.411
+precision 0.411 recall 0.360 F1 0.384
+precision 0.413 recall 0.360 F1 0.385
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B0074FGNJ6.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datCC209 127 217 583 1594 
+--------------------------------------
+./data/amazon/ttest/TVs/B0074FGNJ6.json
+precision 0.645 recall 0.438 F1 0.522
+precision 0.606 recall 0.423 F1 0.498
+precision 0.455 recall 0.399 F1 0.425
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B0074FGR74.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datCC209 127 217 583 1594 
+--------------------------------------
+./data/amazon/ttest/TVs/B0074FGR74.json
+precision 0.479 recall 0.443 F1 0.460
+precision 0.476 recall 0.424 F1 0.449
+precision 0.447 recall 0.400 F1 0.422
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00B93KG1A.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.datCC227 132 226 594 1659 
+--------------------------------------
+./data/amazon/ttest/TVs/B00B93KG1A.json
+precision 0.537 recall 0.334 F1 0.412
+precision 0.506 recall 0.373 F1 0.430
+precision 0.416 recall 0.365 F1 0.389
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B003L1ZYYM.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat55 28 48 346 2516 
+--------------------------------------
+./data/amazon/ttest/TVs/B003L1ZYYM.json
+precision 0.236 recall 0.205 F1 0.220
+precision 0.198 recall 0.201 F1 0.199
+precision 0.391 recall 0.206 F1 0.269
+
+--------------------------------------------------------------------------------------
+Parameters of learning procedure:
+#Class: 5	Ngram: 2	Feature value: TF	Normalization: 2
+Doc length cut: 5	Window length: 0
+Learning paradigm: SUP
+Classifier: LR	Instance weighting: NONE	Trade-off Parameter: 0.1	Cross validation: 10
+Data directory: ./data/amazon/ttest/TVs/B00BF9MZ44.json
+--------------------------------------------------------------------------------------
+Loading 614 stopwords from ./data/Model/stopwords.dat186 111 208 540 1154 
+--------------------------------------
+./data/amazon/ttest/TVs/B00BF9MZ44.json
+precision 0.521 recall 0.460 F1 0.489
+precision 0.548 recall 0.432 F1 0.483
+precision 0.499 recall 0.413 F1 0.452
