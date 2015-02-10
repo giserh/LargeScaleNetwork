@@ -259,7 +259,7 @@ public abstract class BaseClassifier {
 		for(int i = 0; i < m_classNo; i++)
 			System.out.format("Class %d:\tprecision(%.3f+/-%.3f)\trecall(%.3f+/-%.3f)\n", i, metrix[i][0], metrix[i][2], metrix[i][1], metrix[i][3]);
 		
-		printConfusionMat();//*****@@ttest******
+		printConfusionMat();
 		System.out.println("---------------------------------------------------------------------");
 		return metrix;
 	}

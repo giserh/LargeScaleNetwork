@@ -1,5 +1,8 @@
 package Classifier;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
@@ -31,8 +34,7 @@ public class SemiSupervised extends BaseClassifier{
 	protected BaseClassifier m_classifier; //Multiple learner.
 	
 	double m_discount = 0.5; // default similarity discount if across different products
-	
-	//Randomly pick 10% of all the training documents.
+	PrintWriter m_writer;
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
 		
@@ -43,7 +45,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = 100;
 		m_kPrime = 50;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}	
 	//Constructor 1: given ratio
@@ -56,7 +63,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = 100;
 		m_kPrime = 50;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}
 	//Constructor 2: given k and kPrime
@@ -69,7 +81,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = k;
 		m_kPrime = kPrime;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}
 	//Constructor 3: given TLalpha and TLbeta
@@ -82,7 +99,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = 100;
 		m_kPrime = 50;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}
 	
@@ -96,7 +118,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = k;
 		m_kPrime = kPrime;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}
 	
@@ -110,7 +137,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = 100;
 		m_kPrime = 50;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}
 	
@@ -124,7 +156,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = k;
 		m_kPrime = kPrime;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}
 	
@@ -138,7 +175,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_k = k;
 		m_kPrime = kPrime;	
 		m_labeled = new ArrayList<_Doc>();
-		
+		try {
+			m_writer = new PrintWriter(new File("Wij.dat"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		setClassifier(classifier);
 	}
 	@Override
@@ -204,78 +246,97 @@ public class SemiSupervised extends BaseClassifier{
 	@Override
 	public void test(){
 		
-		double similarity = 0;
-		m_L = m_labeled.size();
-		m_U = m_testSet.size();
-		
-		/***Set up cache structure for efficient computation.****/
-		initCache();
-		
-		/***pre-compute the full similarity matrix (except the diagonal).****/
-		_Doc di, dj;
-		for(int i = 0; i < m_U; i++){
-			di = m_testSet.get(i);
-			for(int j = i+1; j < m_U; j++){//to save computation since our similarity metric is symmetric
-				dj = m_testSet.get(j);
-				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
-				if (!di.sameProduct(dj))
-					similarity *= m_discount;//differentiate reviews from different products
-				setCache(i, j, similarity);
-			}	
+//		try {
+//			PrintWriter writer = new PrintWriter(new File("Wij.dat"));
 
-			for(int j = 0; j < m_L; j++){
-				dj = m_labeled.get(j);
-				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
-				if (!di.sameProduct(m_labeled.get(j)))
-					similarity *= m_discount;//differentiate reviews from different products
-				setCache(i, m_U+j, similarity);
+			double similarity = 0;
+			m_L = m_labeled.size();
+			m_U = m_testSet.size();
+
+			/*** Set up cache structure for efficient computation. ****/
+			initCache();
+
+			/*** pre-compute the full similarity matrix (except the diagonal). ****/
+			_Doc di, dj;
+			for (int i = 0; i < m_U; i++) {
+				di = m_testSet.get(i);
+				for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
+					dj = m_testSet.get(j);
+					similarity = Utils.calculateSimilarity(di, dj)
+							* Utils.calculateSimilarity(di, dj)
+							* Utils.calculateSimilarity(di, dj)
+							* Utils.calculateSimilarity(di, dj)
+							* di.getWeight() * dj.getWeight();
+					if (!di.sameProduct(dj))
+						similarity *= m_discount;// differentiate reviews from different products
+					setCache(i, j, similarity);
+				}
+
+				for (int j = 0; j < m_L; j++) {
+					dj = m_labeled.get(j);
+					similarity = Utils.calculateSimilarity(di, dj)
+							* Utils.calculateSimilarity(di, dj)
+							* Utils.calculateSimilarity(di, dj)
+							* Utils.calculateSimilarity(di, dj)
+							* di.getWeight() * dj.getWeight();
+					if (!di.sameProduct(m_labeled.get(j)))
+						similarity *= m_discount;// differentiate reviews from different products
+					setCache(i, m_U + j, similarity);
+				}
 			}
-		}
-		
-		SparseDoubleMatrix2D mat = new SparseDoubleMatrix2D(m_U+m_L, m_U+m_L);
-		
-		/***Set up structure for k nearest neighbors.****/
-		m_kUU = new MyPriorityQueue<_RankItem>(m_kPrime);
-		m_kUL = new MyPriorityQueue<_RankItem>(m_k);
-		
-		/****Construct the C+scale*\Delta matrix and Y vector.****/
-		double scale = -m_TLalpha / (m_k + m_TLbeta*m_kPrime), sum, value;
-		double[] Y = new double[m_U+m_L];
-		for(int i = 0; i < m_U; i++) {
-			//set the part of unlabeled nodes. U-U
-			for(int j=0; j<m_U; j++) {
-				if (j==i)
-					continue;
-				
-				m_kUU.add(new _RankItem(j, getCache(i,j)));
-			}
-			
-			sum = 0;
-			for(_RankItem n:m_kUU) {
-				value = Math.max(m_TLbeta*n.m_value, mat.getQuick(i, n.m_index)/scale);//recover the original Wij
-				mat.setQuick(i, n.m_index, scale * value);
-				mat.setQuick(n.m_index, i, scale * value);
-				sum += value;
-			}
-			m_kUU.clear();
-			
-			//Set the part of labeled and unlabeled nodes. L-U and U-L
-			for(int j=0; j<m_L; j++) 
-				m_kUL.add(new _RankItem(m_U+j, getCache(i,m_U+j)));
-			
-			for(_RankItem n:m_kUL) {
-				value = Math.max(n.m_value, mat.getQuick(i, n.m_index)/scale);//recover the original Wij
-				mat.setQuick(i, n.m_index, scale * value);
-				mat.setQuick(n.m_index, i, scale * value);
-				sum += value;
-			}
-			mat.setQuick(i, i, 1-scale*sum);
-			m_kUL.clear();
+
+			SparseDoubleMatrix2D mat = new SparseDoubleMatrix2D(m_U + m_L, m_U + m_L);
+
+			/*** Set up structure for k nearest neighbors. ****/
+			m_kUU = new MyPriorityQueue<_RankItem>(m_kPrime);
+			m_kUL = new MyPriorityQueue<_RankItem>(m_k);
+
+			/**** Construct the C+scale*\Delta matrix and Y vector. ****/
+			double scale = -m_TLalpha / (m_k + m_TLbeta * m_kPrime), sum, value;
+			double[] Y = new double[m_U + m_L];
+			for (int i = 0; i < m_U; i++) {
+				// set the part of unlabeled nodes. U-U
+				for (int j = 0; j < m_U; j++) {
+					if (j == i)
+						continue;
+
+					m_kUU.add(new _RankItem(j, getCache(i, j)));
+				}
+
+				sum = 0;
+				m_writer.format("U\t");
+				for (_RankItem n : m_kUU) {
+					value = Math.max(m_TLbeta * n.m_value, mat.getQuick(i, n.m_index) / scale);// recover the original Wij
+					m_writer.format("%.3f\t", value);
+					mat.setQuick(i, n.m_index, scale * value);
+					mat.setQuick(n.m_index, i, scale * value);
+					sum += value;
+				}
+				m_kUU.clear();
+
+				// Set the part of labeled and unlabeled nodes. L-U and U-L
+				for (int j = 0; j < m_L; j++)
+					m_kUL.add(new _RankItem(m_U + j, getCache(i, m_U + j)));
+
+				m_writer.print("L\t");
+				for (_RankItem n : m_kUL) {
+					value = Math.max(n.m_value, mat.getQuick(i, n.m_index)
+							/ scale);// recover the original Wij
+					m_writer.format("%.3f\t", value);
+					mat.setQuick(i, n.m_index, scale * value);
+					mat.setQuick(n.m_index, i, scale * value);
+					sum += value;
+				}
+				mat.setQuick(i, i, 1 - scale * sum);
+				m_kUL.clear();
+				m_writer.println();
 			
 			//set up the Y vector for unlabeled data
 			Y[i] = m_classifier.predict(m_testSet.get(i)); //Multiple learner.
+			m_writer.println("------------------------------------------------");
 		}
 		
+		m_writer.println("************************************************************************************************");
 		for(int i=m_U; i<m_L+m_U; i++) {
 			sum = 0;
 			for(int j=0; j<m_U; j++) 
@@ -299,6 +360,11 @@ public class SemiSupervised extends BaseClassifier{
 			m_TPTable[getLabel(pred)][m_testSet.get(i).getYLabel()] += 1;
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
+		
+//		} catch (FileNotFoundException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 	
 	//get the closest int
