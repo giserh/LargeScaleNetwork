@@ -247,28 +247,19 @@ public class SemiSupervised extends BaseClassifier{
 	//Test the data set.
 	@Override
 	public void test(){
-		
-//		try {
-//			PrintWriter writer = new PrintWriter(new File("Wij.dat"));
+		double similarity = 0;
+		m_L = m_labeled.size();
+		m_U = m_testSet.size();
+		/*** Set up cache structure for efficient computation. ****/
+		initCache();
 
-			double similarity = 0;
-			m_L = m_labeled.size();
-			m_U = m_testSet.size();
-
-			/*** Set up cache structure for efficient computation. ****/
-			initCache();
-
-			/*** pre-compute the full similarity matrix (except the diagonal). ****/
+		/*** pre-compute the full similarity matrix (except the diagonal). ****/
 			_Doc di, dj;
 			for (int i = 0; i < m_U; i++) {
 				di = m_testSet.get(i);
 				for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
 					dj = m_testSet.get(j);
-					similarity = Utils.calculateSimilarity(di, dj)
-							* Utils.calculateSimilarity(di, dj)
-							* Utils.calculateSimilarity(di, dj)
-							* Utils.calculateSimilarity(di, dj)
-							* di.getWeight() * dj.getWeight();
+					similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
 					if (!di.sameProduct(dj))
 						similarity *= m_discount;// differentiate reviews from different products
 					setCache(i, j, similarity);
@@ -276,11 +267,7 @@ public class SemiSupervised extends BaseClassifier{
 
 				for (int j = 0; j < m_L; j++) {
 					dj = m_labeled.get(j);
-					similarity = Utils.calculateSimilarity(di, dj)
-							* Utils.calculateSimilarity(di, dj)
-							* Utils.calculateSimilarity(di, dj)
-							* Utils.calculateSimilarity(di, dj)
-							* di.getWeight() * dj.getWeight();
+					similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
 					if (!di.sameProduct(m_labeled.get(j)))
 						similarity *= m_discount;// differentiate reviews from different products
 					setCache(i, m_U + j, similarity);
@@ -296,6 +283,7 @@ public class SemiSupervised extends BaseClassifier{
 			/**** Construct the C+scale*\Delta matrix and Y vector. ****/
 			double scale = -m_TLalpha / (m_k + m_TLbeta * m_kPrime), sum, value;
 			double[] Y = new double[m_U + m_L];
+			double[] Y_U = new double[m_U];
 			for (int i = 0; i < m_U; i++) {
 				// set the part of unlabeled nodes. U-U
 				for (int j = 0; j < m_U; j++) {
@@ -357,12 +345,137 @@ public class SemiSupervised extends BaseClassifier{
 			double pred = 0;
 			for(int j=0; j<m_U+m_L; j++)
 				pred += result.getQuick(i, j) * Y[j];
-			
+			Y_U[i] = pred;
 			m_TPTable[getLabel5(pred)][m_testSet.get(i).getYLabel()] += 1;
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 	}
 	
+	//Take the average of all neighbors as the new label until they converge.
+	public void RandomWalk(){
+		double similarity = 0;
+		m_L = m_labeled.size();
+		m_U = m_testSet.size();
+
+		/*** Set up cache structure for efficient computation. ****/
+		initCache();
+
+		/*** pre-compute the full similarity matrix (except the diagonal). ****/
+		_Doc di, dj;
+		for (int i = 0; i < m_U; i++) {
+			di = m_testSet.get(i);
+			for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
+				dj = m_testSet.get(j);
+				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
+				if (!di.sameProduct(dj))
+					similarity *= m_discount;// differentiate reviews from different products
+				setCache(i, j, similarity);
+			}
+
+			for (int j = 0; j < m_L; j++) {
+				dj = m_labeled.get(j);
+				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
+				if (!di.sameProduct(m_labeled.get(j)))
+					similarity *= m_discount;// differentiate reviews from different products
+				setCache(i, m_U + j, similarity);
+			}
+		}
+
+		SparseDoubleMatrix2D mat = new SparseDoubleMatrix2D(m_U + m_L, m_U + m_L);
+
+		/*** Set up structure for k nearest neighbors. ****/
+		m_kUU = new MyPriorityQueue<_RankItem>(m_kPrime);
+		m_kUL = new MyPriorityQueue<_RankItem>(m_k);
+
+		/**** Construct the C+scale*\Delta matrix and Y vector. ****/
+		double scale = -m_TLalpha / (m_k + m_TLbeta * m_kPrime), sum, value;
+		double[] Y = new double[m_U + m_L];
+		double[] Y_U = new double[m_U];
+		for (int i = 0; i < m_U; i++) {
+			// set the part of unlabeled nodes. U-U
+			for (int j = 0; j < m_U; j++) {
+				if (j == i)
+					continue;
+
+				m_kUU.add(new _RankItem(j, getCache(i, j)));
+			}
+
+			sum = 0;
+			m_writer.format("U\t");
+			for (_RankItem n : m_kUU) {
+				value = Math.max(m_TLbeta * n.m_value, mat.getQuick(i, n.m_index) / scale);// recover the original Wij
+				m_writer.format("%.3f\t", value);
+				mat.setQuick(i, n.m_index, scale * value);
+				mat.setQuick(n.m_index, i, scale * value);
+				sum += value;
+			}
+			m_kUU.clear();
+
+			// Set the part of labeled and unlabeled nodes. L-U and U-L
+			for (int j = 0; j < m_L; j++)
+				m_kUL.add(new _RankItem(m_U + j, getCache(i, m_U + j)));
+
+			m_writer.print("L\t");
+			for (_RankItem n : m_kUL) {
+				value = Math.max(n.m_value, mat.getQuick(i, n.m_index) / scale);// recover the original Wij
+				m_writer.format("%.3f\t", value);
+				mat.setQuick(i, n.m_index, scale * value);
+				mat.setQuick(n.m_index, i, scale * value);
+				sum += value;
+			}
+			mat.setQuick(i, i, 1 - scale * sum);
+			m_kUL.clear();
+			m_writer.println();
+		
+		//set up the Y vector for unlabeled data
+		Y[i] = m_classifier.predict(m_testSet.get(i)); //Multiple learner.
+		m_writer.println("------------------------------------------------");
+	}
+	
+	m_writer.println("************************************************************************************************");
+	for(int i=m_U; i<m_L+m_U; i++) {
+		sum = 0;
+		for(int j=0; j<m_U; j++) 
+			sum += mat.getQuick(i, j);
+		mat.setQuick(i, i, m_M-sum); // scale has been already applied in each cell
+		
+		//set up the Y vector for labeled data
+		Y[i] = m_M * m_labeled.get(i-m_U).getYLabel();
+	}
+	
+	/***Perform matrix inverse.****/
+	DenseDoubleAlgebra alg = new DenseDoubleAlgebra();
+	DoubleMatrix2D result = alg.inverse(mat);
+	
+	/*******Show results*********/
+	for(int i = 0; i < m_U; i++){
+		double pred = 0;
+		for(int j=0; j<m_U+m_L; j++)
+			pred += result.getQuick(i, j) * Y[j];
+		Y_U[i] = pred;
+		m_TPTable[getLabel5(pred)][m_testSet.get(i).getYLabel()] += 1;
+	}
+	m_precisionsRecalls.add(calculatePreRec(m_TPTable));
+}
+	//Print out the avg and sd of wij of unlabeled data and labeled data.
+	public void printQQPlot(){
+		
+	}
+	
+	//Print out the debug info, the true label, the predicted label, the content. Its k and k' neighbors.
+	public void Debugoutput(){
+		
+	}
+	//Write it in the Dubugoutput.
+	public void printTopK(){
+		
+	}
+	
+	private int getLabel1(double pred){
+		for(int i = 0; i < m_classNo; i++){
+			
+		}
+	}
 	//This is the original getLabel: -|c-p(c)|
 	private int getLabel(double pred) {
 		for(int i=0; i<m_classNo; i++)
