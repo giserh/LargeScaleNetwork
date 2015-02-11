@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
 
@@ -17,7 +18,7 @@ import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra;
 import cern.colt.matrix.tdouble.impl.SparseDoubleMatrix2D;
 
 public class SemiSupervised extends BaseClassifier{
-	
+	protected double[] m_pY;//p(Y), the probabilities of different classes.
 	protected double m_TLalpha; //Weight coefficient between unlabeled node and labeled node.
 	protected double m_TLbeta; //Weight coefficient between unlabeled node and unlabeled node.
 	protected double m_M; //Influence of labeled node.
@@ -37,7 +38,7 @@ public class SemiSupervised extends BaseClassifier{
 	PrintWriter m_writer;
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
-		
+		m_pY = new double[m_classNo];
 		m_labelRatio = 0.1;
 		m_TLalpha = 1.0;
 		m_TLbeta = 0.1;
@@ -48,7 +49,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -56,6 +56,7 @@ public class SemiSupervised extends BaseClassifier{
 	//Constructor 1: given ratio
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio){
 		super(c, classNumber, featureSize);
+		m_pY = new double[m_classNo];
 		m_labelRatio = ratio;
 		m_TLalpha = 1.0;
 		m_TLbeta = 0.1;
@@ -66,7 +67,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -74,6 +74,7 @@ public class SemiSupervised extends BaseClassifier{
 	//Constructor 2: given k and kPrime
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, int k, int kPrime){
 		super(c, classNumber, featureSize);
+		m_pY = new double[m_classNo];
 		m_labelRatio = 0.1;
 		m_TLalpha = 1.0;
 		m_TLbeta = 0.1;
@@ -84,7 +85,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -92,6 +92,7 @@ public class SemiSupervised extends BaseClassifier{
 	//Constructor 3: given TLalpha and TLbeta
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double TLalpha, double TLbeta){
 		super(c, classNumber, featureSize);
+		m_pY = new double[m_classNo];
 		m_labelRatio = 0.1;
 		m_TLalpha = TLalpha;
 		m_TLbeta = TLbeta;
@@ -102,7 +103,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -111,6 +111,7 @@ public class SemiSupervised extends BaseClassifier{
 	//Constructor 4: given ratio, k and kPrime
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime){
 		super(c, classNumber, featureSize);
+		m_pY = new double[m_classNo];
 		m_labelRatio = ratio;
 		m_TLalpha = 1.0;
 		m_TLbeta = 0.1;
@@ -121,7 +122,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -130,6 +130,7 @@ public class SemiSupervised extends BaseClassifier{
 	//Constructor 5: given ratio, TLalpha and TLbeta
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, double TLalhpa, double TLbeta){
 		super(c, classNumber, featureSize);
+		m_pY = new double[m_classNo];
 		m_labelRatio = ratio;
 		m_TLalpha = TLalhpa;
 		m_TLbeta = TLbeta;
@@ -140,7 +141,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -149,6 +149,7 @@ public class SemiSupervised extends BaseClassifier{
 	//Constructor 6: given k, kPrime, TLalpha and TLbeta
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, int k, int kPrime, double TLalhpa, double TLbeta){
 		super(c, classNumber, featureSize);
+		m_pY = new double[m_classNo];
 		m_labelRatio = 0.1;
 		m_TLalpha = TLalhpa;
 		m_TLbeta = TLbeta;
@@ -159,7 +160,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -168,6 +168,7 @@ public class SemiSupervised extends BaseClassifier{
 	//Constructor 7: given ratio, k, kPrime, TLalpha and TLbeta
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double TLalhpa, double TLbeta){
 		super(c, classNumber, featureSize);
+		m_pY = new double[m_classNo];
 		m_labelRatio = ratio;
 		m_TLalpha = TLalhpa;
 		m_TLbeta = TLbeta;
@@ -178,7 +179,6 @@ public class SemiSupervised extends BaseClassifier{
 		try {
 			m_writer = new PrintWriter(new File("Wij.dat"));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		setClassifier(classifier);
@@ -204,6 +204,7 @@ public class SemiSupervised extends BaseClassifier{
 	@Override
 	protected void init() {
 		m_labeled.clear();
+		Arrays.fill(m_pY, 0);
 	}
 	
 	//Train the data set.
@@ -213,7 +214,8 @@ public class SemiSupervised extends BaseClassifier{
 		
 		//Randomly pick some training documents as the labeled documents.
 		Random r = new Random();
-		for (_Doc doc:trainSet){
+		for (_Doc doc: trainSet){
+			m_pY[doc.getYLabel()]++;
 			if(r.nextDouble()<m_labelRatio){
 				m_labeled.add(doc);
 			}
@@ -320,8 +322,7 @@ public class SemiSupervised extends BaseClassifier{
 
 				m_writer.print("L\t");
 				for (_RankItem n : m_kUL) {
-					value = Math.max(n.m_value, mat.getQuick(i, n.m_index)
-							/ scale);// recover the original Wij
+					value = Math.max(n.m_value, mat.getQuick(i, n.m_index) / scale);// recover the original Wij
 					m_writer.format("%.3f\t", value);
 					mat.setQuick(i, n.m_index, scale * value);
 					mat.setQuick(n.m_index, i, scale * value);
@@ -357,21 +358,113 @@ public class SemiSupervised extends BaseClassifier{
 			for(int j=0; j<m_U+m_L; j++)
 				pred += result.getQuick(i, j) * Y[j];
 			
-			m_TPTable[getLabel(pred)][m_testSet.get(i).getYLabel()] += 1;
+			m_TPTable[getLabel5(pred)][m_testSet.get(i).getYLabel()] += 1;
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
-		
-//		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
 	}
 	
-	//get the closest int
+	//This is the original getLabel: -|c-p(c)|
 	private int getLabel(double pred) {
 		for(int i=0; i<m_classNo; i++)
 			m_cProbs[i] = -Math.abs(i-pred); //-|c-p(c)|
 		return Utils.maxOfArrayIndex(m_cProbs);
+	}
+	//This is the second getLabel: |c-p(c)|
+	private int getLabel2(double pred) {
+		for(int i=0; i<m_classNo; i++)
+			m_cProbs[i] = Math.abs(i-pred); //|c-p(c)|
+		return Utils.minOfArrayIndex(m_cProbs);
+	}
+	
+	//This is the third getLabel: exp(-|c-p(c)|)
+	private int getLabel3(double pred) {
+		double sum = 0;
+		double normSum = 0;
+		// Calculate the probabilities of different classes.
+		for (int i = 0; i < m_classNo; i++) {
+			sum += m_pY[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_pY[i] = m_pY[i] / sum;
+		}
+
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] = Math.exp(-Math.abs(i - pred)); // exp(-|c-p(c)|)
+			// System.out.println(m_cProbs[i]);
+			normSum += m_cProbs[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] =  m_pY[i] * m_cProbs[i] / normSum ;
+		}
+		return Utils.maxOfArrayIndex(m_cProbs);
+	}
+	
+	//This is the fourth getLabel: exp(|c-p(c)|)
+	private int getLabel4(double pred) {
+		double sum = 0;
+		double normSum = 0;
+		// Calculate the probabilities of different classes.
+		for (int i = 0; i < m_classNo; i++) {
+			sum += m_pY[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_pY[i] = m_pY[i] / sum;
+		}
+
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] = Math.exp(Math.abs(i - pred)); // exp(|c-p(c)|)
+			// System.out.println(m_cProbs[i]);
+			normSum += m_cProbs[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] = m_pY[i] * m_cProbs[i] / normSum;
+		}
+		return Utils.minOfArrayIndex(m_cProbs);
+	}
+
+	//This is the fifth getLabel: -|c-p(c)|
+	private int getLabel5(double pred) {
+		double sum = 0;
+		double normSum = 0;
+		// Calculate the probabilities of different classes.
+		for (int i = 0; i < m_classNo; i++) {
+			sum += m_pY[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_pY[i] = m_pY[i] / sum;
+		}
+
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] = -Math.abs(i - pred); // -|c-p(c)|
+			// System.out.println(m_cProbs[i]);
+			normSum += m_cProbs[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] = m_pY[i] * m_cProbs[i] / normSum;
+		}
+		return Utils.maxOfArrayIndex(m_cProbs);
+	}
+	//This is the sixth getLabel: |c-p(c)|
+	private int getLabel6(double pred) {
+		double sum = 0;
+		double normSum = 0;
+		// Calculate the probabilities of different classes.
+		for (int i = 0; i < m_classNo; i++) {
+			sum += m_pY[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_pY[i] = m_pY[i] / sum;
+		}
+
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] = Math.abs(i - pred); //|c-p(c)|
+			// System.out.println(m_cProbs[i]);
+			normSum += m_cProbs[i];
+		}
+		for (int i = 0; i < m_classNo; i++) {
+			m_cProbs[i] = m_pY[i] * m_cProbs[i] / normSum;
+		}
+		return Utils.minOfArrayIndex(m_cProbs);
 	}
 	
 	@Override

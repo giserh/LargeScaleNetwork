@@ -16,7 +16,6 @@ public abstract class BaseClassifier {
 	protected _Corpus m_corpus;
 	protected ArrayList<_Doc> m_trainSet; //All the documents used as the training set.
 	protected ArrayList<_Doc> m_testSet; //All the documents used as the testing set.
-	
 	protected double[] m_cProbs;
 	
 	//for cross-validation
@@ -69,9 +68,8 @@ public abstract class BaseClassifier {
 			if (f.exists()) 
 				f.delete();
 			m_debugOutput = filename;
-		} else {
+		} else 
 			System.err.println("Please specify a correct path for debug output!");
-		}	
 	}
 	
 	//k-fold Cross Validation.
@@ -87,7 +85,6 @@ public abstract class BaseClassifier {
 				else 
 					m_trainSet.add(docs.get(j));
 			}
-			
 			long start = System.currentTimeMillis();
 			train();
 			test();
@@ -111,11 +108,10 @@ public abstract class BaseClassifier {
 			else
 				m_trainSet.add(docs.get(j));
 		}
-
 		long start = System.currentTimeMillis();
 		train();
 		test();
-		//System.out.format("%s Train/Test finished in %.2f seconds.\n", this.toString(), (System.currentTimeMillis() - start) / 1000.0);
+		System.out.format("%s Train/Test finished in %.2f seconds.\n", this.toString(), (System.currentTimeMillis() - start) / 1000.0);
 		m_trainSet.clear();
 		m_testSet.clear();
 		calculateMeanVariance(m_precisionsRecalls);
