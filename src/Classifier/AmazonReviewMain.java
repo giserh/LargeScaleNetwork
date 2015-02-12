@@ -20,7 +20,7 @@ public class AmazonReviewMain {
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
 		int norm = 2;//The way of normalization.(only 1 and 2)
-		int CVFold = 10; //k fold-cross validation
+		int CVFold = 5; //k fold-cross validation
 		
 		//"NB", "LR", "SVM", "PR"
 		String classifier = "LR"; //Which classifier to use.
@@ -122,7 +122,8 @@ public class AmazonReviewMain {
 			} else System.out.println("Classifier has not developed yet!");
 		} else if (style.equals("TRANS")) {
 			SemiSupervised mySemi = new SemiSupervised(corpus, classNumber, featureSize + window + 1, classifier);
-			mySemi.crossValidation(CVFold, corpus);
+			mySemi.crossValidation2(CVFold, corpus);
+			mySemi.printQQPlot();
 			
 		} else System.out.println("Learning paradigm has not developed yet!");
 	}

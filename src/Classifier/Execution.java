@@ -92,7 +92,9 @@ public class Execution  {
 		} else if (param.m_style.equals("TRANS")) {
 			SemiSupervised mySemi = new SemiSupervised(corpus, param.m_classNumber, featureSize + param.m_window, param.m_model,
 					param.m_sampleRate, param.m_kUL, param.m_kUU, param.m_TLalpha, param.m_TLbeta);
-			mySemi.crossValidation(param.m_CVFold, corpus);
+			//mySemi.crossValidation(param.m_CVFold, corpus);
+			mySemi.crossValidation2(param.m_CVFold, corpus);
+			mySemi.printQQPlot();
 		} else if (param.m_style.equals("TM")) {
 			TopicModel model = null;
 			

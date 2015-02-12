@@ -1,5 +1,6 @@
 package Classifier;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,7 +34,7 @@ public abstract class BaseClassifier {
 	protected abstract void init(); // to be called before training starts
 	protected abstract void debug(_Doc d);
 	
-	public void test() {
+	public void test() throws FileNotFoundException{
 		for(_Doc doc: m_testSet){
 			doc.setPredictLabel(predict(doc)); //Set the predict label according to the probability of different classes.
 			int pred = doc.getPredictLabel(), ans = doc.getYLabel();
@@ -44,6 +45,7 @@ public abstract class BaseClassifier {
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 	}
+	public void RWtest(){}
 	
 	// Constructor with parameters.
 	public BaseClassifier(_Corpus c, int class_number, int featureSize) {
@@ -73,7 +75,7 @@ public abstract class BaseClassifier {
 	}
 	
 	//k-fold Cross Validation.
-	public void crossValidation(int k, _Corpus c){
+	public void crossValidation(int k, _Corpus c) throws FileNotFoundException{
 		c.shuffle(k);
 		int[] masks = c.getMasks();
 		ArrayList<_Doc> docs = c.getCollection();
@@ -96,7 +98,7 @@ public abstract class BaseClassifier {
 	}
 	
 	//Split the data set as k folder, but only try one folder.
-	public void crossValidation2(int k, _Corpus c) {
+	public void crossValidation2(int k, _Corpus c) throws FileNotFoundException {
 		c.shuffle(k);
 		int[] masks = c.getMasks();
 		ArrayList<_Doc> docs = c.getCollection();
@@ -114,12 +116,42 @@ public abstract class BaseClassifier {
 		System.out.format("%s Train/Test finished in %.2f seconds.\n", this.toString(), (System.currentTimeMillis() - start) / 1000.0);
 		m_trainSet.clear();
 		m_testSet.clear();
-		calculateMeanVariance(m_precisionsRecalls);
+		
+		System.out.println("---------------------------------------------------------------------");
+		System.out.format("The final result is as follows: The total number of classes is %d.\n", m_classNo);
+		printConfusionMat();
+		System.out.println("---------------------------------------------------------------------");
 	}
 	
-	//Cross Validation to verify if the order matters in classifers.
-	//We need the start point and end point to split the trainging and testing dataset.
-	public void crossValidation3(double sp, double ep, _Corpus c) {
+	//Split the data set as k folder, but only try one folder.
+	public void crossValidationRW(int k, _Corpus c) {
+		c.shuffle(k);
+		int[] masks = c.getMasks();
+		ArrayList<_Doc> docs = c.getCollection();
+		// We only need one folder, so no loop is needed any more.
+		int i = 0;
+		for (int j = 0; j < masks.length; j++) {
+			if (masks[j] == i)
+				m_testSet.add(docs.get(j));
+			else
+				m_trainSet.add(docs.get(j));
+		}
+		long start = System.currentTimeMillis();
+		train();
+		RWtest();
+		System.out.format("%s Train/Test finished in %.2f seconds.\n",
+				this.toString(), (System.currentTimeMillis() - start) / 1000.0);
+		m_trainSet.clear();
+		m_testSet.clear();
+
+		System.out.println("---------------------------------------------------------------------");
+		System.out.format("The final result is as follows: The total number of classes is %d.\n", m_classNo);
+		printConfusionMat();
+		System.out.println("---------------------------------------------------------------------");
+	}
+
+	//Cross Validation to verify if the order matters in classifers. We need the start point and end point to split the trainging and testing dataset.
+	public void crossValidation3(double sp, double ep, _Corpus c) throws FileNotFoundException {
 		m_precisionsRecalls.clear(); // Clear previous precisions and recalls first.
 		m_confusionMat = new int[m_classNo][m_classNo];	//Clear the m_confusionMat. Is this a efficient way to clear?	
 		ArrayList<_Doc> docs = c.getCollection();
@@ -147,7 +179,6 @@ public abstract class BaseClassifier {
 		m_trainSet.clear();
 		m_testSet.clear();
 		//In ttest, there is only one folder, so we only get the average precision, average recall, average F.
-		calculateMeanVariance(m_precisionsRecalls);//*****@@ttest******
 	}
 	
 	abstract public void saveModel(String modelLocation);
@@ -191,20 +222,20 @@ public abstract class BaseClassifier {
 				total += m_confusionMat[i][j];
 			}
 			correct += m_confusionMat[i][i];
-			prec[i] = m_confusionMat[i][i]/sum;
+			prec[i] = m_confusionMat[i][i]/(sum + 0.001); 
 			System.out.format("\t%.4f\n", prec[i]);
 		}
 		
 		System.out.print("R");
 		for(int i=0; i<m_classNo; i++){
-			columnSum[i] = m_confusionMat[i][i]/columnSum[i]; // recall
+			columnSum[i] = m_confusionMat[i][i]/(columnSum[i] + 0.001); // recall
 			System.out.format("\t%.4f", columnSum[i]);
 		}
 		System.out.format("\t%.4f", correct/total);
 		
 		System.out.print("\nF1");
 		for(int i=0; i<m_classNo; i++)
-			System.out.format("\t%.4f", 2.0 * columnSum[i] * prec[i] / (columnSum[i] + prec[i]));
+			System.out.format("\t%.4f", 2.0 * columnSum[i] * prec[i] / (columnSum[i] + prec[i] + 0.001));
 		System.out.println();
 	}
 	

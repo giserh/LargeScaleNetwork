@@ -363,4 +363,22 @@ public class Utils {
 				|| (lastChar>='A' && lastChar<='Z') 
 				|| (lastChar>='0' && lastChar<='9'));
 	}
+	
+	public static double averageOfArray(double[] array){
+		double average = 0;
+		for(int i = 0; i < array.length; i++){
+			average+= array[i];
+		}
+		average = average / array.length;
+		return average;
+	}
+	
+	public static double sdOfArray(double[] array, double avg){
+		double sd = 0;
+		for(int i = 0; i < array.length; i++){
+			sd += (array[i] - avg) * (array[i] - avg);
+		}
+		sd = Math.sqrt(sd);
+		return sd;
+	}
 }

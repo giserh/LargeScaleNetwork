@@ -27,7 +27,7 @@ public class Parameter {
 	
 	//"SUP", "TRANS", "TM"
 	public String m_style = "SUP";
-	public double m_sampleRate = 0.1; // sampling rate for transductive learning
+	public double m_sampleRate = 1; // sampling rate for transductive learning
 	public int m_kUL = 100; // k nearest labeled neighbors
 	public int m_kUU = 50; // k' nearest unlabeled neighbors
 	public double m_TLalpha = 1.0; // parameter used in transductive learning
