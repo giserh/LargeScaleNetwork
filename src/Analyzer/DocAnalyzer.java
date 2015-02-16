@@ -51,7 +51,7 @@ public class DocAnalyzer extends Analyzer {
 		m_lengthThreshold = threshold;
 		m_isCVLoaded = LoadCV(providedCV);
 		m_stopwords = new HashSet<String>();
-		m_releaseContent = true;
+		m_releaseContent = false; // Modified by Lin since it will clear the content of the document.
 	}
 	
 	//Constructor with ngram and fValue and sentence check.

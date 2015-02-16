@@ -202,6 +202,7 @@ public abstract class Analyzer {
 		m_featureNames = selector.getSelectedFeatures();
 		SaveCV(location, featureSelection, startProb, endProb, threshold); // Save all the features and probabilities we get after analyzing.
 		System.out.println(m_featureNames.size() + " features are selected!");
+		//selector.PrintFeatureValues();
 	}
 	
 	//Save all the features and feature stat into a file.

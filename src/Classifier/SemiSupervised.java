@@ -28,9 +28,10 @@ public class SemiSupervised extends BaseClassifier{
 	protected int m_kPrime;//k' unlabeled nodes.
 	protected double[][] m_QQplot;
 	
-	private int m_U, m_L;
-	private double[] m_Y;
-	private double[] m_Y_U;
+	private int m_U, m_L; 
+	private double[] m_Y; //The predicted labels for both labeled and unlabeled data.
+	private double[] m_Y_U;//The predicted labels for unlabeled data.
+	private String[][] m_debugOutput;//The two dimension array is used to represent the debug output for all unlabeled data.
 	private double[] m_cache; // cache the similarity computation results given the similarity metric is symmetric
 	protected MyPriorityQueue<_RankItem> m_kUL, m_kUU; // k nearest neighbors for Unlabeled-Labeled and Unlabeled-Unlabeled
 	protected ArrayList<_Doc> m_labeled; // a subset of training set
@@ -40,7 +41,7 @@ public class SemiSupervised extends BaseClassifier{
 	double m_discount = 0.5; // default similarity discount if across different products
 	double m_difference; //The difference between the previous labels and current labels.
 	PrintWriter m_writer;
-	//PrintWriter m_writer;
+	
 	//Default constructor without any default parameters.
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
@@ -53,11 +54,6 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = 50;	
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
-//		try {
-//			m_writer = new PrintWriter(new File("Wij.dat"));
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
 		setClassifier(classifier);
 	}	
 	
@@ -73,11 +69,6 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = kPrime;	
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
-//		try {
-//			m_writer = new PrintWriter(new File("Wij.dat"));
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
 		setClassifier(classifier);
 	}
 	
@@ -93,11 +84,6 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = kPrime;	
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
-//		try {
-//			m_writer = new PrintWriter(new File("Wij.dat"));
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
 		setClassifier(classifier);
 	}
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double TLalhpa, double TLbeta){
@@ -111,11 +97,6 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = kPrime;	
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
-//		try {
-//			m_writer = new PrintWriter(new File("Wij.dat"));
-//		} catch (FileNotFoundException e) {
-//			e.printStackTrace();
-//		}
 		setClassifier(classifier);
 	}
 	@Override
@@ -283,6 +264,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_U = m_testSet.size();
 		m_Y = new double[m_U + m_L];
 		m_Y_U = new double[m_U];
+		m_debugOutput = new String[m_U][13];
 		m_QQplot = new double[m_U][4];
 		double[] simi_U = new double[m_U];
 		double[] simi_L = new double[m_L];
@@ -343,7 +325,6 @@ public class SemiSupervised extends BaseClassifier{
 			for (int j = 0; j < m_U; j++) {
 				if (j == i)
 					continue;
-
 				m_kUU.add(new _RankItem(j, getCache(i, j)));
 			}
 
@@ -354,15 +335,13 @@ public class SemiSupervised extends BaseClassifier{
 				mat.setQuick(n.m_index, i, scale * value);
 				sum += value;
 			}
-			m_writer.print("U["+i+"]\tTop5UnlabeledData\n");
-			//Print the top 5 unlabeled nearest data for the current data.
+			//Put the top 5 unlabeled nearest data into the matrix.
 			int topK = 0;
-			for(_RankItem n: m_kUU){
-				if (topK < 5){
-					_Doc d = m_testSet.get(n.m_index);
-					m_writer.print(topK+"\t"+d.getYLabel()+"\n");
-					topK++;
-				}
+			while(topK < 5){
+				_RankItem n = m_kUU.elementAt(topK);
+				_Doc d = m_testSet.get(n.m_index);
+				m_debugOutput[i][topK]= Integer.toString(d.getYLabel());
+				topK++;
 			}
 			m_kUU.clear();
 
@@ -377,13 +356,11 @@ public class SemiSupervised extends BaseClassifier{
 			}
 			mat.setQuick(i, i, 1 - scale * sum);
 			topK = 0;
-			m_writer.print("U["+i+"]\tTop5LabeledData\n");
-			for(_RankItem n: m_kUL){
-				if (topK < 5){
-					_Doc d = m_trainSet.get((n.m_index-m_U));
-					m_writer.print(topK+"\t"+d.getYLabel()+"\n");
-					topK++;
-				}
+			while(topK < 5){
+				_RankItem n = m_kUL.elementAt(topK);
+				_Doc d = m_testSet.get(n.m_index);
+				m_debugOutput[i][topK+5]= Integer.toString(d.getYLabel());
+				topK++;
 			}
 			m_kUL.clear();
 
@@ -395,7 +372,6 @@ public class SemiSupervised extends BaseClassifier{
 			for(int j=0; j<m_U; j++) 
 				sum += mat.getQuick(i, j);
 			mat.setQuick(i, i, m_M-sum); // scale has been already applied in each cell
-			
 			//set up the Y vector for labeled data
 			m_Y[i] = m_M * m_labeled.get(i-m_U).getYLabel();
 		}
@@ -412,7 +388,10 @@ public class SemiSupervised extends BaseClassifier{
 		}
 		//Set the predicted label according to threshold.
 		for(int i = 0; i < m_Y_U.length; i++){
-			m_TPTable[getLabel3(m_Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
+			m_TPTable[getLabel1(m_Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
+			m_debugOutput[i][10] = Integer.toString(m_testSet.get(i).getYLabel());
+			m_debugOutput[i][11] = Integer.toString(getLabel1(m_Y_U[i]));
+			m_debugOutput[i][12] = m_testSet.get(i).getSource();
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 		Debugoutput();
@@ -432,17 +411,16 @@ public class SemiSupervised extends BaseClassifier{
 	
 	//Print out the debug info, the true label, the predicted label, the content. Its k and k' neighbors.
 	public void Debugoutput() throws FileNotFoundException{
-		PrintWriter writer = new PrintWriter(new File("./data/DebutOutput.dat"));
-		writer.print("TrueLabel\tPredictedLabel\tContent\n");
-		for(int i = 0; i < m_Y_U.length; i++){
-			_Doc test = m_testSet.get(i);
-			writer.print(test.getYLabel()+"\t"+m_Y_U[i]+"\t"+test.getSource()+"\n");
+		PrintWriter writer = new PrintWriter(new File("./data/DebutOutput.xls"));
+		writer.print("U[i]\tTrueLabel\tPredictedLabel\tTop5UnlabeledData\t\tTop5LabeledData\t\t\tContent\n");
+		for(int i = 0; i < m_debugOutput.length; i++){
+			writer.write(i+"\t");
+			for(int j = 0; j < 13; j++){
+				writer.write(m_debugOutput[i][j]+"\t");
+			}
+			writer.write("\n");
 		}
 		writer.close();
-	}
-	//Write it in the Dubugoutput.
-	public void printTopK(){
-		
 	}
 	
 	//This is the original getLabel: -|c-p(c)|

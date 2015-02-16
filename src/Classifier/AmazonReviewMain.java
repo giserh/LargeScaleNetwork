@@ -53,7 +53,7 @@ public class AmazonReviewMain {
 		System.out.println("------------------------------------------------------------------------------------------------");
 		
 		/*****Parameters in time series analysis.*****/
-		//String debugOutput = "./data/debug/LR.output";
+		String debugOutput = "./data/debug/LR.output";
 		
 		/*****The staring point and ending point of cross validation.*****/
 		//If (0-0.5), then we take the head part; if (0.5-1), we take the tail part.
@@ -123,7 +123,7 @@ public class AmazonReviewMain {
 		} else if (style.equals("TRANS")) {
 			SemiSupervised mySemi = new SemiSupervised(corpus, classNumber, featureSize + window + 1, classifier);
 			mySemi.crossValidation2(CVFold, corpus);
-			mySemi.printQQPlot();
+			//mySemi.printQQPlot();
 			
 		} else System.out.println("Learning paradigm has not developed yet!");
 	}

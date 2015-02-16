@@ -1,5 +1,8 @@
 package Analyzer;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -160,5 +163,14 @@ public class FeatureSelector {
 				m_selectedFeatures.add(new _RankItem(f, X2avg));
 			}
 		}
+	}
+	
+	//Print out all the features and values.
+	public void PrintFeatureValues() throws FileNotFoundException{
+		PrintWriter writer = new PrintWriter(new File("./data/features.dat"));
+		for(_RankItem f: m_selectedFeatures){
+			writer.write(f.m_name+"\t"+f.m_value+"\n");
+		}
+		writer.close();
 	}
 }

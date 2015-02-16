@@ -1,6 +1,7 @@
 package Classifier;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,7 +19,7 @@ public abstract class BaseClassifier {
 	protected ArrayList<_Doc> m_trainSet; //All the documents used as the training set.
 	protected ArrayList<_Doc> m_testSet; //All the documents used as the testing set.
 	protected double[] m_cProbs;
-	
+	int i = 0;
 	//for cross-validation
 	protected int[][] m_confusionMat, m_TPTable;//confusion matrix over all folds, prediction table in each fold
 	protected ArrayList<double[][]> m_precisionsRecalls; //Use this array to represent the precisions and recalls.
@@ -35,14 +36,18 @@ public abstract class BaseClassifier {
 	protected abstract void debug(_Doc d);
 	
 	public void test() throws FileNotFoundException{
+//		i++;
+//		PrintWriter writer = new PrintWriter(new File("./data/DebugOutput"+i+".dat"));
+//		writer.write("DocID\t"+"True Label\t"+"Predicted Label\t\t"+"Content\n");
 		for(_Doc doc: m_testSet){
 			doc.setPredictLabel(predict(doc)); //Set the predict label according to the probability of different classes.
 			int pred = doc.getPredictLabel(), ans = doc.getYLabel();
 			m_TPTable[pred][ans] += 1; //Compare the predicted label and original label, construct the TPTable.
-			
+//			writer.write(doc.getID()+"\t"+doc.getYLabel()+"\t"+doc.getPredictLabel()+"\t"+doc.getSource()+"\n");
 			if (m_debugOutput!=null && pred != ans)
 				debug(doc);
 		}
+//		writer.close();
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 	}
 	public void RWtest(){}
