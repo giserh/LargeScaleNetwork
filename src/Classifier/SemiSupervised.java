@@ -46,7 +46,7 @@ public class SemiSupervised extends BaseClassifier{
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
 		m_pY = new double[m_classNo];
-		m_labelRatio = 1.0;
+		m_labelRatio = 0.1;
 		m_TLalpha = 1.0;
 		m_TLbeta = 0.1;
 		m_M = 10000;
@@ -258,7 +258,6 @@ public class SemiSupervised extends BaseClassifier{
 
 	//Test the data set, including the transductive learning process.
 	public void test() throws FileNotFoundException{
-		m_writer = new PrintWriter(new File("./data/TopK.dat"));
 		double similarity = 0, average = 0, sd = 0;
 		m_L = m_labeled.size();
 		m_U = m_testSet.size();
@@ -358,7 +357,7 @@ public class SemiSupervised extends BaseClassifier{
 			topK = 0;
 			while(topK < 5){
 				_RankItem n = m_kUL.elementAt(topK);
-				_Doc d = m_testSet.get(n.m_index);
+				_Doc d = m_trainSet.get((n.m_index-m_U));
 				m_debugOutput[i][topK+5]= Integer.toString(d.getYLabel());
 				topK++;
 			}
@@ -388,14 +387,14 @@ public class SemiSupervised extends BaseClassifier{
 		}
 		//Set the predicted label according to threshold.
 		for(int i = 0; i < m_Y_U.length; i++){
-			m_TPTable[getLabel1(m_Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
+			int label = getLabel1(m_Y_U[i]);
+			m_TPTable[label][m_testSet.get(i).getYLabel()] += 1;
 			m_debugOutput[i][10] = Integer.toString(m_testSet.get(i).getYLabel());
-			m_debugOutput[i][11] = Integer.toString(getLabel1(m_Y_U[i]));
+			m_debugOutput[i][11] = Integer.toString(label);
 			m_debugOutput[i][12] = m_testSet.get(i).getSource();
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 		Debugoutput();
-		m_writer.close();
 	}
 	
 	//Print out the avg and sd of wij of unlabeled data and labeled data.
@@ -411,8 +410,8 @@ public class SemiSupervised extends BaseClassifier{
 	
 	//Print out the debug info, the true label, the predicted label, the content. Its k and k' neighbors.
 	public void Debugoutput() throws FileNotFoundException{
-		PrintWriter writer = new PrintWriter(new File("./data/DebutOutput.xls"));
-		writer.print("U[i]\tTrueLabel\tPredictedLabel\tTop5UnlabeledData\t\tTop5LabeledData\t\t\tContent\n");
+		PrintWriter writer = new PrintWriter(new File("./data/DebugOutput.xls"));
+		writer.print("U[i]\tTrueLabel\tPredictedLabel\tTop5UnlabeledData\t\t\t\t\tTop5LabeledData\t\t\t\t\tContent\n");
 		for(int i = 0; i < m_debugOutput.length; i++){
 			writer.write(i+"\t");
 			for(int j = 0; j < 13; j++){
@@ -436,7 +435,7 @@ public class SemiSupervised extends BaseClassifier{
 		return Utils.minOfArrayIndex(m_cProbs);
 	}
 	
-	//exp(-|c-f(u_i)|)/sum_j{exp(-|c-f(u_j))} j represents all unlabeled data
+	//p(c) * exp(-|c-f(u_i)|)/sum_j{exp(-|c-f(u_j))} j represents all unlabeled data
 	private int getLabel3(double pred){
 		double sum = 0;
 		// Calculate the probabilities of different classes.

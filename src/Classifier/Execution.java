@@ -48,12 +48,15 @@ public class Execution  {
 			((DocAnalyzer)analyzer).LoadStopwords(param.m_stopwords);
 			analyzer.LoadDirectory(param.m_folder, param.m_suffix); //Load all the documents as the data set.
 			analyzer.featureSelection(param.m_featureFile, param.m_featureSelection, param.m_startProb, param.m_endProb, param.m_DFthreshold); //Select the features.
-			analyzer.reset();//clear memory for future feature construction
+			//analyzer.reset();//clear memory for future feature construction
 		}
 		
 		//Collect vectors for documents.
 		System.out.println("Creating feature vectors, wait...");
-		
+		if(param.m_suffix.equals(".json")){
+			analyzer = new jsonAnalyzer(param.m_tokenModel, param.m_classNumber, param.m_featureFile, param.m_Ngram, param.m_lengthThreshold, stnModel);
+		}
+//		analyzer.setCVLoaded(analyzer.LoadCV(param.m_featureFile));
 		analyzer.LoadDirectory(param.m_folder, param.m_suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(param.m_featureValue, param.m_norm);
 		analyzer.setTimeFeatures(param.m_window);
@@ -92,8 +95,7 @@ public class Execution  {
 		} else if (param.m_style.equals("TRANS")) {
 			SemiSupervised mySemi = new SemiSupervised(corpus, param.m_classNumber, featureSize + param.m_window, param.m_model,
 					param.m_sampleRate, param.m_kUL, param.m_kUU, param.m_TLalpha, param.m_TLbeta);
-			//mySemi.crossValidation(param.m_CVFold, corpus);
-			mySemi.crossValidation2(param.m_CVFold, corpus);
+			mySemi.crossValidation(param.m_CVFold, corpus);
 			mySemi.printQQPlot();
 		} else if (param.m_style.equals("TM")) {
 			TopicModel model = null;

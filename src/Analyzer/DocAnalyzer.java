@@ -77,7 +77,7 @@ public class DocAnalyzer extends Analyzer {
 	}
 	
 	//Load the features from a file and store them in the m_featurNames.@added by Lin.
-	protected boolean LoadCV(String filename) {
+	public boolean LoadCV(String filename) {
 		if (filename==null || filename.isEmpty())
 			return false;
 		
@@ -105,6 +105,10 @@ public class DocAnalyzer extends Analyzer {
 		}
 		
 		return true; // if loading is successful
+	}
+	
+	public void setCVLoaded(boolean b){
+		m_isCVLoaded = b;
 	}
 	
 	public void LoadStopwords(String filename) {
