@@ -64,7 +64,7 @@ public class AmazonReviewMain {
 //		double spTrain = 0.2; //The start percentage of the train set. 
 //		double epTrain = 1.0; //The end percentage of the train set.
 		
-		//This part is used to verify the relationship between the number of reviews and ratings.		
+//		//This part is used to verify the relationship between the number of reviews and ratings.		
 //		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, featureLocation, Ngram, lengthThreshold);
 //		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 //		String excelPath = "./data/ReviewRating.xls";
@@ -83,7 +83,7 @@ public class AmazonReviewMain {
 			//analyzer.reset();
 		}
 		
-		//Collect vectors for documents.
+//		//Collect vectors for documents.
 		System.out.println("Creating feature vectors, wait...");
 		analyzer = new jsonAnalyzer(tokenModel, classNumber, featureFile, Ngram, lengthThreshold);
 //		analyzer.setReleaseContent( !(model.equals("PR") || debugOutput!=null) );//Just for debugging purpose: all the other classifiers do not need content
@@ -94,7 +94,7 @@ public class AmazonReviewMain {
 		int featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.returnCorpus(featureStat);
 		
-		//temporal code to add pagerank weights
+//		temporal code to add pagerank weights
 //		PageRank tmpPR = new PageRank(corpus, classNumber, featureSize + window, C, 100, 50, 1e-6);
 //		tmpPR.train(corpus.getCollection());
 		
@@ -128,7 +128,7 @@ public class AmazonReviewMain {
 			} else System.out.println("Classifier has not developed yet!");
 		} else if (style.equals("TRANS")) {
 			SemiSupervised mySemi = new SemiSupervised(corpus, classNumber, featureSize + window + 1, model);
-			mySemi.crossValidation(CVFold, corpus);
+			mySemi.crossValidationRW(CVFold, corpus);
 			//mySemi.printQQPlot();
 			
 		} else System.out.println("Learning paradigm has not developed yet!");

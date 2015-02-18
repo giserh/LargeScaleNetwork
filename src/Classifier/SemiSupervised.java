@@ -41,6 +41,8 @@ public class SemiSupervised extends BaseClassifier{
 	double m_discount = 0.5; // default similarity discount if across different products
 	double m_difference; //The difference between the previous labels and current labels.
 	PrintWriter m_writer;
+	double m_eta; //The parameter used in random. 
+	int[] m_Pmul; //The predicted results of multiple learner for all files in test set.
 	
 	//Default constructor without any default parameters.
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier){
@@ -55,6 +57,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_eta = 1;
 	}	
 	
 	//Constructor: given k and kPrime
@@ -70,6 +73,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_eta = 0.1;
 	}
 	
 	//Constructor: given k, kPrime, TLalpha and TLbeta
@@ -85,6 +89,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_eta = 0.1;
 	}
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double TLalhpa, double TLbeta){
 		super(c, classNumber, featureSize);
@@ -98,6 +103,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_difference = 100000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_eta = 0.1;
 	}
 	@Override
 	public String toString() {
@@ -160,18 +166,11 @@ public class SemiSupervised extends BaseClassifier{
 		return m_cache[encode(i,j)];
 	}
 	
-	//The random walk algorithm to generate new labels for unlabeled data.
-	//Take the average of all neighbors as the new label until they converge.
-	public double[] RandomWalk(double[] Y_U){
+	//Preprocess to set the cache.
+	public void RandomWalkPreprocess(){
 		double similarity = 0;
-		double [] PreResults = new double[Y_U.length];
-		for(int i = 0; i < Y_U.length; i++)
-			PreResults[i] = Y_U[i];
-		m_difference = 0;
-		
 		/*** Set up cache structure for efficient computation. ****/
 		initCache();
-
 		/*** pre-compute the full similarity matrix (except the diagonal). ****/
 		_Doc di, dj;
 		for (int i = 0; i < m_U; i++) {
@@ -192,7 +191,17 @@ public class SemiSupervised extends BaseClassifier{
 				setCache(i, m_U + j, similarity);
 			}
 		}
-
+	}
+	
+	//The random walk algorithm to generate new labels for unlabeled data.
+	//Take the average of all neighbors as the new label until they converge.
+	public double[] RandomWalk(double[] Y_U){
+		
+		double [] PreResults = new double[Y_U.length];
+		for(int i = 0; i < Y_U.length; i++)
+			PreResults[i] = Y_U[i];
+		m_difference = 0;
+		
 		/*** Set up structure for k nearest neighbors. ****/
 		m_kUU = new MyPriorityQueue<_RankItem>(m_kPrime);
 		m_kUL = new MyPriorityQueue<_RankItem>(m_k);
@@ -223,7 +232,7 @@ public class SemiSupervised extends BaseClassifier{
 				labelSum += n.m_value * m_labeled.get(n.m_index - m_U).getYLabel();
 			}
 			m_kUL.clear();
-			Y_U[i] = labelSum / wijSum;
+			Y_U[i] = m_eta * labelSum / wijSum + (1-m_eta) * m_Pmul[i];
 		}
 		
 		double [] AfterResults = Y_U;
@@ -242,17 +251,23 @@ public class SemiSupervised extends BaseClassifier{
 		m_Y = new double[m_U + m_L];
 		m_Y_U = new double[m_U];
 		double[] Y_U = new double[m_U];
-		for(int i = 0; i < m_U; i++){
-			Y_U[i] = m_classifier.predict(m_testSet.get(i));
+		m_Pmul = new int[m_U];
+		
+		//Before random walk, predict all unlabeled data according to the multiple learner.
+		for(int i = 0; i < m_testSet.size(); i++){
+			m_Pmul[i] = m_classifier.predict(m_testSet.get(i));
 		}
-		while(m_difference > 0){
+		//Set the cache which contains all similarities.
+		RandomWalkPreprocess(); 
+		//Initialize all the elements to be 0.
+		Arrays.fill(Y_U, 0);
+		while(Math.sqrt(m_difference) > 1e-4){
 			Y_U = RandomWalk(Y_U);
 		}
-		for(int i = 0; i < Y_U.length; i++){
-				m_TPTable[getLabel3(Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
-			}
 		m_Y_U = Y_U;
-		//Set the predicted label according to threshold.
+		for(int i = 0; i < Y_U.length; i++){
+			m_TPTable[getLabel1(Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
+		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 	}
 
@@ -387,7 +402,13 @@ public class SemiSupervised extends BaseClassifier{
 		}
 		//Set the predicted label according to threshold.
 		for(int i = 0; i < m_Y_U.length; i++){
+			int counter = 0;
 			int label = getLabel1(m_Y_U[i]);
+			int label2 = getLabel2(m_Y_U[i]);
+			System.out.print(label+"vs"+label2+"\t");
+			if(label!=label2) {//Check the difference between getLabel1 and getLabel2
+				System.out.print(counter+"\t"); counter++;
+			}
 			m_TPTable[label][m_testSet.get(i).getYLabel()] += 1;
 			m_debugOutput[i][10] = Integer.toString(m_testSet.get(i).getYLabel());
 			m_debugOutput[i][11] = Integer.toString(label);
@@ -475,6 +496,15 @@ public class SemiSupervised extends BaseClassifier{
 			m_cProbs[i] = Math.exp(-Math.abs(i - pred)) / denominators[i];
 		}
 		return Utils.maxOfArrayIndex(m_cProbs);
+	}
+	
+	//Use this to get the value of the similarity Wij.
+	public double calcWij(){
+		
+	}
+	//Use this to get the gradient of the similarity of Wij.
+	public double calcWijGradient(){
+		
 	}
 	@Override
 	protected void debug(_Doc d){} // no easy way to debug
