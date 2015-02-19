@@ -533,23 +533,26 @@ public class SemiSupervised extends BaseClassifier{
 	}
 	
 	//Use this to get the value of the similarity Wij.
-	public double calcWij(_Doc d1, _Doc d2){
+	public double calcWij(_Doc di, _Doc dj){
 		double Wij = 0, thetaD = 0;
-		_SparseFeature[] spVct1 = d1.getSparse();
-		_SparseFeature[] spVct2 = d2.getSparse();
-		int pointer1 = 0, pointer2 = 0;
-		while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
-			_SparseFeature temp1 = spVct1[pointer1];
-			_SparseFeature temp2 = spVct2[pointer2];
+		_SparseFeature[] spVcti = di.getSparse();
+		_SparseFeature[] spVctj = dj.getSparse();
+		int pointeri = 0, pointerj = 0;
+		while (pointeri < spVcti.length && pointerj < spVctj.length) {
+			_SparseFeature temp1 = spVcti[pointeri];
+			_SparseFeature temp2 = spVctj[pointerj];
 			if (temp1.getIndex() == temp2.getIndex()) {
 				thetaD = m_theta[temp1.getIndex()];
 				Wij += (temp1.getValue() - temp2.getValue()) * (temp1.getValue() - temp2.getValue()) / (thetaD * thetaD);
-				pointer1++;
-				pointer2++;
-			} else if (temp1.getIndex() > temp2.getIndex())
-				pointer2++;
-			else
-				pointer1++;
+				pointeri++;
+			} else if (temp1.getIndex() > temp2.getIndex()){
+				Wij += temp2.getValue() * temp2.getValue();
+				pointerj++;
+			}
+			else{
+				Wij += temp1.getValue() * temp1.getValue();
+				pointeri++;
+			}
 		}
 		Wij = Math.exp(-Wij);
 		return Wij;	
@@ -557,7 +560,31 @@ public class SemiSupervised extends BaseClassifier{
 	
 	//Use this to get the gradient of the similarity of Wij.
 	public double calcWijGradient(){
-		
+		double Wij = 0;
+		for(_Doc di: m_testSet){
+			for(_Doc dj: m_testSet){
+				_SparseFeature[] spVcti = di.getSparse();
+				_SparseFeature[] spVctj = dj.getSparse();
+				int pointeri = 0, pointerj = 0;
+				while (pointeri < spVcti.length && pointerj < spVctj.length) {
+					_SparseFeature temp1 = spVcti[pointeri];
+					_SparseFeature temp2 = spVctj[pointerj];
+					double thetaD = 0;
+					if (temp1.getIndex() == temp2.getIndex()) {
+						thetaD = m_theta[temp1.getIndex()];
+						m_g[temp1.getIndex()] = 2 * (temp1.getValue() - temp2.getValue()) * (temp1.getValue() - temp2.getValue()) / (thetaD * thetaD);
+						pointeri++;
+					} else if (temp1.getIndex() > temp2.getIndex()){
+						m_g[temp1.getIndex()] = temp2.getValue() * temp2.getValue() / ;
+						pointerj++;
+					}
+					else{
+						Wij += temp1.getValue() * temp1.getValue();
+						pointeri++;
+					}
+				
+			}
+		}
 	}
 	@Override
 	protected void debug(_Doc d){} // no easy way to debug
