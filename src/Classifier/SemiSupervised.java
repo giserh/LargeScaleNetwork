@@ -10,10 +10,14 @@ import java.util.Random;
 
 import javax.print.Doc;
 
+import LBFGS.LBFGS;
+import LBFGS.LBFGS.ExceptionWithIflag;
+
 import structures.MyPriorityQueue;
 import structures._Corpus;
 import structures._Doc;
 import structures._RankItem;
+import structures._SparseFeature;
 import utils.Utils;
 import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra;
@@ -44,6 +48,9 @@ public class SemiSupervised extends BaseClassifier{
 	double m_eta; //The parameter used in random. 
 	int[] m_Pmul; //The predicted results of multiple learner for all files in test set.
 	
+	protected double[] m_theta; //the parameter used in Zhu's calculating similarity.
+	protected double[] m_g;
+	protected double[] m_diag;
 	//Default constructor without any default parameters.
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
@@ -58,6 +65,9 @@ public class SemiSupervised extends BaseClassifier{
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
 		m_eta = 1;
+		m_theta = new double[featureSize];
+		m_g = new double[m_theta.length];
+		m_diag = new double[m_theta.length];
 	}	
 	
 	//Constructor: given k and kPrime
@@ -74,6 +84,9 @@ public class SemiSupervised extends BaseClassifier{
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
 		m_eta = 0.1;
+		m_theta = new double[featureSize];
+		m_g = new double[m_theta.length];
+		m_diag = new double[m_theta.length];
 	}
 	
 	//Constructor: given k, kPrime, TLalpha and TLbeta
@@ -90,7 +103,11 @@ public class SemiSupervised extends BaseClassifier{
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
 		m_eta = 0.1;
+		m_theta = new double[featureSize];
+		m_g = new double[m_theta.length];
+		m_diag = new double[m_theta.length];
 	}
+	
 	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double TLalhpa, double TLbeta){
 		super(c, classNumber, featureSize);
 		m_pY = new double[m_classNo];
@@ -104,6 +121,9 @@ public class SemiSupervised extends BaseClassifier{
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
 		m_eta = 0.1;
+		m_theta = new double[featureSize];
+		m_g = new double[m_theta.length];
+		m_diag = new double[m_theta.length];
 	}
 	@Override
 	public String toString() {
@@ -127,12 +147,26 @@ public class SemiSupervised extends BaseClassifier{
 	protected void init() {
 		m_labeled.clear();
 		Arrays.fill(m_pY, 0);
+		Arrays.fill(m_theta, 0);
 	}
 	
 	//Train the data set.
 	public void train(Collection<_Doc> trainSet){
+		m_classifier.train(trainSet);//Multiple learner.
+		
 		init();
-		m_classifier.train(trainSet);
+		int[] iflag = {0}, iprint = { -1, 3 };
+		double fValue;
+		int fSize = m_theta.length;
+		
+		try{
+			do {
+				fValue = calcWij(trainSet);
+				LBFGS.lbfgs(fSize, 6, m_theta, fValue, m_g, false, m_diag, iprint, 1e-4, 1e-20, iflag);
+			} while (iflag[0] != 0);
+		} catch (ExceptionWithIflag e){
+			e.printStackTrace();
+		}
 		
 		//Randomly pick some training documents as the labeled documents.
 		Random r = new Random();
@@ -499,9 +533,28 @@ public class SemiSupervised extends BaseClassifier{
 	}
 	
 	//Use this to get the value of the similarity Wij.
-	public double calcWij(){
-		
+	public double calcWij(_Doc d1, _Doc d2){
+		double Wij = 0, thetaD = 0;
+		_SparseFeature[] spVct1 = d1.getSparse();
+		_SparseFeature[] spVct2 = d2.getSparse();
+		int pointer1 = 0, pointer2 = 0;
+		while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
+			_SparseFeature temp1 = spVct1[pointer1];
+			_SparseFeature temp2 = spVct2[pointer2];
+			if (temp1.getIndex() == temp2.getIndex()) {
+				thetaD = m_theta[temp1.getIndex()];
+				Wij += (temp1.getValue() - temp2.getValue()) * (temp1.getValue() - temp2.getValue()) / (thetaD * thetaD);
+				pointer1++;
+				pointer2++;
+			} else if (temp1.getIndex() > temp2.getIndex())
+				pointer2++;
+			else
+				pointer1++;
+		}
+		Wij = Math.exp(-Wij);
+		return Wij;	
 	}
+	
 	//Use this to get the gradient of the similarity of Wij.
 	public double calcWijGradient(){
 		
