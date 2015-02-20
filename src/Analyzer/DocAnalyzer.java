@@ -95,16 +95,15 @@ public class DocAnalyzer extends Analyzer {
 					expandVocabulary(line);
 			}
 			reader.close();
-			
+			m_isCVLoaded = true;
 			System.out.format("%d feature words loaded from %s...\n", m_featureNames.size(), filename);
 			System.out.format("------------------------------------------------------------------------------------------------");
 			
+			return true; // if loading is successful
 		} catch (IOException e) {
 			System.err.format("[Error]Failed to open file %s!!", filename);
 			return false;
 		}
-		
-		return true; // if loading is successful
 	}
 	
 	public void setCVLoaded(boolean b){

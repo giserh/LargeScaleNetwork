@@ -48,7 +48,8 @@ public class Execution  {
 			((DocAnalyzer)analyzer).LoadStopwords(param.m_stopwords);
 			analyzer.LoadDirectory(param.m_folder, param.m_suffix); //Load all the documents as the data set.
 			analyzer.featureSelection(param.m_featureFile, param.m_featureSelection, param.m_startProb, param.m_endProb, param.m_DFthreshold); //Select the features.
-			//analyzer.reset();//clear memory for future feature construction
+			analyzer.reset();//clear memory for future feature construction
+			analyzer.LoadCV(param.m_featureFile);
 		}
 		
 		//Collect vectors for documents.
