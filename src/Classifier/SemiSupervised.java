@@ -61,10 +61,10 @@ public class SemiSupervised extends BaseClassifier{
 		m_M = 10000;
 		m_k = 100;
 		m_kPrime = 50;	
-		m_difference = 100000;
+		m_difference = 10000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
-		m_eta = 1;
+		m_eta = 0.1;
 		m_theta = new double[featureSize];
 		m_g = new double[m_theta.length];
 		m_diag = new double[m_theta.length];
@@ -80,7 +80,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_M = 10000;
 		m_k = k;
 		m_kPrime = kPrime;	
-		m_difference = 100000;
+		m_difference = 10000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
 		m_eta = 0.1;
@@ -99,7 +99,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_M = 10000;
 		m_k = k;
 		m_kPrime = kPrime;	
-		m_difference = 100000;
+		m_difference = 10000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
 		m_eta = 0.1;
@@ -117,7 +117,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_M = 10000;
 		m_k = k;
 		m_kPrime = kPrime;	
-		m_difference = 100000;
+		m_difference = 10000;
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
 		m_eta = 0.1;
@@ -155,6 +155,8 @@ public class SemiSupervised extends BaseClassifier{
 		m_classifier.train(trainSet);//Multiple learner.
 		
 		init();
+		
+		//Jerry Zhu's wij caculation.
 		int[] iflag = {0}, iprint = { -1, 3 };
 		double fValue;
 		int fSize = m_theta.length;
@@ -176,7 +178,6 @@ public class SemiSupervised extends BaseClassifier{
 				m_labeled.add(doc);
 			}
 		}
-		//m_classifier.train(m_labeled);
 	}
 	
 	private void initCache() {
@@ -286,7 +287,7 @@ public class SemiSupervised extends BaseClassifier{
 		m_Y_U = new double[m_U];
 		double[] Y_U = new double[m_U];
 		m_Pmul = new int[m_U];
-		
+		m_difference = 10000;
 		//Before random walk, predict all unlabeled data according to the multiple learner.
 		for(int i = 0; i < m_testSet.size(); i++){
 			m_Pmul[i] = m_classifier.predict(m_testSet.get(i));
@@ -300,7 +301,7 @@ public class SemiSupervised extends BaseClassifier{
 		}
 		m_Y_U = Y_U;
 		for(int i = 0; i < Y_U.length; i++){
-			m_TPTable[getLabel1(Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
+			m_TPTable[getLabel3(Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 	}
@@ -436,16 +437,17 @@ public class SemiSupervised extends BaseClassifier{
 		}
 		//Set the predicted label according to threshold.
 		for(int i = 0; i < m_Y_U.length; i++){
-			int counter = 0;
-			int label = getLabel1(m_Y_U[i]);
-			int label2 = getLabel2(m_Y_U[i]);
-			System.out.print(label+"vs"+label2+"\t");
-			if(label!=label2) {//Check the difference between getLabel1 and getLabel2
-				System.out.print(counter+"\t"); counter++;
-			}
-			m_TPTable[label][m_testSet.get(i).getYLabel()] += 1;
+// 			This part is used to debug whether getLabel1 is better than getLabel2.
+//			int counter = 0;
+//			int label = getLabel1(m_Y_U[i]);
+//			int label2 = getLabel2(m_Y_U[i]);
+//			System.out.print(label+"vs"+label2+"\t");
+//			if(label!=label2) {//Check the difference between getLabel1 and getLabel2
+//				System.out.print(counter+"\t"); counter++;
+//			}
+			m_TPTable[getLabel3(m_Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
 			m_debugOutput[i][10] = Integer.toString(m_testSet.get(i).getYLabel());
-			m_debugOutput[i][11] = Integer.toString(label);
+			m_debugOutput[i][11] = Integer.toString(getLabel3(m_Y_U[i]));
 			m_debugOutput[i][12] = m_testSet.get(i).getSource();
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
@@ -533,25 +535,25 @@ public class SemiSupervised extends BaseClassifier{
 	}
 	
 	//Use this to get the value of the similarity Wij.
-	public double calcWij(_Doc di, _Doc dj){
+	public double calcWij(_Doc d1, _Doc d2){
 		double Wij = 0, thetaD = 0;
-		_SparseFeature[] spVcti = di.getSparse();
-		_SparseFeature[] spVctj = dj.getSparse();
-		int pointeri = 0, pointerj = 0;
-		while (pointeri < spVcti.length && pointerj < spVctj.length) {
-			_SparseFeature temp1 = spVcti[pointeri];
-			_SparseFeature temp2 = spVctj[pointerj];
+		_SparseFeature[] spVct1 = d1.getSparse();
+		_SparseFeature[] spVct2= d2.getSparse();
+		int pointer1 = 0, pointer2 = 0;
+		while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
+			_SparseFeature temp1 = spVct1[pointer1];
+			_SparseFeature temp2 = spVct2[pointer2];
 			if (temp1.getIndex() == temp2.getIndex()) {
 				thetaD = m_theta[temp1.getIndex()];
 				Wij += (temp1.getValue() - temp2.getValue()) * (temp1.getValue() - temp2.getValue()) / (thetaD * thetaD);
-				pointeri++;
+				pointer1++;
 			} else if (temp1.getIndex() > temp2.getIndex()){
 				Wij += temp2.getValue() * temp2.getValue();
-				pointerj++;
+				pointer2++;
 			}
 			else{
 				Wij += temp1.getValue() * temp1.getValue();
-				pointeri++;
+				pointer1++;
 			}
 		}
 		Wij = Math.exp(-Wij);
@@ -559,30 +561,30 @@ public class SemiSupervised extends BaseClassifier{
 	}
 	
 	//Use this to get the gradient of the similarity of Wij.
-	public double calcWijGradient(){
+	public void calcWijGradient(){
 		double Wij = 0;
-		for(_Doc di: m_testSet){
-			for(_Doc dj: m_testSet){
-				_SparseFeature[] spVcti = di.getSparse();
-				_SparseFeature[] spVctj = dj.getSparse();
-				int pointeri = 0, pointerj = 0;
-				while (pointeri < spVcti.length && pointerj < spVctj.length) {
-					_SparseFeature temp1 = spVcti[pointeri];
-					_SparseFeature temp2 = spVctj[pointerj];
+		for(_Doc d1: m_testSet){
+			for(_Doc d2: m_testSet){
+				_SparseFeature[] spVct1 = d1.getSparse();
+				_SparseFeature[] spVct2 = d2.getSparse();
+				int pointer1 = 0, pointer2 = 0;
+				while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
+					_SparseFeature temp1 = spVct1[pointer1];
+					_SparseFeature temp2 = spVct2[pointer2];
 					double thetaD = 0;
 					if (temp1.getIndex() == temp2.getIndex()) {
 						thetaD = m_theta[temp1.getIndex()];
 						m_g[temp1.getIndex()] = 2 * (temp1.getValue() - temp2.getValue()) * (temp1.getValue() - temp2.getValue()) / (thetaD * thetaD);
-						pointeri++;
+						pointer1++;
 					} else if (temp1.getIndex() > temp2.getIndex()){
-						m_g[temp1.getIndex()] = temp2.getValue() * temp2.getValue() / ;
-						pointerj++;
+						m_g[temp1.getIndex()] = temp2.getValue() * temp2.getValue();
+						pointer2++;
 					}
 					else{
 						Wij += temp1.getValue() * temp1.getValue();
-						pointeri++;
-					}
-				
+						pointer1++;
+					}	
+				}
 			}
 		}
 	}

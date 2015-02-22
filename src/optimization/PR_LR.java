@@ -113,7 +113,7 @@ public class PR_LR extends ProjectedObjective {
 			else
 				m_phi_Z_x [2] = +3;
 			
-			m_phi_Z_x [3] = -4;// should it be -2
+			m_phi_Z_x [3] = -4;// should it be -2???
 			
 			if(m_p[4]<=m_p[3])
 				m_phi_Z_x [4] = -3;

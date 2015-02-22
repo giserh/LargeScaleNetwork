@@ -128,9 +128,7 @@ public class AmazonReviewMain {
 			} else System.out.println("Classifier has not developed yet!");
 		} else if (style.equals("TRANS")) {
 			SemiSupervised mySemi = new SemiSupervised(corpus, classNumber, featureSize + window + 1, model);
-			mySemi.crossValidationRW(CVFold, corpus);
-			//mySemi.printQQPlot();
-			
+			mySemi.crossValidation(CVFold, corpus);			
 		} else System.out.println("Learning paradigm has not developed yet!");
 	}
 }
