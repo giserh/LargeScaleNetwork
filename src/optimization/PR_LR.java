@@ -1,5 +1,9 @@
 package optimization;
 
+import optimization.gradientBasedMethods.ProjectedObjective;
+import optimization.projections.BoundsProjection;
+import optimization.projections.Projection;
+
 //import optimization.gradientBasedMethods.ProjectedObjective;
 //import optimization.projections.BoundsProjection;
 //import optimization.projections.Projection;

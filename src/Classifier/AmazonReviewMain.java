@@ -22,13 +22,17 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 		
 		//"NB", "LR", "SVM", "PR"
-		String model = "LR"; //Which classifier to use.
+		String supModel = "LR"; //Which classifier to use.
 		
 		//"SUP", "TRANS", "TM"
 		String style = "TRANS";
+		//"SM", "RW", "SG"
+		String transModel = "RW";
+		//?????
+		String topicModel = "";
 		//sampleRate, kUL, kUU, TLalpha, TLbeta are defined in SemiSupervised.java
 		System.out.println("------------------------------------------------------------------------------------------------");
-		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + model + "\nCross validation: " + CVFold);
+		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + supModel + "\nCross validation: " + CVFold);
 
 		/*****The parameters used in loading files.*****/
 		String folder = "./data/amazon/test01";
@@ -101,13 +105,13 @@ public class AmazonReviewMain {
 		/********Choose different classification methods.*********/
 		//Execute different classifiers.
 		if (style.equals("SUP")) {
-			if(model.equals("NB")){
+			if(supModel.equals("NB")){
 				//Define a new naive bayes with the parameters.
 				System.out.println("Start naive bayes, wait...");
 				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize + window + 1);
 				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
 				
-			} else if(model.equals("LR")){
+			} else if(supModel.equals("LR")){
 				//Define a new logistics regression with the parameters.
 				System.out.println("Start logistic regression, wait...");
 				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize + window + 1, C);
@@ -115,20 +119,34 @@ public class AmazonReviewMain {
 				System.out.format("---------------------------------------------------------------------\n");
 				myLR.crossValidation(CVFold, corpus);
 				//myLR.saveModel(modelPath + "LR.model");
-			} else if(model.equals("SVM")){
+			} else if(supModel.equals("SVM")){
 				System.out.println("Start SVM, wait...");
 				SVM mySVM = new SVM(corpus, classNumber, featureSize + window + 1, C);
 				mySVM.crossValidation(CVFold, corpus);
 				
-			} else if (model.equals("PR")){
+			} else if (supModel.equals("PR")){
 				System.out.println("Start PageRank, wait...");
 				PageRank myPR = new PageRank(corpus, classNumber, featureSize + window + 1, C, 100, 50, 1e-6);
 				myPR.train(corpus.getCollection());
 				
-			} else System.out.println("Classifier has not developed yet!");
+			} else System.out.println("This SUP classifier has not developed yet!");
 		} else if (style.equals("TRANS")) {
-			SemiSupervised mySemi = new SemiSupervised(corpus, classNumber, featureSize + window + 1, model);
-			mySemi.crossValidation(CVFold, corpus);			
+			if(transModel.equals("SM")){
+				System.out.println("Start SemiSupervised learning, wait...");
+				SemiSupervised mySM = new SemiSupervised(corpus, classNumber, featureSize + window + 1, supModel);
+				mySM.crossValidation(CVFold, corpus);
+				
+			} else if(transModel.equals("RW")){
+				System.out.println("Start Semi Randow Walk, wait...");
+				SemiRandomWalk myRW = new SemiRandomWalk(corpus, classNumber, featureSize + window + 1, supModel);
+				myRW.crossValidation(CVFold, corpus);
+				
+			} else if(transModel.equals("SG")){
+				System.out.println("Start Semi Gaussian learning, wait...");
+				SemiGaussian mySG = new SemiGaussian(corpus, classNumber, featureSize + window + 1, supModel);
+				mySG.crossValidation(CVFold, corpus);
+				
+			} else System.out.println("This TRANS classifier has not developed yet!!");
 		} else System.out.println("Learning paradigm has not developed yet!");
 	}
 }

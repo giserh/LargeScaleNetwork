@@ -7,6 +7,16 @@ import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.Collection;
 
+import optimization.PR_LR;
+import optimization.gradientBasedMethods.ProjectedGradientDescent;
+import optimization.gradientBasedMethods.stats.OptimizerStats;
+import optimization.linesearch.ArmijoLineSearchMinimizationAlongProjectionArc;
+import optimization.linesearch.InterpolationPickFirstStep;
+import optimization.linesearch.LineSearchMethod;
+import optimization.stopCriteria.CompositeStopingCriteria;
+import optimization.stopCriteria.ProjectedGradientL2Norm;
+import optimization.stopCriteria.StopingCriteria;
+
 import LBFGS.LBFGS;
 import LBFGS.LBFGS.ExceptionWithIflag;
 

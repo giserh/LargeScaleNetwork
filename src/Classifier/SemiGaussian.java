@@ -1,5 +1,4 @@
 package Classifier;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -23,7 +22,7 @@ import cern.colt.matrix.tdouble.DoubleMatrix2D;
 import cern.colt.matrix.tdouble.algo.DenseDoubleAlgebra;
 import cern.colt.matrix.tdouble.impl.SparseDoubleMatrix2D;
 
-public class SemiSupervised extends BaseClassifier{
+public class SemiGaussian extends BaseClassifier{
 	protected double[] m_pY;//p(Y), the probabilities of different classes.
 	protected double m_labelRatio; // percentage of training data for semi-supervised learning
 	protected double m_TLalpha; //Weight coefficient between unlabeled node and labeled node.
@@ -32,11 +31,10 @@ public class SemiSupervised extends BaseClassifier{
 	protected int m_k; // k labeled nodes.
 	protected int m_kPrime;//k' unlabeled nodes.
 	protected double m_discount = 0.5; // default similarity discount if across different products
-	protected double[][] m_QQplot;
-	
+
 	private int m_U, m_L; 
 	private double[] m_Y; //The predicted labels for both labeled and unlabeled data.
-	private double[] m_Y_U;//The predicted labels for unlabeled data.
+//	private double[] m_Y_U;//The predicted labels for unlabeled data.
 	private String[][] m_debugOutput;//The two dimension array is used to represent the debug output for all unlabeled data.
 	private double[] m_cache; // cache the similarity computation results given the similarity metric is symmetric
 	protected MyPriorityQueue<_RankItem> m_kUL, m_kUU; // k nearest neighbors for Unlabeled-Labeled and Unlabeled-Unlabeled
@@ -45,8 +43,17 @@ public class SemiSupervised extends BaseClassifier{
 	protected BaseClassifier m_classifier; //Multiple learner.	
 	protected PrintWriter m_writer;
 	
+	/**the parameter used in Zhu's calculating similarity, we want to train it during the training process.***/
+	protected double[] m_sigma; 
+	protected double[] m_g;
+	protected double[] m_diag;
+	protected double[][] m_Wij;
+	protected double[][] m_g_Wij;
+	protected double[][] m_Pij;
+	protected double[][] m_PijGradient;
+	
 	//Default constructor without any default parameters.
-	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier){
+	public SemiGaussian(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
 		m_pY = new double[m_classNo];
 		m_labelRatio = 0.1;
@@ -57,10 +64,13 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = 50;	
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_sigma = new double[featureSize];
+		m_g = new double[m_sigma.length];
+		m_diag = new double[m_sigma.length];
 	}	
 	
 	//Constructor: given k and kPrime
-	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, int k, int kPrime){
+	public SemiGaussian(_Corpus c, int classNumber, int featureSize, String classifier, int k, int kPrime){
 		super(c, classNumber, featureSize);
 		m_pY = new double[m_classNo];
 		m_labelRatio = 0.1;
@@ -71,10 +81,13 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = kPrime;	
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_sigma = new double[featureSize];
+		m_g = new double[m_sigma.length];
+		m_diag = new double[m_sigma.length];
 	}
 	
 	//Constructor: given k, kPrime, TLalpha and TLbeta
-	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, int k, int kPrime, double TLalhpa, double TLbeta){
+	public SemiGaussian(_Corpus c, int classNumber, int featureSize, String classifier, int k, int kPrime, double TLalhpa, double TLbeta){
 		super(c, classNumber, featureSize);
 		m_pY = new double[m_classNo];
 		m_labelRatio = 0.1;
@@ -85,9 +98,12 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = kPrime;	
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_sigma = new double[featureSize];
+		m_g = new double[m_sigma.length];
+		m_diag = new double[m_sigma.length];
 	}
 	
-	public SemiSupervised(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double TLalhpa, double TLbeta){
+	public SemiGaussian(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double TLalhpa, double TLbeta){
 		super(c, classNumber, featureSize);
 		m_pY = new double[m_classNo];
 		m_labelRatio = ratio;
@@ -98,6 +114,9 @@ public class SemiSupervised extends BaseClassifier{
 		m_kPrime = kPrime;	
 		m_labeled = new ArrayList<_Doc>();
 		setClassifier(classifier);
+		m_sigma = new double[featureSize];
+		m_g = new double[m_sigma.length];
+		m_diag = new double[m_sigma.length];
 	}
 	@Override
 	public String toString() {
@@ -120,22 +139,8 @@ public class SemiSupervised extends BaseClassifier{
 	@Override
 	protected void init() {
 		m_labeled.clear();
-		Arrays.fill(m_pY, 0);
-	}
-	
-	//Train the data set.
-	public void train(Collection<_Doc> trainSet){
-		m_classifier.train(trainSet);//Multiple learner.		
-		init();
-
-		//Randomly pick some training documents as the labeled documents.
-		Random r = new Random();
-		for (_Doc doc: trainSet){
-			m_pY[doc.getYLabel()]++;
-			if(r.nextDouble()<m_labelRatio){
-				m_labeled.add(doc);
-			}
-		}
+//		Arrays.fill(m_pY, 0);
+		Arrays.fill(m_sigma, 1);
 	}
 	
 	private void initCache() {
@@ -159,52 +164,125 @@ public class SemiSupervised extends BaseClassifier{
 		return m_cache[encode(i,j)];
 	}
 	
-	//Preprocess to set the cache.
-	public void RandomWalkPreprocess(){
-		double similarity = 0;
-		/*** Set up cache structure for efficient computation. ****/
-		initCache();
-		/*** pre-compute the full similarity matrix (except the diagonal). ****/
-		_Doc di, dj;
-		for (int i = 0; i < m_U; i++) {
-			di = m_testSet.get(i);
-			for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
-				dj = m_testSet.get(j);
-				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
-				if (!di.sameProduct(dj))
-					similarity *= m_discount;// differentiate reviews from different products
-				setCache(i, j, similarity);
-			}
-
-			for (int j = 0; j < m_L; j++) {
-				dj = m_labeled.get(j);
-				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
-				if (!di.sameProduct(m_labeled.get(j)))
-					similarity *= m_discount;// differentiate reviews from different products
-				setCache(i, m_U + j, similarity);
+	//This train is used to train the sigma in Jerry Zhu's 
+	public void train(Collection<_Doc> trainSet){
+		m_classifier.train(trainSet);//Multiple learner.
+		init();
+		
+		//Jerry Zhu's wij caculation.
+		int[] iflag = {0}, iprint = { -1, 3 };
+		double fValue;
+		int fSize = m_sigma.length;
+		
+		try{
+			do {
+				fValue = calcH(trainSet);
+				LBFGS.lbfgs(fSize, 6, m_sigma, fValue, m_g, false, m_diag, iprint, 1e-4, 1e-20, iflag);
+			} while (iflag[0] != 0);
+		} catch (ExceptionWithIflag e){
+			e.printStackTrace();
+		}
+		
+		//Randomly pick some training documents as the labeled documents.
+		Random r = new Random();
+		for (_Doc doc: trainSet){
+//			m_pY[doc.getYLabel()]++;
+			if(r.nextDouble()<m_labelRatio){
+				m_labeled.add(doc);
 			}
 		}
 	}
 	
+	public void propress(){
+		
+	}
+	
+	//Calculate the value of entropy H.
+	public double calcH() {
+		double fValue = 0;
+		for(int i = 0; i < m_U; i++){
+			
+		}
+		return fValue;
+	}
+
+	//Calculate the gradient of H with respect to the sigma_d.
+	public void calcHGradient() {
+
+	}
+
+	//Calcualte the value of the similarity Wij.
+	public double calcWij(_Doc d1, _Doc d2) {
+		double Wij = 0, sigmaD = 0;
+		_SparseFeature[] spVct1 = d1.getSparse();
+		_SparseFeature[] spVct2 = d2.getSparse();
+		int pointer1 = 0, pointer2 = 0;
+		while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
+			_SparseFeature temp1 = spVct1[pointer1];
+			_SparseFeature temp2 = spVct2[pointer2];
+			if (temp1.getIndex() == temp2.getIndex()) {
+				sigmaD = m_sigma[temp1.getIndex()];
+				Wij += (temp1.getValue() - temp2.getValue())* (temp1.getValue() - temp2.getValue()) / (sigmaD * sigmaD);
+				pointer1++;
+			} else if (temp1.getIndex() > temp2.getIndex()) {
+				sigmaD = m_sigma[temp2.getIndex()];
+				Wij += temp2.getValue() * temp2.getValue() / (sigmaD * sigmaD);
+				pointer2++;
+			} else {
+				sigmaD = m_sigma[temp1.getIndex()];
+				Wij += temp1.getValue() * temp1.getValue() / (sigmaD * sigmaD);
+				pointer1++;
+			}
+		}
+		Wij = Math.exp(-Wij);
+		return Wij;
+	}
+	
+	//Use this to get the gradient of the similarity of Wij.
+	public void calcWijGradient() {
+		double Wij = 0;
+		for (_Doc d1 : m_testSet) {
+			for (_Doc d2 : m_testSet) {
+				_SparseFeature[] spVct1 = d1.getSparse();
+				_SparseFeature[] spVct2 = d2.getSparse();
+				int pointer1 = 0, pointer2 = 0;
+				while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
+					_SparseFeature temp1 = spVct1[pointer1];
+					_SparseFeature temp2 = spVct2[pointer2];
+					double thetaD = 0;
+					if (temp1.getIndex() == temp2.getIndex()) {
+						thetaD = m_sigma[temp1.getIndex()];
+						m_g[temp1.getIndex()] = 2 * (temp1.getValue() - temp2.getValue())	* (temp1.getValue() - temp2.getValue()) / (thetaD * thetaD);
+						pointer1++;
+					} else if (temp1.getIndex() > temp2.getIndex()) {
+						m_g[temp1.getIndex()] = temp2.getValue()
+								* temp2.getValue();
+						pointer2++;
+					} else {
+						Wij += temp1.getValue() * temp1.getValue();
+						pointer1++;
+					}
+				}
+			}
+		}
+	}
+	
+	
+	
 	//Test the data set, including the transductive learning process.
 	public void test() throws FileNotFoundException{
-		double similarity = 0, average = 0, sd = 0;
+		double similarity = 0;
 		m_L = m_labeled.size();
 		m_U = m_testSet.size();
 		m_Y = new double[m_U + m_L];
-		m_Y_U = new double[m_U];
 		m_debugOutput = new String[m_U][13];
-		m_QQplot = new double[m_U][4];
-		double[] simi_U = new double[m_U];
-		double[] simi_L = new double[m_L];
+
 		/*** Set up cache structure for efficient computation. ****/
 		initCache();
 
 		/*** pre-compute the full similarity matrix (except the diagonal). ****/
 		_Doc di, dj;
 		for (int i = 0; i < m_U; i++) {
-			Arrays.fill(simi_U, 0);
-			Arrays.fill(simi_L, 0);
 			di = m_testSet.get(i);
 			
 			for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
@@ -215,17 +293,6 @@ public class SemiSupervised extends BaseClassifier{
 				setCache(i, j, similarity);
 				setCache(j, i, similarity);
 			}
-			for(int k = 0; k < m_U; k++){
-				if (k != i){
-					if(k > i)
-						simi_U[k] = getCache(i, k);
-					else simi_U[k] = getCache(k, i);
-				}
-			}
-			average = Utils.averageOfArray(simi_U);
-			sd = Utils.sdOfArray(simi_U, average);
-			m_QQplot[i][0] = average;
-			m_QQplot[i][1] = sd;
 			
 			for (int j = 0; j < m_L; j++) {
 				dj = m_labeled.get(j);
@@ -235,13 +302,6 @@ public class SemiSupervised extends BaseClassifier{
 				setCache(i, m_U + j, similarity);
 				setCache(m_U + j, i, similarity);
 			}
-			for(int k = m_U; k < m_U + m_L; k++){
-					simi_L[k-m_U] = getCache(i, k);
-			}
-			average = Utils.averageOfArray(simi_U);
-			sd = Utils.sdOfArray(simi_U, average);
-			m_QQplot[i][2] = average;
-			m_QQplot[i][3] = sd;
 		}
 		SparseDoubleMatrix2D mat = new SparseDoubleMatrix2D(m_U + m_L, m_U	+ m_L);
 		/*** Set up structure for k nearest neighbors. ****/
@@ -322,29 +382,16 @@ public class SemiSupervised extends BaseClassifier{
 			m_debugOutput[i][11] = Integer.toString(getLabel3(m_Y_U[i]));
 			m_debugOutput[i][12] = m_testSet.get(i).getSource();
 		}
-		
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 		Debugoutput();
 	}
 	
-	//Print out the avg and sd of wij of unlabeled data and labeled data.
-	public void printQQPlot() throws FileNotFoundException{	
-		PrintWriter writer = new PrintWriter(new File("./data/QQplot.dat"));
-		writer.print("Unlabeled\tU_avg\tU_sd\tL_avg\tL_sd");
-		writer.println();
-		for(int i = 0; i < m_U; i++){
-			writer.print("U["+i+"]\t"+m_QQplot[i][0]+"\t"+m_QQplot[i][1]+"\t"+m_QQplot[i][2]+"\t"+m_QQplot[i][3]+"\n");
-		}
-		writer.close();
-	}
-	
 	//Print out the debug info, the true label, the predicted label, the content. Its k and k' neighbors.
 	public void Debugoutput() throws FileNotFoundException{
-		PrintWriter writer = new PrintWriter(new File("./data/DebugOutput.txt"));
-		//writer.print("U[i]\tTrueLabel\tPredictedLabel\tTop5UnlabeledData\t\t\t\t\tTop5LabeledData\t\t\t\t\tContent\n");
+		PrintWriter writer = new PrintWriter(new File("./data/DebugOutput.xls"));
+		writer.print("U[i]\tTrueLabel\tPredictedLabel\tTop5UnlabeledData\t\t\t\t\tTop5LabeledData\t\t\t\t\tContent\n");
 		for(int i = 0; i < m_debugOutput.length; i++){
-			writer.write(String.format("ProdID: %s\t True Label: %d\t Predicted Label: %d\n"));
-			writer.write(m_testSet.get(i).getSource());
+			writer.write(i+"\t");
 			for(int j = 0; j < 13; j++){
 				writer.write(m_debugOutput[i][j]+"\t");
 			}
@@ -358,13 +405,6 @@ public class SemiSupervised extends BaseClassifier{
 		for(int i=0; i<m_classNo; i++)
 			m_cProbs[i] = -Math.abs(i-pred); //-|c-p(c)|
 		return Utils.maxOfArrayIndex(m_cProbs);
-	}
-	
-	//This is the second getLabel: |c-p(c)|
-	private int getLabel2(double pred) {
-		for(int i=0; i<m_classNo; i++)
-			m_cProbs[i] = Math.abs(i-pred); //|c-p(c)|
-		return Utils.minOfArrayIndex(m_cProbs);
 	}
 	
 	//p(c) * exp(-|c-f(u_i)|)/sum_j{exp(-|c-f(u_j))} j represents all unlabeled data
@@ -388,38 +428,12 @@ public class SemiSupervised extends BaseClassifier{
 		return Utils.maxOfArrayIndex(m_cProbs);
 	}
 	
-	//exp(-|c-f(u_i)|)/sum_j{exp(-|c-f(u_j))} j represents all unlabeled data, without class probabilities.
-	private int getLabel4(double pred) {
-		double sum = 0;
-		// Calculate the probabilities of different classes.
-		for (int i = 0; i < m_classNo; i++) {
-			sum += m_pY[i];
-		}
-		for (int i = 0; i < m_classNo; i++) {
-			m_pY[i] = m_pY[i] / sum;
-		}
-		// Calculate the denominator first.
-		double[] denominators = new double[m_classNo];
-		for (int i = 0; i < m_classNo; i++) {
-			for (int j = 0; j < m_U; j++) {
-				denominators[i] += Math.exp(-Math.abs(i - m_Y_U[j]));
-			}
-			m_cProbs[i] = Math.exp(-Math.abs(i - pred)) / denominators[i];
-		}
-		return Utils.maxOfArrayIndex(m_cProbs);
-	}
-	
 	@Override
 	protected void debug(_Doc d){} // no easy way to debug
 	
 	@Override
-	public int predict(_Doc doc) {
-		return -1; //we don't support this
-	}
+	public int predict(_Doc doc) { return -1;}//we don't support this
 	
-	//Save the parameters for classification.
 	@Override
-	public void saveModel(String modelLocation){
-		
-	}
+	public void saveModel(String modelLocation){}//Save the parameters for classification.
 }

@@ -50,7 +50,6 @@ public abstract class BaseClassifier {
 //		writer.close();
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 	}
-	public void RWtest(){}
 	
 	// Constructor with parameters.
 	public BaseClassifier(_Corpus c, int class_number, int featureSize) {
@@ -126,31 +125,6 @@ public abstract class BaseClassifier {
 		System.out.format("The final result is as follows: The total number of classes is %d.\n", m_classNo);
 		printConfusionMat();
 		System.out.println("---------------------------------------------------------------------");
-	}
-	
-	//k-fold cross validation.
-	public void crossValidationRW(int k, _Corpus c) {
-		c.shuffle(k);
-		int[] masks = c.getMasks();
-		ArrayList<_Doc> docs = c.getCollection();
-		
-		//Use this loop to iterate all the ten folders, set the train set and test set.
-		for (int i = 0; i < k; i++) {
-			for (int j = 0; j < masks.length; j++) {
-				if( masks[j]==i ) 
-					m_testSet.add(docs.get(j));
-				else 
-					m_trainSet.add(docs.get(j));
-			}
-	
-			long start = System.currentTimeMillis();
-			train();
-			RWtest();
-			System.out.format("%s Train/Test finished in %.2f seconds.\n", this.toString(), (System.currentTimeMillis() - start) / 1000.0);
-			m_trainSet.clear();
-			m_testSet.clear();
-		}
-		calculateMeanVariance(m_precisionsRecalls);	
 	}
 
 	//Cross Validation to verify if the order matters in classifers. We need the start point and end point to split the trainging and testing dataset.
