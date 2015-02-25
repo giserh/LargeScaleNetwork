@@ -344,7 +344,7 @@ public class SemiSupervised extends BaseClassifier{
 		//writer.print("U[i]\tTrueLabel\tPredictedLabel\tTop5UnlabeledData\t\t\t\t\tTop5LabeledData\t\t\t\t\tContent\n");
 		for(int i = 0; i < m_debugOutput.length; i++){
 			writer.write(String.format("ProdID: %s\t True Label: %d\t Predicted Label: %d\n"));
-			writer.write(m_testSet.get(i).getSource());
+			writer.write(m_testSet.get(i).getSource()+"\n"+"Top5Unlabled: ");
 			for(int j = 0; j < 13; j++){
 				writer.write(m_debugOutput[i][j]+"\t");
 			}
