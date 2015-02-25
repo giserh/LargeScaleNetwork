@@ -34,7 +34,7 @@ public class SemiGaussian extends BaseClassifier{
 
 	private int m_U, m_L; 
 	private double[] m_Y; //The predicted labels for both labeled and unlabeled data.
-//	private double[] m_Y_U;//The predicted labels for unlabeled data.
+	private double[] m_Y_U;//The predicted labels for unlabeled data. Init
 	private String[][] m_debugOutput;//The two dimension array is used to represent the debug output for all unlabeled data.
 	private double[] m_cache; // cache the similarity computation results given the similarity metric is symmetric
 	protected MyPriorityQueue<_RankItem> m_kUL, m_kUU; // k nearest neighbors for Unlabeled-Labeled and Unlabeled-Unlabeled
@@ -174,14 +174,14 @@ public class SemiGaussian extends BaseClassifier{
 		double fValue;
 		int fSize = m_sigma.length;
 		
-		try{
-			do {
-				fValue = calcH(trainSet);
-				LBFGS.lbfgs(fSize, 6, m_sigma, fValue, m_g, false, m_diag, iprint, 1e-4, 1e-20, iflag);
-			} while (iflag[0] != 0);
-		} catch (ExceptionWithIflag e){
-			e.printStackTrace();
-		}
+//		try{
+//			do {
+//				fValue = calcH(trainSet);
+//				LBFGS.lbfgs(fSize, 6, m_sigma, fValue, m_g, false, m_diag, iprint, 1e-4, 1e-20, iflag);
+//			} while (iflag[0] != 0);
+//		} catch (ExceptionWithIflag e){
+//			e.printStackTrace();
+//		}
 		
 		//Randomly pick some training documents as the labeled documents.
 		Random r = new Random();

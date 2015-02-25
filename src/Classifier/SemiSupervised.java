@@ -38,6 +38,7 @@ public class SemiSupervised extends BaseClassifier{
 	private double[] m_Y; //The predicted labels for both labeled and unlabeled data.
 	private double[] m_Y_U;//The predicted labels for unlabeled data.
 	private String[][] m_debugOutput;//The two dimension array is used to represent the debug output for all unlabeled data.
+	private _RankItem[] top10;
 	private double[] m_cache; // cache the similarity computation results given the similarity metric is symmetric
 	protected MyPriorityQueue<_RankItem> m_kUL, m_kUU; // k nearest neighbors for Unlabeled-Labeled and Unlabeled-Unlabeled
 	protected ArrayList<_Doc> m_labeled; // a subset of training set
@@ -159,33 +160,6 @@ public class SemiSupervised extends BaseClassifier{
 		return m_cache[encode(i,j)];
 	}
 	
-	//Preprocess to set the cache.
-	public void RandomWalkPreprocess(){
-		double similarity = 0;
-		/*** Set up cache structure for efficient computation. ****/
-		initCache();
-		/*** pre-compute the full similarity matrix (except the diagonal). ****/
-		_Doc di, dj;
-		for (int i = 0; i < m_U; i++) {
-			di = m_testSet.get(i);
-			for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
-				dj = m_testSet.get(j);
-				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
-				if (!di.sameProduct(dj))
-					similarity *= m_discount;// differentiate reviews from different products
-				setCache(i, j, similarity);
-			}
-
-			for (int j = 0; j < m_L; j++) {
-				dj = m_labeled.get(j);
-				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
-				if (!di.sameProduct(m_labeled.get(j)))
-					similarity *= m_discount;// differentiate reviews from different products
-				setCache(i, m_U + j, similarity);
-			}
-		}
-	}
-	
 	//Test the data set, including the transductive learning process.
 	public void test() throws FileNotFoundException{
 		double similarity = 0, average = 0, sd = 0;
@@ -250,6 +224,11 @@ public class SemiSupervised extends BaseClassifier{
 		/**** Construct the C+scale*\Delta matrix and Y vector. ****/
 		double scale = -m_TLalpha / (m_k + m_TLbeta * m_kPrime), sum, value;
 		for (int i = 0; i < m_U; i++) {
+			//The basic info for the unlabeled data.
+			m_debugOutput[i][0] = m_testSet.get(i).getItemID();
+			m_debugOutput[i][1] = m_testSet.get(i).getSource();
+			m_debugOutput[i][2] = Integer.toString(m_testSet.get(i).getYLabel());
+
 			// set the part of unlabeled nodes. U-U
 			for (int j = 0; j < m_U; j++) {
 				if (j == i)
@@ -269,7 +248,7 @@ public class SemiSupervised extends BaseClassifier{
 			while(topK < 5){
 				_RankItem n = m_kUU.elementAt(topK);
 				_Doc d = m_testSet.get(n.m_index);
-				m_debugOutput[i][topK]= Integer.toString(d.getYLabel());
+				m_debugOutput[i][topK+3]= Integer.toString(d.getYLabel())+","+Double.toString(n.m_value);
 				topK++;
 			}
 			m_kUU.clear();
@@ -288,7 +267,7 @@ public class SemiSupervised extends BaseClassifier{
 			while(topK < 5){
 				_RankItem n = m_kUL.elementAt(topK);
 				_Doc d = m_trainSet.get((n.m_index-m_U));
-				m_debugOutput[i][topK+5]= Integer.toString(d.getYLabel());
+				m_debugOutput[i][topK+8]= Integer.toString(d.getYLabel())+","+Double.toString(n.m_value);
 				topK++;
 			}
 			m_kUL.clear();
@@ -318,11 +297,8 @@ public class SemiSupervised extends BaseClassifier{
 		//Set the predicted label according to threshold.
 		for(int i = 0; i < m_Y_U.length; i++){
 			m_TPTable[getLabel3(m_Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
-			m_debugOutput[i][10] = Integer.toString(m_testSet.get(i).getYLabel());
-			m_debugOutput[i][11] = Integer.toString(getLabel3(m_Y_U[i]));
-			m_debugOutput[i][12] = m_testSet.get(i).getSource();
+			m_debugOutput[i][13] = Integer.toString(getLabel3(m_Y_U[i]));
 		}
-		
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 		Debugoutput();
 	}
@@ -340,14 +316,13 @@ public class SemiSupervised extends BaseClassifier{
 	
 	//Print out the debug info, the true label, the predicted label, the content. Its k and k' neighbors.
 	public void Debugoutput() throws FileNotFoundException{
-		PrintWriter writer = new PrintWriter(new File("./data/DebugOutput.txt"));
+		PrintWriter writer = new PrintWriter(new File("./data/DebugOutput.dat"));
 		//writer.print("U[i]\tTrueLabel\tPredictedLabel\tTop5UnlabeledData\t\t\t\t\tTop5LabeledData\t\t\t\t\tContent\n");
 		for(int i = 0; i < m_debugOutput.length; i++){
-			writer.write(String.format("ProdID: %s\t True Label: %d\t Predicted Label: %d\n"));
+			writer.write(String.format("ProdID: %s\nContent: %s\nTrue Label: %s\tPredicted Label: %s\n", m_debugOutput[i][0], m_debugOutput[i][1], m_debugOutput[i][2], m_debugOutput[i][13]));
+			writer.write(String.format("Top5 Unlabeled data: %s\t%s\t%s\t%s\t%s\t%s",m_debugOutput[i][0], m_debugOutput[i][0], m_debugOutput[i][0], m_debugOutput[i][0], m_debugOutput[i][0] ));
 			writer.write(m_testSet.get(i).getSource()+"\n"+"Top5Unlabled: ");
-			for(int j = 0; j < 13; j++){
-				writer.write(m_debugOutput[i][j]+"\t");
-			}
+			
 			writer.write("\n");
 		}
 		writer.close();
