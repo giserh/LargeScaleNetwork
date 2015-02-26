@@ -36,18 +36,13 @@ public abstract class BaseClassifier {
 	protected abstract void debug(_Doc d);
 	
 	public void test() throws FileNotFoundException{
-//		i++;
-//		PrintWriter writer = new PrintWriter(new File("./data/DebugOutput"+i+".dat"));
-//		writer.write("DocID\t"+"True Label\t"+"Predicted Label\t\t"+"Content\n");
 		for(_Doc doc: m_testSet){
 			doc.setPredictLabel(predict(doc)); //Set the predict label according to the probability of different classes.
 			int pred = doc.getPredictLabel(), ans = doc.getYLabel();
 			m_TPTable[pred][ans] += 1; //Compare the predicted label and original label, construct the TPTable.
-//			writer.write(doc.getID()+"\t"+doc.getYLabel()+"\t"+doc.getPredictLabel()+"\t"+doc.getSource()+"\n");
 			if (m_debugOutput!=null && pred != ans)
 				debug(doc);
 		}
-//		writer.close();
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 	}
 	

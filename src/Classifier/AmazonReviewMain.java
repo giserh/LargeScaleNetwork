@@ -22,12 +22,12 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 		
 		//"NB", "LR", "SVM", "PR"
-		String supModel = "LR"; //Which classifier to use.
+		String supModel = "PRLR"; //Which classifier to use.
 		
 		//"SUP", "TRANS", "TM"
-		String style = "TRANS";
+		String style = "SUP";
 		//"SM", "RW", "SG"
-		String transModel = "RW";
+		String transModel = "SM";
 		//?????
 		String topicModel = "";
 		//sampleRate, kUL, kUU, TLalpha, TLbeta are defined in SemiSupervised.java
@@ -119,15 +119,21 @@ public class AmazonReviewMain {
 				System.out.format("---------------------------------------------------------------------\n");
 				myLR.crossValidation(CVFold, corpus);
 				//myLR.saveModel(modelPath + "LR.model");
-			} else if(supModel.equals("SVM")){
+				}
+				else if(supModel.equals("PR")){
+					System.out.println("Start PageRank, wait...");
+					PageRank myPR = new PageRank(corpus, classNumber, featureSize + window + 1, C, 100, 50, 1e-6);
+					myPR.train(corpus.getCollection());
+				}
+				else if(supModel.equals("SVM")){
 				System.out.println("Start SVM, wait...");
 				SVM mySVM = new SVM(corpus, classNumber, featureSize + window + 1, C);
 				mySVM.crossValidation(CVFold, corpus);
+				} else if (supModel.equals("PRLR")){
 				
-			} else if (supModel.equals("PR")){
-				System.out.println("Start PageRank, wait...");
-				PageRank myPR = new PageRank(corpus, classNumber, featureSize + window + 1, C, 100, 50, 1e-6);
-				myPR.train(corpus.getCollection());
+				System.out.println("Start PR LR, wait...");
+				PRLogisticRegression myPRLR = new PRLogisticRegression(corpus, classNumber, featureSize + window + 1);
+				myPRLR.crossValidation(CVFold, corpus);
 				
 			} else System.out.println("This SUP classifier has not developed yet!");
 		} else if (style.equals("TRANS")) {
@@ -135,7 +141,7 @@ public class AmazonReviewMain {
 				System.out.println("Start SemiSupervised learning, wait...");
 				SemiSupervised mySM = new SemiSupervised(corpus, classNumber, featureSize + window + 1, supModel);
 				mySM.crossValidation(CVFold, corpus);
-				
+				mySM.setDebugOutput(debugOutput);
 			} else if(transModel.equals("RW")){
 				System.out.println("Start Semi Randow Walk, wait...");
 				SemiRandomWalk myRW = new SemiRandomWalk(corpus, classNumber, featureSize + window + 1, supModel);

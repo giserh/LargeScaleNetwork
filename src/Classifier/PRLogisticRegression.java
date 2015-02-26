@@ -78,7 +78,7 @@ public class PRLogisticRegression extends BaseClassifier {
 		try{
 			do {
 				fValue = calcFuncGradient(trainSet);
-				LBFGS.lbfgs(fSize, 6, m_beta, fValue, m_g, false, m_diag, iprint, 1e-4, 1e-20, iflag);
+				LBFGS.lbfgs(fSize, 7, m_beta, fValue, m_g, false, m_diag, iprint, 1e-4, 1e-10, iflag);
 			} while (iflag[0] != 0);
 		} catch (ExceptionWithIflag e){
 			e.printStackTrace();
@@ -121,7 +121,7 @@ public class PRLogisticRegression extends BaseClassifier {
 		_SparseFeature[] fv;
 		double weight;
 		for (_Doc doc: trainSet) {
-			System.out.println("Doc:" + doc.getID());
+			//System.out.println("Doc:" + doc.getID());
 			Yi = doc.getYLabel();
 			fv = doc.getSparse();
 			weight = doc.getWeight();
@@ -133,8 +133,10 @@ public class PRLogisticRegression extends BaseClassifier {
 				logPij = calculatelogPij(j, fv);//logP(Y=yi|X=xi)
 				Pij = Math.exp(logPij);
 				tmp_pij[j] = Pij;
-				System.out.println("Pij:"+j+":"+Pij);
+				//System.out.println("Pij:"+j+":"+Pij);
 			}
+			
+			//System.out.println("When true Label is: " + Yi + " sum from LR:"+ Utils.sumOfArray(tmp_pij));
 			
 			// then we are regularizing the PR here
 			PR_LR testcase = new PR_LR(tmp_pij, Yi); // Yi is the true label			
@@ -151,10 +153,11 @@ public class PRLogisticRegression extends BaseClassifier {
 				pr_pij = testcase.getPA(); // get the regularized PR here
 			}
 			
-			System.out.println("When true Label is: " + Yi + " sum:"+ Utils.sumOfArray(pr_pij));
+			//System.out.println("When true Label is: " + Yi + " sum from PR:"+ Utils.sumOfArray(pr_pij));
 			for(int j = 0; j < m_classNo; j++){
 				Pij = pr_pij[j]; // use regularized 
-				System.out.println("Regularized Pij:"+j+":"+Pij);
+				logPij = Math.log(Pij);
+				//System.out.println("Regularized Pij:"+j+":"+Pij);
 				if (Yi == j){
 					gValue = Pij - 1.0;
 					fValue += logPij * weight;
@@ -170,9 +173,10 @@ public class PRLogisticRegression extends BaseClassifier {
 			}
 		}
 		
-		System.out.println("TRAIN FINISHED");
+		//System.out.println("TRAIN FINISHED");
 		// LBFGS is used to calculate the minimum value while we are trying to calculate the maximum likelihood.
 		return m_lambda*L2 - fValue;
+		 
 	}
 	
 	@Override
