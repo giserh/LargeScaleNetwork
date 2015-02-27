@@ -38,7 +38,7 @@ public class PRLogisticRegression extends BaseClassifier {
 		m_g = new double[m_beta.length];
 		m_diag = new double[m_beta.length];
 		m_cache = new double[classNo];
-		m_lambda = 0.5;//Initialize it to be 0.5.
+		m_lambda = 1.0;//Initialize it to be 0.5.
 	}
 	
 	public PRLogisticRegression(_Corpus c, int classNo, int featureSize, double lambda){

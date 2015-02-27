@@ -35,8 +35,6 @@ public class SemiSupervised extends BaseClassifier{
 	private int[][] m_Top5UnlabeledIndex; //The top5 unlabeled data's index.
 	private int[][] m_neighborUnlabeled; 
 	private double[][] m_similarities;
-//	private int[][] m_neighborLabeled; 
-	//private int[][] m_neighbor
 	
 	private double[] m_cache; // cache the similarity computation results given the similarity metric is symmetric
 	protected MyPriorityQueue<_RankItem> m_kUL, m_kUU; // k nearest neighbors for Unlabeled-Labeled and Unlabeled-Unlabeled
@@ -125,7 +123,7 @@ public class SemiSupervised extends BaseClassifier{
 	
 	//Train the data set.
 	public void train(Collection<_Doc> trainSet){
-		m_classifier.train(trainSet);//Multiple learner.		
+		//m_classifier.train(trainSet);//Multiple learner.		
 		init();
 
 		//Randomly pick some training documents as the labeled documents.
@@ -281,7 +279,8 @@ public class SemiSupervised extends BaseClassifier{
 			m_kUL.clear();
 
 			// set up the Y vector for unlabeled data
-			m_Y[i] = m_classifier.predict(m_testSet.get(i)); // Multiple learner.
+			m_Y[i] = 0;
+			//m_classifier.predict(m_testSet.get(i)); // Multiple learner.
 		}
 		for(int i=m_U; i<m_L+m_U; i++) {
 			sum = 0;
@@ -304,7 +303,7 @@ public class SemiSupervised extends BaseClassifier{
 		}
 		//Set the predicted label according to threshold.
 		for(int i = 0; i < m_Y_U.length; i++){
-			m_TPTable[getLabel3(m_Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
+			m_TPTable[getLabel1(m_Y_U[i])][m_testSet.get(i).getYLabel()] += 1;
 			m_debugOutput[i][13] = Integer.toString(getLabel3(m_Y_U[i]));
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));

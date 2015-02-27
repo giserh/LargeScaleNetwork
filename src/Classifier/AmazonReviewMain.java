@@ -21,7 +21,7 @@ public class AmazonReviewMain {
 		int norm = 2;//The way of normalization.(only 1 and 2)
 		int CVFold = 10; //k fold-cross validation
 		
-		//"NB", "LR", "SVM", "PR"
+		//"NB", "LR", "SVM", "PR", "PRLR"
 		String supModel = "PRLR"; //Which classifier to use.
 		
 		//"SUP", "TRANS", "TM"
