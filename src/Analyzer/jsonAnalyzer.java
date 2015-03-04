@@ -24,6 +24,7 @@ import opennlp.tools.util.InvalidFormatException;
 import structures.Post;
 import structures.Product;
 import structures._Doc;
+import structures._SparseFeature;
 import structures._stat;
 import utils.Utils;
 
@@ -149,6 +150,52 @@ public class jsonAnalyzer extends DocAnalyzer{
 			}
 			return true;
 		} 
+	}
+	
+	/****Print full matrix for matlab analysis.******/
+	public void printFullMatrix(String matrix, String truth) throws FileNotFoundException{
+		int featureSize = getFeatureSize();
+		PrintWriter writer1 = new PrintWriter(new File(matrix));
+		PrintWriter writer2 = new PrintWriter(new File(truth));
+		
+		int pointer1 = 0, pointer2 = 0;
+		for(_Doc d: m_corpus.getCollection()){
+			pointer1 = 0; 
+			pointer2 = 0;
+			_SparseFeature[] fvs = d.getSparse();
+			while(pointer1 < featureSize && pointer2 < fvs.length){
+				if(pointer1 == fvs[pointer2].getIndex()){
+					writer1.write(fvs[pointer2].getValue() + "\t");
+					pointer1++;
+					pointer2++;
+				} else if(pointer1 < fvs[pointer2].getIndex()){
+					writer1.write(0 + "\t");
+					pointer1++;
+				} else{
+					System.out.println("ERROR!!!!");
+				}
+			}
+			writer1.write("\n");
+			writer2.write(d.getYLabel()+"\n");
+		}		
+		writer1.close();
+		writer2.close();
+	}
+	
+	/****Print sparse matrix for matlab analysis.****/
+	public void printSparseMatrix(String matrix, String truth) throws FileNotFoundException{
+		PrintWriter writer1 = new PrintWriter(new File(matrix));
+		PrintWriter writer2 = new PrintWriter(new File(truth));
+		for(int i = 0; i < m_corpus.getCollection().size(); i++){
+			_Doc d = m_corpus.getCollection().get(i);
+			_SparseFeature[] fvs = d.getSparse();
+			for(_SparseFeature fv: fvs){
+				writer1.write((i+1) + ","+(fv.getIndex()+1)+","+fv.getValue()+"\n");
+			}
+			writer2.write((i+1)+","+1+","+d.getYLabel()+"\n");
+		}		
+		writer1.close();
+		writer2.close();
 	}
 	
 	//Save the reviews and rating in ./data/ReviewRating.xlsx

@@ -22,12 +22,12 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 		
 		//"NB", "LR", "SVM", "PR", "PRLR"
-		String supModel = "PRLR"; //Which classifier to use.
+		String supModel = "LR"; //Which classifier to use.
 		
 		//"SUP", "TRANS", "TM"
-		String style = "SUP";
-		//"SM", "RW", "SG"
-		String transModel = "SM";
+		String style = "TRANS";
+		//"SM", "RW", "SG", "SL"
+		String transModel = "SL";
 		//?????
 		String topicModel = "";
 		//sampleRate, kUL, kUU, TLalpha, TLbeta are defined in SemiSupervised.java
@@ -35,12 +35,13 @@ public class AmazonReviewMain {
 		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + supModel + "\nCross validation: " + CVFold);
 
 		/*****The parameters used in loading files.*****/
-		String folder = "./data/amazon/test01";
+		String folder = "./data/amazon/testOneJson";
 		String suffix = ".json";
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
 		String stopwords = "./data/Model/stopwords.dat";
-		String featureFile = null;//list of controlled vocabulary
+		String featureFile = null;
+		//"./data/Features/CHI_fv.dat";//list of controlled vocabulary
 		String featureStat= null;//detailed statistics of the selected features
 		//String modelPath = "./data/Model/";
 
@@ -87,13 +88,17 @@ public class AmazonReviewMain {
 			//analyzer.reset();
 		}
 		
-//		//Collect vectors for documents.
+		String matrix = "./data/amazonX.csv";
+		String truth = "./data/amazony.csv";
+		//Collect vectors for documents.
 		System.out.println("Creating feature vectors, wait...");
+		//jsonAnalyzer 
 		analyzer = new jsonAnalyzer(tokenModel, classNumber, featureFile, Ngram, lengthThreshold);
 //		analyzer.setReleaseContent( !(model.equals("PR") || debugOutput!=null) );//Just for debugging purpose: all the other classifiers do not need content
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
-		analyzer.setTimeFeatures(window);
+		//analyzer.printSparseMatrix(matrix, truth);
+		//analyzer.setTimeFeatures(window);
 		
 		int featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.returnCorpus(featureStat);
@@ -141,7 +146,8 @@ public class AmazonReviewMain {
 				System.out.println("Start SemiSupervised learning, wait...");
 				SemiSupervised mySM = new SemiSupervised(corpus, classNumber, featureSize + window + 1, supModel);
 				mySM.crossValidation(CVFold, corpus);
-				mySM.setDebugOutput(debugOutput);
+				
+				//mySM.setDebugOutput(debugOutput);
 			} else if(transModel.equals("RW")){
 				System.out.println("Start Semi Randow Walk, wait...");
 				SemiRandomWalk myRW = new SemiRandomWalk(corpus, classNumber, featureSize + window + 1, supModel);
@@ -152,7 +158,11 @@ public class AmazonReviewMain {
 				SemiGaussian mySG = new SemiGaussian(corpus, classNumber, featureSize + window + 1, supModel);
 				mySG.crossValidation(CVFold, corpus);
 				
-			} else System.out.println("This TRANS classifier has not developed yet!!");
+			} else if(transModel.equals("SL")){
+				System.out.println("Start Semi Linear learning, wait...");
+				SemiLinear mySL = new SemiLinear(corpus, classNumber, featureSize + window + 1, supModel);
+				mySL.crossValidation(CVFold, corpus);
+			}
 		} else System.out.println("Learning paradigm has not developed yet!");
 	}
 }

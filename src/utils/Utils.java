@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
 import java.util.Map.Entry;
-
 import json.JSONException;
 import json.JSONObject;
 import structures._Doc;
