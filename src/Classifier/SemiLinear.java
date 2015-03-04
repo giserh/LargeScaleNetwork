@@ -173,7 +173,7 @@ public class SemiLinear extends BaseClassifier{
 		double value = 0;
 		for(int i = 0; i < spVct1.length; i++){
 			for(int j = 0; j < spVct2.length; j++){
-				index = (int) (Math.pow(m_base, spVct1[i].getIndex()) + spVct2[j].getIndex());
+				index = m_base*spVct1[i].getIndex() + spVct2[j].getIndex();
 				value = spVct1[i].getValue() * spVct2[j].getValue();
 				features[i * spVct2.length + j] = new FeatureNode(index, value);
 			}
