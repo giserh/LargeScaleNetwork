@@ -1,5 +1,6 @@
 package utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -379,5 +380,31 @@ public class Utils {
 		}
 		sd = Math.sqrt(sd);
 		return sd;
+	}
+	
+	public static _SparseFeature[] minusVector(_SparseFeature[] spVct1, _SparseFeature[] spVct2){
+		ArrayList<_SparseFeature> vectorList = new ArrayList<_SparseFeature>();
+		int pointer1 = 0, pointer2 = 0;
+		while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
+			_SparseFeature temp1 = spVct1[pointer1];
+			_SparseFeature temp2 = spVct2[pointer2];
+			if (temp1.getIndex() == temp2.getIndex()) {
+				vectorList.add(new _SparseFeature(temp1.getIndex(),(temp1.getValue() - temp2.getValue())));
+				pointer1++;
+				pointer2++;
+			} else if (temp1.getIndex() > temp2.getIndex()){
+				vectorList.add(new _SparseFeature(temp2.getIndex(),(0 - temp2.getValue())));
+				pointer2++;
+			}
+			else{
+				vectorList.add(new _SparseFeature(temp1.getIndex(), temp1.getValue()));
+				pointer1++;
+			}
+		}
+		_SparseFeature[] vectorArray = new _SparseFeature[vectorList.size()];
+		for(int i=0; i < vectorList.size(); i++){
+			vectorArray[i] = vectorList.get(i);
+		}
+		return vectorArray;
 	}
 }

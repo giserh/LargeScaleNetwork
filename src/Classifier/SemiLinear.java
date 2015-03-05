@@ -114,31 +114,39 @@ public class SemiLinear extends BaseClassifier{
 	//In this training process, we want to get the weight of all pairs of samples.
 	public Model trainLibLinear(int bound){
 		//In the problem, the size of feature size is m*m.
-		double sampleSize = m_trainSet.size()*(m_trainSet.size()-1) / 2;
-		Feature[][] featureMatrix = new Feature[(int) sampleSize][];
-		int matrixIndex = 0;
-		double[] target = new double[(int) sampleSize];
+		ArrayList<Feature[]> featureArray = new ArrayList<Feature[]>();
+		ArrayList<Double> targetArray = new ArrayList<Double>();
 		for(int i = 0; i < m_trainSet.size(); i++){
 			_Doc d1 = m_trainSet.get(i);
 			for(int j = i+1; j < m_trainSet.size(); j++){
 				_Doc d2 = m_trainSet.get(j);
-				featureMatrix[matrixIndex] = calculateLibFeature(d1, d2);
 				if(d1.getYLabel() == d2.getYLabel()){
-					target[matrixIndex] = 3; //If similiar, 1 + 2 = 3
+					featureArray.add(calculateLibFeature(d1, d2));
+					targetArray.add(1.0); //If similiar, 1 + 2 = 3
 				} else if(Math.abs(d1.getYLabel() - d2.getYLabel())>bound){
-					target[matrixIndex] = 1; //If dissimilar, -1 + 2 = 1
-				} else target[matrixIndex] = 2; //Else, 1 + 2 = 2
-				matrixIndex++;
+					featureArray.add(calculateLibFeature(d1, d2));
+					targetArray.add(0.0); //If dissimilar, -1 + 2 = 1
+				} 
 			}
 		}
+		Feature[][] featureMatrix = new Feature[featureArray.size()][];
+		double[] targetMatrix = new double[targetArray.size()];
+		if(featureArray.size() == targetArray.size()){
+			for(int i = 0; i < featureArray.size(); i++){
+				featureMatrix[i] = featureArray.get(i);
+				targetMatrix[i] = targetArray.get(i);
+			}
+		} else
+			System.out.println("Liblinear training, sample is not matched with target!!");
+		
 		double C = 1.0, eps = 0.01;
 		Parameter libParameter = new Parameter(SolverType.L2R_LR, C, eps);
 		
 		Problem libProblem = new Problem();
-		libProblem.l = (int) sampleSize;
+		libProblem.l = targetMatrix.length;
 		libProblem.n = m_featureSize * m_featureSize;
 		libProblem.x = featureMatrix;
-		libProblem.y = target;
+		libProblem.y = targetMatrix;
 		Model model = Linear.train(libProblem, libParameter);
 		return model;
 	}
@@ -168,14 +176,16 @@ public class SemiLinear extends BaseClassifier{
 	public Feature[] calculateLibFeature(_Doc d1, _Doc d2){
 		_SparseFeature[] spVct1 = d1.getSparse();
 		_SparseFeature[] spVct2 = d2.getSparse();
-		Feature[] features = new Feature[spVct1.length * spVct2.length];
+		_SparseFeature[] minusVct = Utils.minusVector(spVct1, spVct2);
+		Feature[] features = new Feature[minusVct.length * minusVct.length];
 		int index = 0;
 		double value = 0;
-		for(int i = 0; i < spVct1.length; i++){
-			for(int j = 0; j < spVct2.length; j++){
-				index = m_base*spVct1[i].getIndex() + spVct2[j].getIndex();
-				value = spVct1[i].getValue() * spVct2[j].getValue();
-				features[i * spVct2.length + j] = new FeatureNode(index, value);
+		for(int i = 0; i < minusVct.length; i++){
+			for(int j = 0; j < minusVct.length; j++){
+				//Currently, we use one dimension array to represent V*V features, we use base to represent different levels. 
+				index = m_base * minusVct[i].getIndex() + minusVct[j].getIndex() + 1; //The index in the feature vector.
+				value = minusVct[i].getValue() * minusVct[j].getValue();
+				features[i * minusVct.length + j] = new FeatureNode(index, value);
 			}
 		}
 		return features;
@@ -221,7 +231,7 @@ public class SemiLinear extends BaseClassifier{
 			
 			for (int j = 0; j < m_L; j++) {
 				dj = m_labeled.get(j);
-				similarity = Utils.calculateSimilarity(di, dj) * di.getWeight() * dj.getWeight();
+				similarity = Linear.predict(m_libModel, calculateLibFeature(di, dj));
 				if (!di.sameProduct(m_labeled.get(j)))
 					similarity *= m_discount;// differentiate reviews from different products
 				setCache(i, m_U + j, similarity);
