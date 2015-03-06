@@ -35,7 +35,7 @@ public class AmazonReviewMain {
 		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + supModel + "\nCross validation: " + CVFold);
 
 		/*****The parameters used in loading files.*****/
-		String folder = "./data/amazon/testOneJson";
+		String folder = "./data/amazon/DifferentSizeData/test03";
 		String suffix = ".json";
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
@@ -88,8 +88,8 @@ public class AmazonReviewMain {
 			//analyzer.reset();
 		}
 		
-		String matrix = "./data/amazonX.csv";
-		String truth = "./data/amazony.csv";
+//		String matrix = "./data/amazonXsmall20.csv";
+//		String truth = "./data/amazonysmall20.csv";
 		//Collect vectors for documents.
 		System.out.println("Creating feature vectors, wait...");
 		//jsonAnalyzer 
@@ -98,7 +98,7 @@ public class AmazonReviewMain {
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
 		//analyzer.printSparseMatrix(matrix, truth);
-		//analyzer.setTimeFeatures(window);
+		analyzer.setTimeFeatures(window);
 		
 		int featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.returnCorpus(featureStat);
