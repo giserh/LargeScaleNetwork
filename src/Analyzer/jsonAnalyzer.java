@@ -4,18 +4,12 @@
 package Analyzer;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 
 import json.JSONArray;
 import json.JSONException;
@@ -24,8 +18,6 @@ import opennlp.tools.util.InvalidFormatException;
 import structures.Post;
 import structures.Product;
 import structures._Doc;
-import structures._SparseFeature;
-import structures._stat;
 import utils.Utils;
 
 /**
@@ -35,24 +27,17 @@ import utils.Utils;
 public class jsonAnalyzer extends DocAnalyzer{
 	
 	private SimpleDateFormat m_dateFormatter;
-//	private ArrayList<Product> m_products; // All the products in one category.
-//	private ArrayList<Integer> m_NumOfReviews; //The number of reviews of a product
-//	private ArrayList<Double> m_Ratings; //The value of ratings
-
 	
 	//Constructor with ngram and fValue.
 	public jsonAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException {
 		super(tokenModel, classNo, providedCV, Ngram, threshold);
 		m_dateFormatter = new SimpleDateFormat("MMMMM dd,yyyy");// standard date format for this project
-//		m_products = new ArrayList<Product>();
-
 	}
 	
 	//Constructor with ngram and fValue.
 	public jsonAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold, String stnModel) throws InvalidFormatException, FileNotFoundException, IOException {
 		super(tokenModel, stnModel, classNo, providedCV, Ngram, threshold);
 		m_dateFormatter = new SimpleDateFormat("MMMMM dd,yyyy");// standard date format for this project
-//		m_products = new ArrayList<Product>();
 	}
 	
 	//Load a document and analyze it.
@@ -69,8 +54,7 @@ public class jsonAnalyzer extends DocAnalyzer{
 			System.out.print('X');
 			return;
 		}	
-//		double rating = 0;
-//		double reviews = 0;
+		
 		for(int i=0; i<jarray.length(); i++) {
 			try {
 				Post post = new Post(jarray.getJSONObject(i));
@@ -82,8 +66,6 @@ public class jsonAnalyzer extends DocAnalyzer{
 					else
 						content = post.getTitle() + ". " + post.getContent();
 					_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
-//					rating += review.getYLabel();
-//					reviews++;
 					if(this.m_stnDetector!=null)
 						AnalyzeDocWithStnSplit(review);
 					else
@@ -95,12 +77,6 @@ public class jsonAnalyzer extends DocAnalyzer{
 				System.out.print('P');
 			}
 		}
-//		rating = rating / reviews;
-//		prod.setNumOfReviews((int)reviews);
-//		prod.setRating(rating);
-//		rating = 0;
-//		reviews = 0;
-//		m_products.add(prod);
 	}
 	
 	//sample code for loading the json file
@@ -151,73 +127,4 @@ public class jsonAnalyzer extends DocAnalyzer{
 			return true;
 		} 
 	}
-	
-	/****Print full matrix for matlab analysis.******/
-	public void printFullMatrix(String matrix, String truth) throws FileNotFoundException{
-		int featureSize = getFeatureSize();
-		PrintWriter writer1 = new PrintWriter(new File(matrix));
-		PrintWriter writer2 = new PrintWriter(new File(truth));
-		
-		int pointer1 = 0, pointer2 = 0;
-		for(_Doc d: m_corpus.getCollection()){
-			pointer1 = 0; 
-			pointer2 = 0;
-			_SparseFeature[] fvs = d.getSparse();
-			while(pointer1 < featureSize && pointer2 < fvs.length){
-				if(pointer1 == fvs[pointer2].getIndex()){
-					writer1.write(fvs[pointer2].getValue() + "\t");
-					pointer1++;
-					pointer2++;
-				} else if(pointer1 < fvs[pointer2].getIndex()){
-					writer1.write(0 + "\t");
-					pointer1++;
-				} else{
-					System.out.println("ERROR!!!!");
-				}
-			}
-			writer1.write("\n");
-			writer2.write(d.getYLabel()+"\n");
-		}		
-		writer1.close();
-		writer2.close();
-	}
-	
-	/****Print sparse matrix for matlab analysis.****/
-	public void printSparseMatrix(String matrix, String truth) throws FileNotFoundException{
-		PrintWriter writer1 = new PrintWriter(new File(matrix));
-		PrintWriter writer2 = new PrintWriter(new File(truth));
-		for(int i = 0; i < m_corpus.getCollection().size(); i++){
-			_Doc d = m_corpus.getCollection().get(i);
-			_SparseFeature[] fvs = d.getSparse();
-			for(_SparseFeature fv: fvs){
-				writer1.write((i+1) + ","+(fv.getIndex()+1)+","+fv.getValue()+"\n");
-			}
-			writer2.write((i+1)+","+1+","+d.getYLabel()+"\n");
-		}		
-		writer1.close();
-		writer2.close();
-	}
-	
-	//Save the reviews and rating in ./data/ReviewRating.xlsx
-//	public void saveReviewRating(String path) throws FileNotFoundException{
-//		//Sort the products according to the number of reviews.
-//		Collections.sort(m_products, new Comparator<Product>(){
-//			public int compare(Product p1, Product p2){
-//				if (p1.getNumOfReviews() > p2.getNumOfReviews()) return 1;
-//				else if (p1.getNumOfReviews() < p2.getNumOfReviews())return -1;
-//				else return 0;
-//			}
-//		});
-//		
-//		if (path == null || path.isEmpty())
-//			return;
-//		
-//		PrintWriter writer = new PrintWriter(new File(path));
-//		for(Product p: m_products){
-//			double showRating = p.getRating() + 1;
-//			showRating = showRating / 5 * 2510;
-//			writer.print(p.getID() + "\t" + p.getNumOfReviews() + "\t" + showRating + "\n");
-//		}
-//		writer.close();
-//	}
 }

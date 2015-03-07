@@ -1,6 +1,14 @@
 package LBFGS;
 
 import utils.Utils;
+import LBFGS.linesearch.LineSearch;
+import LBFGS.linesearch.LineSearchMoreThuente;
+import LBFGS.optimzationTest.Problem1;
+import LBFGS.optimzationTest.Problem14;
+import LBFGS.optimzationTest.Problem18;
+import LBFGS.optimzationTest.Problem2;
+import LBFGS.optimzationTest.Problem3;
+import LBFGS.optimzationTest.Problem5;
 import LBFGS.optimzationTest.Problem6;
 import LBFGS.optimzationTest.QuadraticTest;
 
@@ -9,29 +17,32 @@ public class ProjectedGradient {
 	//interface to the objective function to be minimized
 	Optimizable m_func; 
 	
+	//line search algorithm
+	LineSearch m_linesearch;
+	
 	//maximum iteration of gradient descent
 	int m_maxIter; 
 	
 	//convergence criterion
-	double m_converge;
+	double m_fdelta, m_gdelta;
 	
 	//cache for the gradient
 	double[] m_g;
 	
+	// search direction
+	double[] m_sd; 
+	
 	//cache for the parameters
 	double[] m_x, m_x_old;//current point and next point
 	
-	//parameters for line search
-	double m_alpha, m_beta, m_delta; 
-	
-	public ProjectedGradient(Optimizable objFunc, int maxIter, double converge, double beta, double delta) {
+	public ProjectedGradient(Optimizable objFunc, int maxIter, double fdelta, double gdelta, double istp, double ftol, double gtol) {
 		m_func = objFunc;
 		m_maxIter = maxIter;
-		m_converge = converge;
+		m_fdelta = fdelta;
+		m_gdelta = gdelta;
 		
-		m_alpha = 1.0;
-		m_beta = beta;
-		m_delta = delta;
+		//m_linesearch = new LineSearchBacktracking(objFunc, istp, ftol, gtol, maxIter);
+		m_linesearch = new LineSearchMoreThuente(objFunc, istp, ftol, gtol, 1e-5, maxIter);
 	}
 	
 	void init() {
@@ -41,90 +52,74 @@ public class ProjectedGradient {
 		System.arraycopy(m_x, 0, m_x_old, 0, m_x.length);
 		
 		m_g = new double[m_x.length];
+		m_sd = new double[m_x.length];
+	}
+	
+	void getSearchDirection() {
+		//gradient as the search direction
+		Utils.setArray(m_sd, m_g, -1);
 	}
 	
 	public boolean optimize() {
 		init();
 
-		int iter = 0;
-		double gNorm, xNorm;//get the initial function value and gradient
+		int k = 1; // the first step has been explore in init()
+		double gNorm, xNorm, fx_old, converge;//get the initial function value and gradient
+		
+		//initial step for gradient descent
+		double fx = m_func.calcFuncGradient(m_g);
 		
 		do {
-			gradientDescent(m_func.calcFuncGradient(m_g));//get function value and gradient at m_x1
+			fx_old = fx;
+			
+			getSearchDirection();
+			if (k==1)
+				m_linesearch.setInitStep(1.0 / Utils.L2Norm(m_g));
+			else
+				m_linesearch.setInitStep(1.0);
+			
+			fx = m_linesearch.linesearch(fx, m_x, m_x_old, m_g, m_sd);
 			
 			gNorm = Utils.L2Norm(m_g);
 			xNorm = Utils.L2Norm(m_x);
-		} while (++iter<m_maxIter && gNorm>xNorm*m_converge);
+			if (fx_old==0)
+				converge = 1.0;//no way to compute improvement
+			else
+				converge = (fx_old-fx)/fx_old;
+			
+			//System.out.format("%d. f(x)=%.10f |g(x)|=%.10f converge=%.5f\n", k, fx, gNorm, converge);
+		} while (++k<m_maxIter && gNorm>xNorm*m_gdelta && Math.abs(converge)>m_fdelta);
 		
-		return gNorm<=xNorm*m_converge;//also need other convergence condition checking
+		return k<m_maxIter;//also need other convergence condition checking
 	}
 	
-	double update() {
-		for(int i=0; i<m_x.length; i++)
-			m_x[i] = m_x_old[i] - m_alpha * m_g[i];
-		m_func.projection(m_x);
-		return m_func.calcFunc(m_x);
-	}
-	
-	double gradientDescent(double initV) {
-		m_alpha = 1.0 / m_beta;
-		
-		double value;
-		do {
-			m_alpha *= m_beta;
-			value = update();
-		} while (value-initV > suffDescent());//until alpha satisfies the condition
-				
-		System.arraycopy(m_x, 0, m_x_old, 0, m_x.length);//will directly affect the parameters in m_func
-		return value;
-	}
-	
-//	private double gradientDescent(double initV) {
-//		double value = update();//check the current alpha
-//		
-//		if (value-initV <= suffDescent()) {
-//			do {
-//				initV = value;
-//				m_alpha /= m_beta;//increase alpha
-//				value = update();
-//			} while (difference()>0 && value-initV <= suffDescent());//until alpha does not satisfy the condition
-//		} else {
-//			do {
-//				initV = value;
-//				m_alpha *= m_beta;//decrease alpha
-//				value = update();
-//			} while (value-initV > suffDescent());//until alpha satisfies the condition
-//		}
-//		
-//		System.arraycopy(m_x2, 0, m_x1, 0, m_x1.length);//will directly affect the parameters in m_func
-//		return value;
-//	}
-	
-	double suffDescent() {
-		double diff = 0;
-		for(int i=0; i<m_x.length; i++)
-			diff += m_g[i] * (m_x[i] - m_x_old[i]);
-		return diff * m_delta;
-	}
-	
-	private double difference() {
-		double diff = 0;
-		for(int i=0; i<m_x.length; i++)
-			diff += (m_x_old[i] - m_x[i]) * (m_x_old[i] - m_x[i]);
-		return diff;
-	}
 	
 	static public void main(String[] args) {
-		QuadraticTest testcase = new Problem6();
-		ProjectedGradient opt = new ProjectedGradient(testcase, 100000, 1e-4, 0.35, 0.0001);
+		QuadraticTest[] testcases = new QuadraticTest[]{new Problem1(), new Problem2(), new Problem3(), 
+				new Problem5(), new Problem6(), new Problem14(), new Problem18()};
 		
-		double value = testcase.byLBFGS();
-		double[] x = testcase.getParameters();
-		System.out.format("By L-BFGS\n%.10f\t%.10f\t%.10f\n", x[0], x[1], value);
+		double fdelta = 1e-32, gdelta = 1e-10;
+		double istp = 0.10, ftol = 1e-6, gtol = 0.2;
+		int m = 5, maxStep = 100;
 		
-		testcase.reset();
-		x = testcase.getParameters();
-		System.out.println(opt.optimize()?"success!":"failed!");
-		System.out.format("By Projected Gradient\n%.10f\t%.10f\t%.10f\n", x[0], x[1], testcase.calcFunc());
+		for(QuadraticTest testcase:testcases) {
+			System.out.format("In %s: %s\n", testcase.toString(), testcase.getConstraints());
+			
+			double value = testcase.byLBFGS();
+			double[] x = testcase.getParameters();
+			System.out.format("By L-BFGS\n%s\t%.10f\t%d\n", Utils.formatArray(x), value, testcase.getNumEval());
+			testcase.reset();
+			
+			ProjectedGradient opt = new ProjectedGradient(testcase, maxStep, fdelta, gdelta, istp, ftol, gtol);
+			x = testcase.getParameters();
+			opt.optimize();
+			System.out.format("By Projected Gradient\n%s\t%.10f\t%d\n", Utils.formatArray(x), testcase.calcFunc(), testcase.getNumEval());
+			testcase.reset();
+			
+			opt = new ProjectedLBFGS(testcase, m, false, maxStep, fdelta, gdelta, istp, ftol, gtol);
+			x = testcase.getParameters();
+			opt.optimize();
+			System.out.format("By Projected L-BFGS\n%s\t%.10f\t%d\n\n", Utils.formatArray(x), testcase.calcFunc(), testcase.getNumEval());
+		}
 	}
 }

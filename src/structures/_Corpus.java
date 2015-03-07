@@ -22,7 +22,6 @@ public class _Corpus {
 	ArrayList<_Doc> m_collection; //All the documents in the corpus.
 	ArrayList<String> m_features; //ArrayList for features
 	
-	
 	// m_mask is used to do shuffle and its size is the total number of all the documents in the corpus.
 	int[] m_mask; 
 			
@@ -126,6 +125,11 @@ public class _Corpus {
 	}
 	
 	public void save2File(String filename) {
+		if (filename==null || filename.isEmpty()) {
+			System.out.println("Please specify the file name for saving vectors!");
+			return;
+		}
+		
 		try {
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename)));
 			for(_Doc doc:m_collection) {
@@ -136,6 +140,8 @@ public class _Corpus {
 				writer.write('\n');
 			}
 			writer.close();
+			
+			System.out.format("%d feature vectors saved to %s\n", m_collection.size(), filename);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
@@ -175,7 +181,7 @@ public class _Corpus {
 		}
 	}
 	
-	public void saveCoOccurrance2File(ArrayList<_Doc> pReviews, int pid, BufferedWriter writer) throws IOException {
+	void saveCoOccurrance2File(ArrayList<_Doc> pReviews, int pid, BufferedWriter writer) throws IOException {
 		HashMap<String, Integer> stats = new HashMap<String, Integer>();
 		
 		for(_Doc d:pReviews) {
@@ -198,7 +204,7 @@ public class _Corpus {
 		}
 	}
 	
-	public String getCoOccurranceKey(int i, int j) {
+	String getCoOccurranceKey(int i, int j) {
 		if (i<j)
 			return String.format("%d\t%d", i, j);
 		else

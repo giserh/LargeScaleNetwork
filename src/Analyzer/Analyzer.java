@@ -1,8 +1,11 @@
 package Analyzer;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,7 +13,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import opennlp.tools.util.InvalidFormatException;
 import structures._Corpus;
 import structures._Doc;
 import structures._SparseFeature;
@@ -27,12 +29,18 @@ public abstract class Analyzer {
 	protected ArrayList<String> m_featureNames; //ArrayList for features
 	protected HashMap<String, Integer> m_featureNameIndex;//key: content of the feature; value: the index of the feature
 	protected HashMap<String, _stat> m_featureStat; //Key: feature Name; value: the stat of the feature
+	/* Indicate if we can allow new features.After loading the CV file, the flag is set to true, 
+	 * which means no new features will be allowed.*/
+	protected boolean m_isCVLoaded;
+	
+	//minimal length of indexed document
+	protected int m_lengthThreshold;
 	
 	/** for time-series features **/
 	//The length of the window which means how many labels will be taken into consideration.
 	private LinkedList<_Doc> m_preDocs;	
 	
-	public Analyzer(String tokenModel, int classNo) throws InvalidFormatException, FileNotFoundException, IOException{
+	public Analyzer(int classNo, int minDocLength) {
 		m_corpus = new _Corpus();
 		
 		m_classNo = classNo;
@@ -41,6 +49,9 @@ public abstract class Analyzer {
 		m_featureNames = new ArrayList<String>();
 		m_featureNameIndex = new HashMap<String, Integer>();//key: content of the feature; value: the index of the feature
 		m_featureStat = new HashMap<String, _stat>();
+		
+		m_lengthThreshold = minDocLength;
+		
 		m_preDocs = new LinkedList<_Doc>();
 	}	
 	
@@ -50,6 +61,36 @@ public abstract class Analyzer {
 		m_featureNameIndex.clear();
 		m_featureStat.clear();
 		m_corpus.reset();
+	}
+	
+	//Load the features from a file and store them in the m_featurNames.@added by Lin.
+	protected boolean LoadCV(String filename) {
+		if (filename==null || filename.isEmpty())
+			return false;
+		
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith("#")){
+					if (line.startsWith("#NGram")) {//has to be decoded
+						int pos = line.indexOf(':');
+						m_Ngram = Integer.valueOf(line.substring(pos+1));
+					}
+						
+				} else 
+					expandVocabulary(line);
+			}
+			reader.close();
+			
+			System.out.format("%d feature words loaded from %s...\n", m_featureNames.size(), filename);
+			m_isCVLoaded = true;
+			
+			return true;
+		} catch (IOException e) {
+			System.err.format("[Error]Failed to open file %s!!", filename);
+			return false;
+		}
 	}
 	
 	//Load all the files in the directory.
@@ -94,11 +135,15 @@ public abstract class Analyzer {
 	//Return corpus without parameter and feature selection.
 	public _Corpus returnCorpus(String finalLocation) throws FileNotFoundException {
 		SaveCVStat(finalLocation);
-		System.out.format("Feature vector contructed for %d documents...\n", m_corpus.getSize());
+		
 		for(int c:m_classMemberNo)
 			System.out.print(c + " ");
 		System.out.println();
 		
+		return getCorpus();
+	}
+	
+	public _Corpus getCorpus() {
 		//store the feature names into corpus
 		m_corpus.setFeatures(m_featureNames);
 		m_corpus.setMasks(); // After collecting all the documents, shuffle all the documents' labels.
@@ -183,12 +228,15 @@ public abstract class Analyzer {
 		} else {
 			System.out.println("No normalizaiton is adopted here or wrong parameters!!");
 		}
+		
 		System.out.format("Text feature generated for %d documents...\n", m_corpus.getSize());
 	}
 	
 	//Select the features and store them in a file.
 	public void featureSelection(String location, String featureSelection, double startProb, double endProb, int threshold) throws FileNotFoundException {
 		FeatureSelector selector = new FeatureSelector(startProb, endProb, threshold);
+
+		System.out.println("*******************************************************************");
 		if (featureSelection.equals("DF"))
 			selector.DF(m_featureStat);
 		else if (featureSelection.equals("IG"))
@@ -201,7 +249,10 @@ public abstract class Analyzer {
 		m_featureNames = selector.getSelectedFeatures();
 		SaveCV(location, featureSelection, startProb, endProb, threshold); // Save all the features and probabilities we get after analyzing.
 		System.out.println(m_featureNames.size() + " features are selected!");
-		//selector.PrintFeatureValues();
+		
+		//clear memory for next step feature construction
+		reset();
+		LoadCV(location);//load the selected features
 	}
 	
 	//Save all the features and feature stat into a file.
@@ -269,7 +320,7 @@ public abstract class Analyzer {
 				m_preDocs.add(doc);
 			}
 		}
-		//System.out.format("Time-series feature set for %d documents!\n", m_corpus.getSize());
+		System.out.format("Time-series feature set for %d documents!\n", m_corpus.getSize());
 	}
 	
 	// added by Md. Mustafizur Rahman for Topic Modelling

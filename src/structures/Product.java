@@ -52,26 +52,4 @@ public class Product {
 		setName(Utils.getJSONValue(json, "Name"));
 		setID(Utils.getJSONValue(json, "ProductID"));
 	}
-	
-	//The total number of reviews for a product.
-	int m_numOfReviews;
-	
-	public void setNumOfReviews(int n){
-		this.m_numOfReviews = n;
-	}
-	
-	public int getNumOfReviews(){
-		return m_numOfReviews;
-	}
-	
-	//The average rating of this product.
-	double m_rating;
-	
-	public void setRating(double r){
-		this.m_rating = r;
-	}
-	
-	public double getRating(){
-		return this.m_rating;
-	}
 }

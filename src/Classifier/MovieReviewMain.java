@@ -4,6 +4,9 @@ import java.io.IOException;
 
 import structures._Corpus;
 import Analyzer.DocAnalyzer;
+import Classifier.supervised.LogisticRegression;
+import Classifier.supervised.NaiveBayes;
+import Classifier.supervised.SVM;
 
 public class MovieReviewMain {
 	/*****************************Main function*******************************/
@@ -102,8 +105,9 @@ public class MovieReviewMain {
 		} else if(classifier.equals("SVM")){
 			//corpus.save2File("data/FVs/fvector.dat");
 			double C = 3;// The default value is 1.
+			double eps = 0.01;// default value from Lin's implementation
 			System.out.println("Start SVM, wait...");
-			SVM mySVM = new SVM(corpus, classNumber, featureSize, C);
+			SVM mySVM = new SVM(corpus, classNumber, featureSize, C, eps);
 			mySVM.crossValidation(10, corpus);
 		} else System.out.println("Have not developed yet!:(");
 	}

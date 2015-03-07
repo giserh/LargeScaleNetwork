@@ -5,8 +5,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 import java.util.Map.Entry;
+import java.util.Random;
+
 import json.JSONException;
 import json.JSONObject;
 import structures._Doc;
@@ -314,8 +315,8 @@ public class Utils {
 		Iterator<Entry<Integer, Double>> it = vct.entrySet().iterator();
 		while(it.hasNext()){
 			Map.Entry<Integer, Double> pairs = (Map.Entry<Integer, Double>)it.next();
-			double TF = pairs.getValue();
-			spVct[i] = new _SparseFeature(pairs.getKey(), TF);
+			double fv = pairs.getValue();
+			spVct[i] = new _SparseFeature(pairs.getKey(), fv);
 			i++;
 		}
 		Arrays.sort(spVct);		
@@ -364,47 +365,45 @@ public class Utils {
 				|| (lastChar>='0' && lastChar<='9'));
 	}
 	
-	public static double averageOfArray(double[] array){
-		double average = 0;
-		for(int i = 0; i < array.length; i++){
-			average+= array[i];
-		}
-		average = average / array.length;
-		return average;
-	}
-	
-	public static double sdOfArray(double[] array, double avg){
-		double sd = 0;
-		for(int i = 0; i < array.length; i++){
-			sd += (array[i] - avg) * (array[i] - avg);
-		}
-		sd = Math.sqrt(sd);
-		return sd;
-	}
-	
-	public static _SparseFeature[] minusVector(_SparseFeature[] spVct1, _SparseFeature[] spVct2){
+	//x_i - x_j 
+	public static _SparseFeature[] diffVector(_SparseFeature[] spVcti, _SparseFeature[] spVctj){
 		ArrayList<_SparseFeature> vectorList = new ArrayList<_SparseFeature>();
-		int pointer1 = 0, pointer2 = 0;
-		while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
-			_SparseFeature temp1 = spVct1[pointer1];
-			_SparseFeature temp2 = spVct2[pointer2];
-			if (temp1.getIndex() == temp2.getIndex()) {
-				vectorList.add(new _SparseFeature(temp1.getIndex(),(temp1.getValue() - temp2.getValue())));
-				pointer1++;
-				pointer2++;
-			} else if (temp1.getIndex() > temp2.getIndex()){
-				vectorList.add(new _SparseFeature(temp2.getIndex(),(0 - temp2.getValue())));
-				pointer2++;
+		int i = 0, j = 0;
+		_SparseFeature fi = spVcti[i], fj = spVctj[j];
+		
+		double fv;
+		while (i < spVcti.length && j < spVctj.length) {
+			fi = spVcti[i];
+			fj = spVctj[j];
+			
+			if (fi.getIndex() == fj.getIndex()) {
+				fv = fi.getValue() - fj.getValue();
+				if (Math.abs(fv)>Double.MIN_VALUE)//otherwise it is too small
+					vectorList.add(new _SparseFeature(fi.getIndex(),fv));
+				i++; 
+				j++; 
+			} else if (fi.getIndex() > fj.getIndex()){
+				vectorList.add(new _SparseFeature(fj.getIndex(), -fj.getValue()));
+				j++;
 			}
 			else{
-				vectorList.add(new _SparseFeature(temp1.getIndex(), temp1.getValue()));
-				pointer1++;
+				vectorList.add(new _SparseFeature(fi.getIndex(), fi.getValue()));
+				i++;
 			}
 		}
-		_SparseFeature[] vectorArray = new _SparseFeature[vectorList.size()];
-		for(int i=0; i < vectorList.size(); i++){
-			vectorArray[i] = vectorList.get(i);
+		
+		while (i < spVcti.length) {
+			fi = spVcti[i];
+			vectorList.add(new _SparseFeature(fi.getIndex(), fi.getValue()));
+			i++;
 		}
-		return vectorArray;
+		
+		while (j < spVctj.length) {
+			fj = spVctj[j];
+			vectorList.add(new _SparseFeature(fj.getIndex(), -fj.getValue()));
+			j++;
+		}
+		
+		return vectorList.toArray(new _SparseFeature[vectorList.size()]);
 	}
 }
