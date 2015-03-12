@@ -7,6 +7,7 @@ import java.text.ParseException;
 
 import structures._Corpus;
 import Analyzer.VctAnalyzer;
+import Classifier.metricLearning.LinearSVMMetricLearning;
 import Classifier.semisupervised.GaussianFields;
 import Classifier.semisupervised.GaussianFieldsByRandomWalk;
 import Classifier.supervised.LogisticRegression;
@@ -27,28 +28,41 @@ public class VectorReviewMain {
 		//Semi-supervised classification models: "GF", "GF-RW", "GF-RW-ML"
 		String classifier = "GF-RW"; //Which classifier to use.
 //		String modelPath = "./data/Model/";
-		double C = 1;
+		double C = 1.0;
 		
-		//"SUP", "TRANS"
+		//"SUP", "SEMI"
 		String style = "SEMI";
 		String multipleLearner = "SVM";
 		
 		/*****The parameters used in loading files.*****/
-		String featureLocation = "data/Features/fv_stat_2gram_BM25_CHI.txt";
-		String vctfile = "data/Fvs/vct_2gram_BM25_CHI.dat";
+		String diffFolder = "medium";
+		String path = "data/" + diffFolder + "/";
+		String featureLocation = path + "fv_2gram_BM25_CHI_" + diffFolder + ".txt";
+		String vctfile = path + "vct_2gram_BM25_CHI_" + diffFolder + ".dat";
+		
+		
+//		String featureLocation = "data/matlabTest/20json/fv_2gram_BM25_CHI.txt";
+//		String vctfile = "data/matlabTest/20json/vct_2gram_BM25_CHI.dat";
+		String matrixFile = path + "matrixA.dat";
+		
+//		String featureLocation = "data/Features/fv_fake.txt";
+//		String vctfile = "data/Fvs/LinearRegression.dat";
 		
 		/*****Parameters in time series analysis.*****/
-		String debugOutput = null; //"data/debug/LR.output";
+		String debugOutput = "data/debug/GF-RW.output";
 		
 		/****Pre-process the data.*****/
 		//Feture selection.
 		System.out.println("Loading vectors from file, wait...");
 		VctAnalyzer analyzer = new VctAnalyzer(classNumber, lengthThreshold, featureLocation);
 		analyzer.LoadDoc(vctfile); //Load all the documents as the data set.
-				
+		
+		String xFile = path + diffFolder + "X.csv";
+		String yFile = path + diffFolder + "Y.csv";
+		analyzer.printXY(xFile, yFile);
+		
 		_Corpus corpus = analyzer.getCorpus();
 		int featureSize = corpus.getFeatureSize();
-		
 		
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {
@@ -62,7 +76,7 @@ public class VectorReviewMain {
 				//Define a new logistics regression with the parameters.
 				System.out.println("Start logistic regression, wait...");
 				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
-				myLR.setDebugOutput(debugOutput);
+				//myLR.setDebugOutput(debugOutput);
 				
 				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
 				//myLR.saveModel(modelPath + "LR.model");
@@ -91,12 +105,18 @@ public class VectorReviewMain {
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner,
-						0.2, 100, 50, 1.0, 0.2, 1e-4, 0.1, false);
+						0.1, 100, 50, 1.0, 0.1, 1e-4, 0.3, false);
+				//mySemi.setDebugOutput(debugOutput);
+				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
+			} else if (classifier.equals("GF-RW-ML")) {
+				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner,
+						0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false,
+						3, 0.01);
+				lMetricLearner.setDebugOutput(debugOutput);
+				lMetricLearner.crossValidation(CVFold, corpus);
 			} else System.out.println("Classifier has not been developed yet!");
 			
-//			LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, classifier);
-//			lMetricLearner.crossValidation(CVFold, corpus);
 		} else System.out.println("Learning paradigm has not been developed yet!");
 	} 
 

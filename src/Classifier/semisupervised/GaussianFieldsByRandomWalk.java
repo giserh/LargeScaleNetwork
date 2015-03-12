@@ -36,7 +36,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 	
 	@Override
 	public String toString() {
-		return String.format("Gaussian Fields by random walk [C:%s, k:%d, k':%d, r:%.3f]", m_classifier, m_k, m_kPrime, m_labelRatio);
+		return String.format("Gaussian Fields by random walk [C:%s, k:%d, k':%d, r:%.3f, alpha:%.3f, beta:%.3f, eta:%.3f]", m_classifier, m_k, m_kPrime, m_labelRatio, m_alpha, m_beta, m_eta);
 	}
 	
 	//The random walk algorithm to generate new labels for unlabeled data.
@@ -62,7 +62,8 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			/****Get the sum of k'UU******/
 			for(_RankItem n: m_kUU){
 				wijSumU += n.m_value; //get the similarity between two nodes.
-				fSumU += n.m_value * m_fu_last[n.m_index];
+//				fSumU += n.m_value * m_fu_last[n.m_index];
+				fSumU += n.m_value * m_fu[n.m_index];
 			}
 			m_kUU.clear();
 			
@@ -96,7 +97,8 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 					continue;
 				
 				wijSumU += wij;
-				fSumU += wij * m_fu_last[j];
+				//fSumU += wij * m_fu_last[j];//use the old results
+				fSumU += wij * m_fu[j];//use the updated results immediately
 			}
 			
 			/****Get the sum of kUL******/
@@ -123,12 +125,18 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 	}
 	
 	//The test for random walk algorithm.
-	public void test(){
+	public double test(){
 		/***Construct the nearest neighbor graph****/
 		constructGraph(m_storeGraph);
 		
 		if (m_fu_last==null || m_fu_last.length<m_U)
 			m_fu_last = new double[m_U]; //otherwise we can reuse the current memory
+		
+		//initialize fu and fu_last
+		for(int i=0; i<m_U; i++) {
+			m_fu[i] = m_Y[i];
+			m_fu_last[i] = m_Y[i];//random walk starts from multiple learner
+		}
 		
 		/***use random walk to solve matrix inverse***/
 		do {
@@ -145,8 +153,22 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 		}
 		
 		/***evaluate the performance***/
-		for(int i = 0; i < m_U; i++)
-			m_TPTable[getLabel(m_fu[i])][m_testSet.get(i).getYLabel()] += 1;
+		double acc = 0;
+		int pred, ans;
+		for(int i = 0; i < m_U; i++) {
+			//pred = getLabel(m_fu[i]);
+			pred = getLabel(m_fu[i]);
+			ans = m_testSet.get(i).getYLabel();
+			m_TPTable[pred][ans] += 1;
+			
+			if (pred != ans) {
+				if (m_debugOutput!=null)
+					debug(m_testSet.get(i));
+			} else 
+				acc ++;
+		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
+		
+		return acc/m_U;
 	}
 }

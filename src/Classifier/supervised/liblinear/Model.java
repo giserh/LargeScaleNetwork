@@ -73,6 +73,9 @@ public final class Model implements Serializable {
         return Linear.copyOf(w, w.length);
     }
 
+    public double[] getWeights(){
+    	return w;
+    }
     /**
      * @return true for logistic regression solvers
      */

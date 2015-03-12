@@ -664,14 +664,14 @@ public class Linear {
             }
 
             iter++;
-            if (iter % 10 == 0) info(".");
+            //if (iter % 10 == 0) info(".");
 
             if (PGmax_new - PGmin_new <= eps) {
                 if (active_size == l)
                     break;
                 else {
                     active_size = l;
-                    info("*");
+                    //info("*");
                     PGmax_old = Double.POSITIVE_INFINITY;
                     PGmin_old = Double.NEGATIVE_INFINITY;
                     continue;
@@ -683,7 +683,7 @@ public class Linear {
             if (PGmin_old >= 0) PGmin_old = Double.NEGATIVE_INFINITY;
         }
 
-        info("%noptimization finished, #iter = %d%n", iter);
+        //info("%noptimization finished, #iter = %d%n", iter);
         if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 2 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
@@ -696,8 +696,8 @@ public class Linear {
             v += alpha[i] * (alpha[i] * diag[GETI(y, i)] - 2);
             if (alpha[i] > 0) ++nSV;
         }
-        info("Objective value = %g%n", v / 2);
-        info("nSV = %d%n", nSV);
+        //info("Objective value = %g%n", v / 2);
+        //info("nSV = %d%n", nSV);
     }
 
     // To support weights for instances, use GETI(i) (i)
@@ -860,14 +860,14 @@ public class Linear {
 
             if (iter == 0) Gnorm1_init = Gnorm1_new;
             iter++;
-            if (iter % 10 == 0) info(".");
+            //if (iter % 10 == 0) info(".");
 
             if (Gnorm1_new <= eps * Gnorm1_init) {
                 if (active_size == l)
                     break;
                 else {
                     active_size = l;
-                    info("*");
+                    //info("*");
                     Gmax_old = Double.POSITIVE_INFINITY;
                     continue;
                 }
@@ -876,7 +876,7 @@ public class Linear {
             Gmax_old = Gmax_new;
         }
 
-        info("%noptimization finished, #iter = %d%n", iter);
+        //info("%noptimization finished, #iter = %d%n", iter);
         if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 11 may be faster%n%n");
 
         // calculate objective value
@@ -890,8 +890,8 @@ public class Linear {
             if (beta[i] != 0) nSV++;
         }
 
-        info("Objective value = %g%n", v);
-        info("nSV = %d%n", nSV);
+        //info("Objective value = %g%n", v);
+        //info("nSV = %d%n", nSV);
     }
 
     /**
@@ -1019,7 +1019,7 @@ public class Linear {
             }
 
             iter++;
-            if (iter % 10 == 0) info(".");
+            //if (iter % 10 == 0) info(".");
 
             if (Gmax < eps) break;
 
@@ -1029,7 +1029,7 @@ public class Linear {
 
         }
 
-        info("%noptimization finished, #iter = %d%n", iter);
+        //info("%noptimization finished, #iter = %d%n", iter);
         if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%nUsing -s 0 may be faster (also see FAQ)%n%n");
 
         // calculate objective value
@@ -1041,7 +1041,7 @@ public class Linear {
         for (i = 0; i < l; i++)
             v += alpha[2 * i] * Math.log(alpha[2 * i]) + alpha[2 * i + 1] * Math.log(alpha[2 * i + 1]) - upper_bound[GETI(y, i)]
                 * Math.log(upper_bound[GETI(y, i)]);
-        info("Objective value = %g%n", v);
+        //info("Objective value = %g%n", v);
     }
 
     /**
@@ -1244,14 +1244,14 @@ public class Linear {
                 Gnorm1_init = Gnorm1_new;
             }
             iter++;
-            if (iter % 10 == 0) info(".");
+            //if (iter % 10 == 0) info(".");
 
             if (Gmax_new <= eps * Gnorm1_init) {
                 if (active_size == w_size)
                     break;
                 else {
                     active_size = w_size;
-                    info("*");
+                    //info("*");
                     Gmax_old = Double.POSITIVE_INFINITY;
                     continue;
                 }
@@ -1260,7 +1260,7 @@ public class Linear {
             Gmax_old = Gmax_new;
         }
 
-        info("%noptimization finished, #iter = %d%n", iter);
+        //info("%noptimization finished, #iter = %d%n", iter);
         if (iter >= max_iter) info("%nWARNING: reaching max number of iterations%n");
 
         // calculate objective value
@@ -1279,8 +1279,8 @@ public class Linear {
         for (j = 0; j < l; j++)
             if (b[j] > 0) v += C[GETI(y, j)] * b[j] * b[j];
 
-        info("Objective value = %g%n", v);
-        info("#nonzeros/#features = %d/%d%n", nnz, w_size);
+        //info("Objective value = %g%n", v);
+        //info("#nonzeros/#features = %d/%d%n", nnz, w_size);
     }
 
     /**
@@ -1573,11 +1573,11 @@ public class Linear {
             newton_iter++;
             Gmax_old = Gmax_new;
 
-            info("iter %3d  #CD cycles %d%n", newton_iter, iter);
+            //info("iter %3d  #CD cycles %d%n", newton_iter, iter);
         }
 
-        info("=========================%n");
-        info("optimization finished, #iter = %d%n", newton_iter);
+        //info("=========================%n");
+        //info("optimization finished, #iter = %d%n", newton_iter);
         if (newton_iter >= max_newton_iter) info("WARNING: reaching max number of iterations%n");
 
         // calculate objective value
@@ -1595,8 +1595,8 @@ public class Linear {
             else
                 v += C[GETI(y, j)] * Math.log(1 + exp_wTx[j]);
 
-        info("Objective value = %g%n", v);
-        info("#nonzeros/#features = %d/%d%n", nnz, w_size);
+        //info("Objective value = %g%n", v);
+        //info("#nonzeros/#features = %d/%d%n", nnz, w_size);
     }
 
     // transpose matrix X from row format to column format

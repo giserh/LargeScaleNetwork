@@ -92,7 +92,35 @@ public abstract class Analyzer {
 			return false;
 		}
 	}
-	
+	//Load the matrix from the matlab result.
+	public double[][] loadMatrixA(String filename){
+		int featureSize = m_corpus.getFeatureSize();
+		double[][] A = new double[featureSize][featureSize];
+		int count = 0;
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
+			String line;
+			while ((line = reader.readLine()) != null) {
+				double[] tmpD = new double[featureSize];
+				String[] tmpS = line.split("\\s+");
+				if(featureSize == tmpS.length){
+					for(int i = 0; i < featureSize; i++){
+						tmpD[i] = Double.parseDouble(tmpS[i]);
+					}
+				A[count] = tmpD;
+				count++;
+				} else
+					System.err.println("Matrix A: size(A[i]) does not match with feature size!");
+			}
+			if(count != featureSize)
+				System.err.println("Matrix A: size(A) does not match with feature size!");
+			reader.close();
+			System.out.format("Matrix A is loaded from %s successfully!!", filename);
+		} catch (IOException e) {
+			System.err.format("[Error]Failed to open file %s!!", filename);
+		}
+		return A;
+	}
 	//Load all the files in the directory.
 	public void LoadDirectory(String folder, String suffix) throws IOException {
 		File dir = new File(folder);
@@ -339,5 +367,21 @@ public abstract class Analyzer {
 		for(int i = 0; i<m_featureNameIndex.size();i++)
 			back_ground_probabilty[i] = (1.0 + back_ground_probabilty[i]) / sum;
 		return back_ground_probabilty;
+	}
+	
+	//Print the sparse for matlab to generate A.
+	public void printXY(String xFile, String yFile) throws FileNotFoundException{
+		PrintWriter writer1 = new PrintWriter(new File(xFile));
+		PrintWriter writer2 = new PrintWriter(new File(yFile));
+		int count = 1;
+		for(_Doc d: m_corpus.getCollection()){
+			for(_SparseFeature sf: d.getSparse()){
+				writer1.write(count + "," + (sf.getIndex() + 1) + "," + sf.getValue() + "\n");
+			}
+			writer2.write(count + "," + 1 + "," + d.getYLabel()+"\n");
+			count++;
+		}
+		writer1.close();
+		writer2.close();
 	}
 }

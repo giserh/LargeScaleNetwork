@@ -8,6 +8,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import Classifier.supervised.liblinear.Feature;
+import Classifier.supervised.liblinear.FeatureNode;
+
 import json.JSONException;
 import json.JSONObject;
 import structures._Doc;
@@ -264,6 +267,9 @@ public class Utils {
 	
 	//Calculate the similarity between two sparse vectors.
 	public static double calculateSimilarity(_SparseFeature[] spVct1, _SparseFeature[] spVct2) {
+		if (spVct1==null || spVct2==null)
+			return 0; // What is the minimal value of similarity?
+		
 		double similarity = 0;
 		int pointer1 = 0, pointer2 = 0;
 		while (pointer1 < spVct1.length && pointer2 < spVct2.length) {
@@ -365,8 +371,23 @@ public class Utils {
 				|| (lastChar>='0' && lastChar<='9'));
 	}
 	
+	public static _SparseFeature[] negSpVct(_SparseFeature[] fv) {
+		_SparseFeature[] result = new _SparseFeature[fv.length];
+		for(int i=0; i<fv.length; i++)
+			result[i] = new _SparseFeature(fv[i].getIndex(), -fv[i].getValue());
+		return result;
+	}
+	
 	//x_i - x_j 
 	public static _SparseFeature[] diffVector(_SparseFeature[] spVcti, _SparseFeature[] spVctj){
+		//first deal with special case
+		if (spVcti==null && spVctj==null)
+			return null;
+		else if (spVctj==null)
+			return spVcti;
+		else if (spVcti==null)
+			return negSpVct(spVctj);		
+		
 		ArrayList<_SparseFeature> vectorList = new ArrayList<_SparseFeature>();
 		int i = 0, j = 0;
 		_SparseFeature fi = spVcti[i], fj = spVctj[j];
@@ -405,5 +426,46 @@ public class Utils {
 		}
 		
 		return vectorList.toArray(new _SparseFeature[vectorList.size()]);
+	}
+	
+	static public Feature[] createLibLinearFV(_Doc doc) {
+		Feature[] node = new Feature[doc.getDocLength()]; 
+		int fid = 0;
+		for(_SparseFeature fv:doc.getSparse())
+			node[fid++] = new FeatureNode(1 + fv.getIndex(), fv.getValue());//svm's feature index starts from 1
+		return node;
+	}
+	
+	static public _SparseFeature[] projectSpVct(_SparseFeature[] fv, Map<Integer, Integer> filter) {
+		ArrayList<_SparseFeature> pFv = new ArrayList<_SparseFeature>();
+		for(_SparseFeature f:fv) {
+			if (filter.containsKey(f.getIndex())) {
+				pFv.add(new _SparseFeature(filter.get(f.getIndex()), f.getValue()));
+			}
+		}
+		
+		if (pFv.isEmpty())
+			return null;
+		else
+			return pFv.toArray(new _SparseFeature[pFv.size()]);
+	}
+	
+	public static double calculateMetricLearning(_Doc d1, _Doc d2, double[][] A){
+		double similarity = 0, tmp = 0;
+		_SparseFeature[] diffVct = diffVector(d1.getSparse(), d2.getSparse());
+		double[] tmpArray = new double[A.length]; 
+		for(int i = 0; i < tmpArray.length; i++){
+			for(_SparseFeature sf: diffVct){
+				int index = sf.getIndex();
+				tmp += sf.getValue() * A[index][i];
+			}
+			tmpArray[i] = tmp;
+			tmp = 0;
+		}//(x_i - x_j)^T * A
+		for(_SparseFeature sf: diffVct){
+			int index = sf.getIndex();
+			similarity += sf.getValue() * tmpArray[index];
+		} //(x_i - x_j)^T * A * (x_i - x_j)
+		return -similarity;
 	}
 }
