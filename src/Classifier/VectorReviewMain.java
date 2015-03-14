@@ -35,7 +35,7 @@ public class VectorReviewMain {
 		String multipleLearner = "SVM";
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "medium";
+		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
 		String featureLocation = path + "fv_2gram_BM25_CHI_" + diffFolder + ".txt";
 		String vctfile = path + "vct_2gram_BM25_CHI_" + diffFolder + ".dat";
@@ -57,12 +57,15 @@ public class VectorReviewMain {
 		VctAnalyzer analyzer = new VctAnalyzer(classNumber, lengthThreshold, featureLocation);
 		analyzer.LoadDoc(vctfile); //Load all the documents as the data set.
 		
-		String xFile = path + diffFolder + "X.csv";
-		String yFile = path + diffFolder + "Y.csv";
-		analyzer.printXY(xFile, yFile);
+//		String xFile = path + diffFolder + "X.csv";
+//		String yFile = path + diffFolder + "Y.csv";
+//		analyzer.printXY(xFile, yFile);
 		
 		_Corpus corpus = analyzer.getCorpus();
 		int featureSize = corpus.getFeatureSize();
+		String simFile = path + "similarPlot.csv";
+		String dissimFile = path + "dissimilarPlot.csv";
+		analyzer.printPlotData(simFile, dissimFile);
 		
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {
