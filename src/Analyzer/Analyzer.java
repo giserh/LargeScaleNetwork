@@ -40,6 +40,9 @@ public abstract class Analyzer {
 	//The length of the window which means how many labels will be taken into consideration.
 	private LinkedList<_Doc> m_preDocs;	
 	
+	private ArrayList<Double> m_similar;
+	private ArrayList<Double> m_dissimilar;
+	
 	public Analyzer(int classNo, int minDocLength) {
 		m_corpus = new _Corpus();
 		
@@ -53,6 +56,8 @@ public abstract class Analyzer {
 		m_lengthThreshold = minDocLength;
 		
 		m_preDocs = new LinkedList<_Doc>();
+		m_dissimilar = new ArrayList<Double>();
+		m_similar = new ArrayList<Double>();
 	}	
 	
 	public void reset() {
@@ -380,6 +385,34 @@ public abstract class Analyzer {
 			}
 			writer2.write(count + "," + 1 + "," + d.getYLabel()+"\n");
 			count++;
+		}
+		writer1.close();
+		writer2.close();
+	}
+	
+	public void printPlotData(String simFile, String dissimFile) throws FileNotFoundException{
+		ArrayList<_Doc> docs = m_corpus.getCollection();
+		for(int i = 0; i < docs.size(); i++){
+			for(int j = i+1; j < docs.size(); j++){
+				_Doc d1 = docs.get(i);
+				_Doc d2 = docs.get(j);
+				if(d1.getYLabel() == d2.getYLabel())
+					m_similar.add(Utils.calculateSimilarity(d1, d2));
+				else
+					m_dissimilar.add(Utils.calculateSimilarity(d1, d2));
+			}
+		}
+		Collections.sort(m_similar);
+		Collections.sort(m_dissimilar);
+		PrintWriter writer1 = new PrintWriter(new File(simFile));
+		PrintWriter writer2 = new PrintWriter(new File(dissimFile));
+		for(int i = 0; i < m_similar.size(); i++){
+			double percentage = (i+1) / m_similar.size();
+			writer1.write(percentage + "\t" + m_similar.get(i) + "\n");
+		}
+		for(int i = 0; i < m_dissimilar.size(); i++){
+			double percentage = (i+1) / m_dissimilar.size();
+			writer1.write(percentage + "\t" + m_dissimilar.get(i) + "\n");
 		}
 		writer1.close();
 		writer2.close();
