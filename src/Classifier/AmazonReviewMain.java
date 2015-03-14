@@ -43,7 +43,7 @@ public class AmazonReviewMain {
 		String stopwords = "./data/Model/stopwords.dat";
 		double startProb = 0.4; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
-		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
+		int DFthreshold = 10; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
