@@ -96,9 +96,9 @@ public abstract class BaseClassifier {
 				for (int j = 0; j < masks.length; j++) {
 					
 					if( masks[j]==(i+1)%k || masks[j]==(i+2)%k || masks[j]==(i+3)%k ) 
-						m_testSet.add(docs.get(j));
-					else if (masks[j]==i)
 						m_trainSet.add(docs.get(j));
+					else if (masks[j]==i)
+						m_testSet.add(docs.get(j));
 					
 				}
 				

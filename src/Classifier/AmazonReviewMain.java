@@ -41,7 +41,7 @@ public class AmazonReviewMain {
 //		/*****Parameters in feature selection.*****/
 		String featureSelection = "CHI"; //Feature selection method.
 		String stopwords = "./data/Model/stopwords.dat";
-		double startProb = 0.4; // Used in feature selection, the starting point of the features.
+		double startProb = 0.3; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
 		int DFthreshold = 10; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);

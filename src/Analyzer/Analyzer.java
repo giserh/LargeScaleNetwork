@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -42,7 +43,7 @@ public abstract class Analyzer {
 	
 	private ArrayList<Double> m_similar;
 	private ArrayList<Double> m_dissimilar;
-	
+
 	public Analyzer(int classNo, int minDocLength) {
 		m_corpus = new _Corpus();
 		
@@ -397,24 +398,44 @@ public abstract class Analyzer {
 				_Doc d1 = docs.get(i);
 				_Doc d2 = docs.get(j);
 				if(d1.getYLabel() == d2.getYLabel())
-					m_similar.add(Utils.calculateSimilarity(d1, d2));
+					m_similar.add(Math.exp(-Utils.calculateSimilarity(d1, d2)));
 				else
-					m_dissimilar.add(Utils.calculateSimilarity(d1, d2));
+					m_dissimilar.add(Math.exp(-Utils.calculateSimilarity(d1, d2)));
 			}
 		}
+//		//Define a descending comparator.
+//		Comparator<Double> descending = new Comparator<Double>(){
+//			public int compare(Double a, Double b){
+//				if (a > b) return -1;
+//				else if (a == b) return 0;
+//				else return 1;
+//			}
+//		};
 		Collections.sort(m_similar);
 		Collections.sort(m_dissimilar);
+//		//reverse the elements in m_similar.
+//		for(int i = 0; i < m_similar.size() / 2; i++){
+//			double tmp = m_similar.get(i);
+//			m_similar.set(i, m_similar.get(m_similar.size() - 1 - i));
+//			m_similar.set(m_similar.size() - 1 - i, tmp);
+//		}
+//		//reverse the elements in m_dissimilar.
+//		for(int i = 0; i < m_dissimilar.size() / 2; i++){
+//			double tmp = m_dissimilar.get(i);
+//			m_dissimilar.set(i, m_dissimilar.get(m_dissimilar.size() - 1 - i));
+//			m_dissimilar.set(m_dissimilar.size() - 1 - i, tmp);
+//		}
 		PrintWriter writer1 = new PrintWriter(new File(simFile));
-		PrintWriter writer2 = new PrintWriter(new File(dissimFile));
 		for(int i = 0; i < m_similar.size(); i++){
-			double percentage = (i+1) / m_similar.size();
-			writer1.write(percentage + "\t" + m_similar.get(i) + "\n");
-		}
-		for(int i = 0; i < m_dissimilar.size(); i++){
-			double percentage = (i+1) / m_dissimilar.size();
-			writer1.write(percentage + "\t" + m_dissimilar.get(i) + "\n");
+			double percentage = (double)(i+1) / m_similar.size();
+			writer1.write(percentage + "," + m_similar.get(i) + "\n");
 		}
 		writer1.close();
+		PrintWriter writer2 = new PrintWriter(new File(dissimFile));
+		for(int i = 0; i < m_dissimilar.size(); i++){
+			double percentage = (double)(i+1) / m_dissimilar.size();
+			writer2.write(percentage + "," + m_dissimilar.get(i) + "\n");
+		}
 		writer2.close();
 	}
 }

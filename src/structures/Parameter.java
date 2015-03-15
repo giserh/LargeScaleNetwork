@@ -14,7 +14,7 @@ public class Parameter {
 	public int m_lengthThreshold = 10; //Document length threshold
 	
 	//"TF", "TFIDF", "BM25", "PLN"
-	public String m_featureValue = "TF"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
+	public String m_featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
 	public int m_norm = 2;//The way of normalization.(only 1 and 2)
 	public int m_CVFold = 10; //k fold-cross validation
 	
@@ -50,7 +50,7 @@ public class Parameter {
 
 	/*****Parameters in feature selection.*****/
 	public String m_featureSelection = "CHI"; //Feature selection method.
-	public double m_startProb = 0.4; // Used in feature selection, the starting point of the features.
+	public double m_startProb = 0.3; // Used in feature selection, the starting point of the features.
 	public double m_endProb = 0.999; // Used in feature selection, the ending point of the features.
 	public int m_DFthreshold = 10; // Filter the features with DFs smaller than this threshold.
 	
@@ -177,7 +177,7 @@ public class Parameter {
 		+"	CHI -- Chi-Square test statistics\n"
 		+"	IG -- Informatoin gain\n"
 		+"	MI -- Mutual information\n"
-		+"-sp float : ignore the bottom proportion of ranked features (default 0.4)\n"
+		+"-sp float : ignore the bottom proportion of ranked features (default 0.3)\n"
 		+"-ep float : ignore the top proportion of ranked features (default 0.999)\n"
 		+"-df int : ignore the features occurring less than c documents (default 10) \n"
 		+"-cs int : total number of classes (has to be manually specified!)\n"
@@ -185,7 +185,7 @@ public class Parameter {
 		+"-lcut int : ignore the documents with length less than c (default 5)\n"
 		+"-window int : window size in time series based sentiment analysis (default 0)\n"
 		+"-cv int : cross validation fold (default 10)\n"
-		+"-fv type : feature value generation method (default TFIDF)\n"
+		+"-fv type : feature value generation method (default BM25)\n"
 		+"	TF -- Term frequency\n"
 		+"	TFIDF -- Term frequency times inverse document frequence\n"
 		+"	BM25 -- Term frequency times BM25 IDF with document length normalization\n"
@@ -218,7 +218,7 @@ public class Parameter {
 		+"	SEMI -- Semi-supervised learning\n"
 		+"	TM -- Topic Models\n"
 		+"-C float -- trade-off parameter in LR and SVM (default 0.1)\n"
-		+"-sr float : Sample rate for transductive learning (default 0.25)\n"
+		+"-sr float : Sample rate for transductive learning (default 0.1)\n"
 		+"-kUL int : k nearest labeled neighbors (default 100)\n"
 		+"-kUU int : kP nearest unlabeled neighbors (default 50)\n"
 		+"-sg 0/1 : store the k nearest graph (default 0)\n"
