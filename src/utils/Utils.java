@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 
 import Classifier.supervised.liblinear.Feature;
 import Classifier.supervised.liblinear.FeatureNode;
@@ -261,9 +262,15 @@ public class Utils {
 		return calculateSimilarity(d1.getSparse(), d2.getSparse());
 	}
 	
+	//Calculate the similarity between two documents.
+	public static double calculateCosineSimilarity(_Doc d1, _Doc d2){
+		return cosine(d1.getSparse(), d2.getSparse());		
+	}
+	
 	public static double cosine(_SparseFeature[] spVct1, _SparseFeature[] spVct2) {
 		return calculateSimilarity(spVct1, spVct2) / sumOfFeaturesL2(spVct1) / sumOfFeaturesL2(spVct2);
 	}
+	
 	
 	//Calculate the similarity between two sparse vectors.
 	public static double calculateSimilarity(_SparseFeature[] spVct1, _SparseFeature[] spVct2) {
@@ -286,6 +293,7 @@ public class Utils {
 		}
 		return similarity;
 	}
+	
 	
 	static public boolean isNumber(String token) {
 		return token.matches("\\d+");
@@ -436,6 +444,7 @@ public class Utils {
 		return node;
 	}
 	
+	//Get projectSpVct by building a map filter, added by Hongning.
 	static public _SparseFeature[] projectSpVct(_SparseFeature[] fv, Map<Integer, Integer> filter) {
 		ArrayList<_SparseFeature> pFv = new ArrayList<_SparseFeature>();
 		for(_SparseFeature f:fv) {
@@ -444,6 +453,20 @@ public class Utils {
 			}
 		}
 		
+		if (pFv.isEmpty())
+			return null;
+		else
+			return pFv.toArray(new _SparseFeature[pFv.size()]);
+	}
+	
+	//Get projectSpVct by building a hashmap<Integer, String> filter, added by Lin.
+	static public _SparseFeature[] projectSpVct(_SparseFeature[] fv, HashMap<Integer, String> filter) {
+		ArrayList<_SparseFeature> pFv = new ArrayList<_SparseFeature>();
+		for(_SparseFeature f:fv) {
+			if (filter.containsKey(f.getIndex())) {
+				pFv.add(new _SparseFeature(f.getIndex(), f.getValue()));
+			}
+		}
 		if (pFv.isEmpty())
 			return null;
 		else

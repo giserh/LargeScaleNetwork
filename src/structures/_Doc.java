@@ -291,7 +291,14 @@ public class _Doc implements Comparable<_Doc> {
 		return String.format("ProdID: %s\tID: %s\t Rating: %d\n%s", m_itemID, m_name, m_y_label, m_source);
 	}
 	
-	public void setProjectedFv(Map<Integer, Integer> filter) {
+	//This one is used in pos tagging.
+	public void setProjectedFv(HashMap<Integer, String> filter) {
 		m_x_projection = Utils.projectSpVct(m_x_sparse, filter);
 	}
+	
+	//This one is used in liblinear.
+	public void setProjectedFv(Map<Integer, Integer> filter){
+		m_x_projection = Utils.projectSpVct(m_x_sparse, filter);
+	}
+	
 }

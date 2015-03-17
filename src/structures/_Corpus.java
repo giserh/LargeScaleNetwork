@@ -147,6 +147,32 @@ public class _Corpus {
 		} 
 	}
 	
+	//Only save the projected features to file.
+	public void save2FileProjectSpVct(String filename){
+		if (filename==null || filename.isEmpty()) {
+			System.out.println("Please specify the file name to save the vectors!");
+			return;
+		}
+		
+		try {
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename)));
+			for(_Doc doc:m_collection) {
+				if(doc.getProjectedFv() != null){
+					writer.write(String.format("%d", doc.getYLabel()));
+					for(_SparseFeature fv: doc.getProjectedFv()){
+						writer.write(String.format(" %d:%f", fv.getIndex()+1, fv.getValue()));//index starts from 1
+					}
+					writer.write(String.format(" #%s-%s\n", doc.m_itemID, doc.m_name));
+				}
+			}
+			writer.close();
+			
+			System.out.format("%d feature vectors saved to %s\n", m_collection.size(), filename);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
+	}
+	
 	public void saveAs3WayTensor(String filename) {
 		System.out.format("Save 3-way tensor to %s...\n", filename);
 		try {

@@ -290,7 +290,7 @@ public abstract class Analyzer {
 		LoadCV(location);//load the selected features
 	}
 	
-	//Save all the features and feature stat into a file.
+	//Save all the features into a file.
 	protected void SaveCV(String featureLocation, String featureSelection, double startProb, double endProb, int threshold) throws FileNotFoundException {
 		if (featureLocation==null || featureLocation.isEmpty())
 			return;

@@ -1,15 +1,19 @@
 package Analyzer;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -36,10 +40,11 @@ public class DocAnalyzer extends Analyzer {
 	protected Tokenizer m_tokenizer;
 	protected SnowballStemmer m_stemmer;
 	protected SentenceDetectorME m_stnDetector;
-	protected POSTaggerME m_tagger;
 	
+	protected POSTaggerME m_tagger;
+	protected Set<String> m_rawFilter; //Use this to store all the adj/advs for later filtering.
+	protected HashMap<Integer, String> m_filter;//Use this to store all the indexes of adj/advs for use.
 	Set<String> m_stopwords;
-	 
 	protected boolean m_releaseContent;
 	
 	//Constructor with ngram and fValue.
@@ -66,6 +71,8 @@ public class DocAnalyzer extends Analyzer {
 		m_Ngram = Ngram;
 		m_isCVLoaded = LoadCV(providedCV);
 		m_stopwords = new HashSet<String>();
+		m_rawFilter = new HashSet<String>();
+		m_filter = new HashMap<Integer, String>();
 		m_releaseContent = true;
 	}
 	
@@ -214,12 +221,6 @@ public class DocAnalyzer extends Analyzer {
 	    return sentences;
 	}
 	
-
-	/*Analyze a document and add the analyzed document back to corpus.	
-	 *In the case CV is not loaded, we need two if loops to check. 
-	 * The first is if the term is in the vocabulary.***I forgot to check this one!
-	 * The second is if the term is in the sparseVector.
-	 * In the case CV is loaded, we still need two if loops to check.*/
 	// adding sentence splitting function, modified for HTMM
 	protected boolean AnalyzeDocWithStnSplit(_Doc doc) {
 		String[] sentences = m_stnDetector.sentDetect(doc.getSource());
@@ -359,21 +360,16 @@ public class DocAnalyzer extends Analyzer {
 	}
 	
 	@SuppressWarnings("deprecation")
-	protected boolean AnalyzeDocWithPosTagging(_Doc doc) {
-		ArrayList<String> tokensArrayList = new ArrayList<String>();
-		String[] tmpTokens = Tokenizer(doc.getSource());
-		for(int i = 0; i < tmpTokens.length; i++){
-			String tagger = m_tagger.tag(tmpTokens[i]);
+	protected boolean AnalyzeDocWithPosTagging(_Doc doc) {		
+		String[] tokens = Tokenizer(doc.getSource());
+		for(int i = 0; i < tokens.length; i++){
+			String tagger = m_tagger.tag(tokens[i]);
 			String[] tmpToken = tagger.split("/");
 			if (tmpToken[1].equals("RB")||tmpToken[1].equals("RBR")||tmpToken[1].equals("RBS")||tmpToken[1].equals("JJ")||tmpToken[1].equals("JJR")||tmpToken[1].equals("JJS") ){
-				tokensArrayList.add(tmpToken[0]);
-				//System.out.println(tmpToken[0]);
+				m_rawFilter.add(Normalize(SnowballStemming(tmpToken[0])));
 			}
+			tokens[i] = Normalize(SnowballStemming(tokens[i]));
 		}
-		//Put all the adj, adv features into tokens for further usage.
-		String[] tokens = new String[tokensArrayList.size()];
-		for(int i = 0; i < tokensArrayList.size(); i++)
-			tokens[i] = Normalize(SnowballStemming(tokensArrayList.get(i)));
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		int index = 0;
 		double value = 0;
@@ -421,9 +417,34 @@ public class DocAnalyzer extends Analyzer {
 		} else
 			return false;
 	}
+	//Build the filter based on the raw filter and features.
+	public void builderFilter(){
+		for(String f: m_rawFilter){
+			if(m_featureNameIndex.containsKey(f))
+				m_filter.put(m_featureNameIndex.get(f), f);
+		}
+	}
+	//Bulid the project vector for every document.
+	public void buildProjectSpVct(){
+		for(_Doc d: m_corpus.getCollection())
+			d.setProjectedFv(m_filter);
+	}
 	
 	public void disablePosTagger(){
 		m_tagger = null;
+	}
+	
+	//Save projected features to file.
+	public void saveProjectedFvs(String projectedFeatureLocation) throws FileNotFoundException{
+		if (projectedFeatureLocation==null || projectedFeatureLocation.isEmpty())
+			return;
+		
+		System.out.format("Saving projected features to %s...\n", projectedFeatureLocation);
+		PrintWriter writer = new PrintWriter(new File(projectedFeatureLocation));
+		Collection<String> projectedFvs = m_filter.values();
+		for (String s: projectedFvs) //printed out all the projected features.
+			writer.println(s);
+		writer.close();
 	}
 }	
 

@@ -53,10 +53,14 @@ public class AmazonReviewMain {
 		String suffix = ".json";
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String tagModel = "./data/Model/en-pos-maxent.bin";
+		
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
+		String projectedFeatureLocation = String.format(path + "projected_fv_%s.txt", pattern);//feature location
 		//String featureStatLocation = String.format("data/fv_stat_%s.txt", pattern);//stat location
+		
 		String vctFile = String.format(path + "vct_%s.dat", pattern);		
+		String projectedVctFile = String.format(path + "projected_vct_%s.dat", pattern);	
 		
 		/*****Parameters in time series analysis.*****/
 		int window = 0;
@@ -73,11 +77,13 @@ public class AmazonReviewMain {
 		//Collect vectors for documents.
 		System.out.println("Creating feature vectors, wait...");
 		//jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, finalLocation, Ngram, lengthThreshold);
-		analyzer.setReleaseContent( !(classifier.equals("PR") || debugOutput!=null) );//Just for debugging purpose: all the other classifiers do not need content
+		//analyzer.setReleaseContent( !(classifier.equals("PR") || debugOutput!=null) );//Just for debugging purpose: all the other classifiers do not need content
 		analyzer.disablePosTagger();//set the m_tagger = null so that no postagging is performed when load documents again.
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
-		analyzer.setTimeFeatures(window);
+		//analyzer.setTimeFeatures(window);
+		analyzer.builderFilter(); //Build the filter for projection use.
+		analyzer.buildProjectSpVct(); //Build the project SpVct for all the documents.
 		
 		String xFile = path + diffFolder + "X.csv";
 		String yFile = path + diffFolder + "Y.csv";
@@ -122,6 +128,8 @@ public class AmazonReviewMain {
 			mySemi.crossValidation(CVFold, corpus);
 		} else if (style.equals("FV")) {
 			corpus.save2File(vctFile);
+			analyzer.saveProjectedFvs(projectedFeatureLocation);
+			corpus.save2FileProjectSpVct(projectedVctFile);
 			System.out.format("Vectors saved to %s...\n", vctFile);
 		} else System.out.println("Learning paradigm has not developed yet!");
 	}
