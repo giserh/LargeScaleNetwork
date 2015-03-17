@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.Tokenizer;
@@ -33,6 +36,8 @@ public class DocAnalyzer extends Analyzer {
 	protected Tokenizer m_tokenizer;
 	protected SnowballStemmer m_stemmer;
 	protected SentenceDetectorME m_stnDetector;
+	protected POSTaggerME m_tagger;
+	
 	Set<String> m_stopwords;
 	 
 	protected boolean m_releaseContent;
@@ -44,6 +49,20 @@ public class DocAnalyzer extends Analyzer {
 		m_stemmer = new englishStemmer();
 		m_stnDetector = null; // indicating we don't need sentence splitting
 		
+		m_Ngram = Ngram;
+		m_isCVLoaded = LoadCV(providedCV);
+		m_stopwords = new HashSet<String>();
+		m_releaseContent = true;
+	}
+	
+	//Constructor with ngram and fValue.
+	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold, String tagModel) throws InvalidFormatException, FileNotFoundException, IOException {
+		super(classNo, threshold);
+		m_tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(tokenModel)));
+		m_stemmer = new englishStemmer();
+		m_stnDetector = null; // indicating we don't need sentence splitting
+		m_tagger = new POSTaggerME(new POSModel(new FileInputStream(tagModel)));
+
 		m_Ngram = Ngram;
 		m_isCVLoaded = LoadCV(providedCV);
 		m_stopwords = new HashSet<String>();
@@ -66,6 +85,8 @@ public class DocAnalyzer extends Analyzer {
 		m_stopwords = new HashSet<String>();
 		m_releaseContent = true;
 	}
+	
+	
 	
 	public void setReleaseContent(boolean release) {
 		m_releaseContent = release;
@@ -335,6 +356,74 @@ public class DocAnalyzer extends Analyzer {
 			return true;
 		} else
 			return false;
+	}
+	
+	@SuppressWarnings("deprecation")
+	protected boolean AnalyzeDocWithPosTagging(_Doc doc) {
+		ArrayList<String> tokensArrayList = new ArrayList<String>();
+		String[] tmpTokens = Tokenizer(doc.getSource());
+		for(int i = 0; i < tmpTokens.length; i++){
+			String tagger = m_tagger.tag(tmpTokens[i]);
+			String[] tmpToken = tagger.split("/");
+			if (tmpToken[1].equals("RB")||tmpToken[1].equals("RBR")||tmpToken[1].equals("RBS")||tmpToken[1].equals("JJ")||tmpToken[1].equals("JJR")||tmpToken[1].equals("JJS") ){
+				tokensArrayList.add(tmpToken[0]);
+				//System.out.println(tmpToken[0]);
+			}
+		}
+		//Put all the adj, adv features into tokens for further usage.
+		String[] tokens = new String[tokensArrayList.size()];
+		for(int i = 0; i < tokensArrayList.size(); i++)
+			tokens[i] = Normalize(SnowballStemming(tokensArrayList.get(i)));
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		int index = 0;
+		double value = 0;
+		// Construct the sparse vector.
+		for (String token : tokens) {
+			// CV is not loaded, take all the tokens as features.
+			if (!m_isCVLoaded) {
+				if (m_featureNameIndex.containsKey(token)) {
+					index = m_featureNameIndex.get(token);
+					if (spVct.containsKey(index)) {
+						value = spVct.get(index) + 1;
+						spVct.put(index, value);
+					} else {
+						spVct.put(index, 1.0);
+						m_featureStat.get(token).addOneDF(doc.getYLabel());
+					}
+				} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
+					expandVocabulary(token);// update the m_featureNames.
+					index = m_featureNameIndex.get(token);
+					spVct.put(index, 1.0);
+					m_featureStat.get(token).addOneDF(doc.getYLabel());
+				}
+				m_featureStat.get(token).addOneTTF(doc.getYLabel());
+			} else if (m_featureNameIndex.containsKey(token)) {// CV is loaded.
+				index = m_featureNameIndex.get(token);
+				if (spVct.containsKey(index)) {
+					value = spVct.get(index) + 1;
+					spVct.put(index, value);
+				} else {
+					spVct.put(index, 1.0);
+					m_featureStat.get(token).addOneDF(doc.getYLabel());
+				}
+				m_featureStat.get(token).addOneTTF(doc.getYLabel());
+			}
+			// if the token is not in the vocabulary, nothing to do.
+		}
+		
+		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+			doc.createSpVct(spVct);
+			m_corpus.addDoc(doc);
+			m_classMemberNo[doc.getYLabel()]++;
+			if (m_releaseContent)
+				doc.clearSource();
+			return true;
+		} else
+			return false;
+	}
+	
+	public void disablePosTagger(){
+		m_tagger = null;
 	}
 }	
 

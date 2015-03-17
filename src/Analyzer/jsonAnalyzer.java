@@ -34,7 +34,13 @@ public class jsonAnalyzer extends DocAnalyzer{
 		m_dateFormatter = new SimpleDateFormat("MMMMM dd,yyyy");// standard date format for this project
 	}
 	
-	//Constructor with ngram and fValue.
+	//Constructor with ngram, fValue and tagModel, no stnModel.
+	public jsonAnalyzer(String tokenModel, String tagModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException {
+		super(tokenModel, classNo, providedCV, Ngram, threshold, tagModel);
+		m_dateFormatter = new SimpleDateFormat("MMMMM dd,yyyy");// standard date format for this project
+	}
+	
+	//Constructor with ngram and fValue, stnModel, no tagModel.
 	public jsonAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold, String stnModel) throws InvalidFormatException, FileNotFoundException, IOException {
 		super(tokenModel, stnModel, classNo, providedCV, Ngram, threshold);
 		m_dateFormatter = new SimpleDateFormat("MMMMM dd,yyyy");// standard date format for this project
@@ -68,6 +74,8 @@ public class jsonAnalyzer extends DocAnalyzer{
 					_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
 					if(this.m_stnDetector!=null)
 						AnalyzeDocWithStnSplit(review);
+					else if(this.m_tagger != null)
+						AnalyzeDocWithPosTagging(review);
 					else
 						AnalyzeDoc(review);
 				}

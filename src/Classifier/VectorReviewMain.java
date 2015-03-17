@@ -20,25 +20,25 @@ public class VectorReviewMain {
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before run the classifiers.*****/
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
-		int lengthThreshold = 5; //Document length threshold
+		int lengthThreshold = 0; //Document length threshold
 		
 		int CVFold = 10; //k fold-cross validation
 		
 		//Supervised classification models: "NB", "LR", "PR-LR", "SVM"
 		//Semi-supervised classification models: "GF", "GF-RW", "GF-RW-ML"
-		String classifier = "GF-RW"; //Which classifier to use.
+		String classifier = "SVM"; //Which classifier to use.
 //		String modelPath = "./data/Model/";
 		double C = 1.0;
 		
 		//"SUP", "SEMI"
-		String style = "SEMI";
+		String style = "SUP";
 		String multipleLearner = "SVM";
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "10json";
+		String diffFolder = "20json";
 		String path = "data/" + diffFolder + "/";
-		String featureLocation = path + "fv_2gram_BM25_CHI_" + diffFolder + ".txt";
-		String vctfile = path + "vct_2gram_BM25_CHI_" + diffFolder + ".dat";
+		String featureLocation = path + "fv_1gram_BM25_CHI_" + diffFolder + ".txt";
+		String vctfile = path + "vct_1gram_BM25_CHI_" + diffFolder + ".dat";
 		
 		
 //		String featureLocation = "data/matlabTest/20json/fv_2gram_BM25_CHI.txt";

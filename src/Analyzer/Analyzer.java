@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -220,8 +219,10 @@ public abstract class Analyzer {
 					String featureName = m_featureNames.get(sf.getIndex());
 					_stat stat = m_featureStat.get(featureName);
 					double TF = sf.getValue();
-					double DF = Utils.sumOfArray(stat.getDF());
+					double DF = Utils.sumOfArray(stat.getDF());//
 					double BM25 = Math.log((N - DF + 0.5) / (DF + 0.5)) * TF * (k1 + 1) / (k1 * (1 - b + b * n) + TF);
+					if (Double.isNaN(BM25))
+						System.out.println("Nan detected!!");
 					sf.setValue(BM25);
 				}
 			}

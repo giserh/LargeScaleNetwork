@@ -18,8 +18,8 @@ public class AmazonReviewMain {
 		/*****Set these parameters before run the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
-		int Ngram = 2; //The default value is bigram. 
-		int lengthThreshold = 10; //Document length threshold
+		int Ngram = 1; //The default value is bigram. 
+		int lengthThreshold = 0; //Document length threshold
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
@@ -52,6 +52,7 @@ public class AmazonReviewMain {
 		String folder = path + "RawData";
 		String suffix = ".json";
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
+		String tagModel = "./data/Model/en-pos-maxent.bin";
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
 		//String featureStatLocation = String.format("data/fv_stat_%s.txt", pattern);//stat location
@@ -64,7 +65,7 @@ public class AmazonReviewMain {
 		
 		/****Feture selection*****/
 		System.out.println("Performing feature selection, wait...");
-		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
+		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, tagModel, classNumber, "", Ngram, lengthThreshold);
 		analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
@@ -73,6 +74,7 @@ public class AmazonReviewMain {
 		System.out.println("Creating feature vectors, wait...");
 		//jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, finalLocation, Ngram, lengthThreshold);
 		analyzer.setReleaseContent( !(classifier.equals("PR") || debugOutput!=null) );//Just for debugging purpose: all the other classifiers do not need content
+		analyzer.disablePosTagger();//set the m_tagger = null so that no postagging is performed when load documents again.
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
