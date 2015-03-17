@@ -135,7 +135,7 @@ import Classifier.supervised.liblinear.SolverType;
 public class SVM extends BaseClassifier {
 	Model m_libModel;
 	Parameter m_libParameter;
-	SolverType m_type = SolverType.L1R_L2LOSS_SVC;
+	SolverType m_type = SolverType.L2R_L2LOSS_SVC_DUAL;
 	
 	//Constructor without give C.
 	public SVM(_Corpus c, int classNumber, int featureSize){
