@@ -19,7 +19,7 @@ public class AmazonReviewMain {
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
 		int Ngram = 1; //The default value is bigram. 
-		int lengthThreshold = 0; //Document length threshold
+		int lengthThreshold = 10; //Document length threshold
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
@@ -41,9 +41,9 @@ public class AmazonReviewMain {
 //		/*****Parameters in feature selection.*****/
 		String featureSelection = "CHI"; //Feature selection method.
 		String stopwords = "./data/Model/stopwords.dat";
-		double startProb = 0.3; // Used in feature selection, the starting point of the features.
+		double startProb = 0.4; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
-		int DFthreshold = 10; // Filter the features with DFs smaller than this threshold.
+		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
@@ -52,14 +52,13 @@ public class AmazonReviewMain {
 		String folder = path + "RawData";
 		String suffix = ".json";
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
-		String tagModel = "./data/Model/en-pos-maxent.bin";
-		
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
-		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
-		String projectedFeatureLocation = String.format(path + "projected_fv_%s.txt", pattern);//feature location
-		//String featureStatLocation = String.format("data/fv_stat_%s.txt", pattern);//stat location
 		
-		String vctFile = String.format(path + "vct_%s.dat", pattern);		
+		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
+		String vctFile = String.format(path + "vct_%s.dat", pattern);	
+		
+		String tagModel = "./data/Model/en-pos-maxent.bin";		
+		String projectedFeatureLocation = String.format(path + "projected_fv_%s.txt", pattern);//feature location
 		String projectedVctFile = String.format(path + "projected_vct_%s.dat", pattern);	
 		
 		/*****Parameters in time series analysis.*****/
@@ -67,34 +66,40 @@ public class AmazonReviewMain {
 		System.out.println("Window length: " + window);
 		System.out.println("--------------------------------------------------------------------------------------");
 		
-		/****Feture selection*****/
+		/****Feature selection*****/
 		System.out.println("Performing feature selection, wait...");
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, tagModel, classNumber, "", Ngram, lengthThreshold);
 		analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
 		
-		//Collect vectors for documents.
 		System.out.println("Creating feature vectors, wait...");
-		//jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, finalLocation, Ngram, lengthThreshold);
-		//analyzer.setReleaseContent( !(classifier.equals("PR") || debugOutput!=null) );//Just for debugging purpose: all the other classifiers do not need content
 		analyzer.disablePosTagger();//set the m_tagger = null so that no postagging is performed when load documents again.
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
-		//analyzer.setTimeFeatures(window);
 		analyzer.builderFilter(); //Build the filter for projection use.
 		analyzer.buildProjectSpVct(); //Build the project SpVct for all the documents.
+		
+//		System.out.println("Performing feature selection, wait...");
+//		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);	
+//		analyzer.LoadStopwords(stopwords);
+//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+//		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
+//		System.out.println("Creating feature vectors, wait...");
+//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+//		analyzer.setFeatureValues(featureValue, norm);
+//		analyzer.setTimeFeatures(window);
 		
 		String xFile = path + diffFolder + "X.csv";
 		String yFile = path + diffFolder + "Y.csv";
 		featureSize = analyzer.getFeatureSize();
 		analyzer.printXY(xFile, yFile);
-		_Corpus corpus = analyzer.getCorpus();
 		
 		//temporal code to add pagerank weights
 //		PageRank tmpPR = new PageRank(corpus, classNumber, featureSize + window, C, 100, 50, 1e-6);
 //		tmpPR.train(corpus.getCollection());
 		
+		_Corpus corpus = analyzer.getCorpus();
 		/********Choose different classification methods.*********/
 		//Execute different classifiers.
 		if (style.equals("SUP")) {

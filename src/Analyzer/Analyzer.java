@@ -399,9 +399,9 @@ public abstract class Analyzer {
 				_Doc d1 = docs.get(i);
 				_Doc d2 = docs.get(j);
 				if(d1.getYLabel() == d2.getYLabel())
-					m_similar.add(Math.exp(-Utils.calculateSimilarity(d1, d2)));
+					m_similar.add(Math.exp(-Utils.calculateCosineSimilarity(d1, d2)));
 				else
-					m_dissimilar.add(Math.exp(-Utils.calculateSimilarity(d1, d2)));
+					m_dissimilar.add(Math.exp(-Utils.calculateCosineSimilarity(d1, d2)));
 			}
 		}
 //		//Define a descending comparator.

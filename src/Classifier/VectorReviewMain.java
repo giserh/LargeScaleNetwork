@@ -26,27 +26,21 @@ public class VectorReviewMain {
 		
 		//Supervised classification models: "NB", "LR", "PR-LR", "SVM"
 		//Semi-supervised classification models: "GF", "GF-RW", "GF-RW-ML"
-		String classifier = "SVM"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 //		String modelPath = "./data/Model/";
 		double C = 1.0;
 		
 		//"SUP", "SEMI"
-		String style = "SUP";
+		String style = "SEMI";
 		String multipleLearner = "SVM";
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "small";
+		String diffFolder = "20json";
 		String path = "data/" + diffFolder + "/";
-		String featureLocation = path + "fv_2gram_BM25_CHI_" + diffFolder + ".txt";
-		String vctfile = path + "vct_2gram_BM25_CHI_" + diffFolder + ".dat";
+		String featureLocation = path + "fv_1gram_BM25_CHI_" + diffFolder + ".txt";
+		String vctfile = path + "projected_vct_1gram_BM25_CHI_" + diffFolder + ".dat";
 		
-		
-//		String featureLocation = "data/matlabTest/20json/fv_2gram_BM25_CHI.txt";
-//		String vctfile = "data/matlabTest/20json/vct_2gram_BM25_CHI.dat";
 		String matrixFile = path + "matrixA.dat";
-		
-//		String featureLocation = "data/Features/fv_fake.txt";
-//		String vctfile = "data/Fvs/LinearRegression.dat";
 		
 		/*****Parameters in time series analysis.*****/
 		String debugOutput = "data/debug/GF-RW.output";
@@ -66,6 +60,8 @@ public class VectorReviewMain {
 //		String simFile = path + "similarPlot.csv";
 //		String dissimFile = path + "dissimilarPlot.csv";
 //		analyzer.printPlotData(simFile, dissimFile);
+		
+		//analyzer.printPlotData(simFile, dissimFile)
 		
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {
@@ -122,5 +118,4 @@ public class VectorReviewMain {
 			
 		} else System.out.println("Learning paradigm has not been developed yet!");
 	} 
-
 }
