@@ -34,8 +34,6 @@ import structures._SparseFeature;
 import utils.Utils;
 
 public class DocAnalyzer extends Analyzer {
-	
-	
 
 	protected Tokenizer m_tokenizer;
 	protected SnowballStemmer m_stemmer;
@@ -60,22 +58,6 @@ public class DocAnalyzer extends Analyzer {
 		m_releaseContent = true;
 	}
 	
-	//Constructor with ngram and fValue.
-	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold, String tagModel) throws InvalidFormatException, FileNotFoundException, IOException {
-		super(classNo, threshold);
-		m_tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(tokenModel)));
-		m_stemmer = new englishStemmer();
-		m_stnDetector = null; // indicating we don't need sentence splitting
-		m_tagger = new POSTaggerME(new POSModel(new FileInputStream(tagModel)));
-
-		m_Ngram = Ngram;
-		m_isCVLoaded = LoadCV(providedCV);
-		m_stopwords = new HashSet<String>();
-		m_rawFilter = new HashSet<String>();
-		m_filter = new HashMap<Integer, String>();
-		m_releaseContent = true;
-	}
-	
 	//Constructor with ngram and fValue and sentence check.
 	public DocAnalyzer(String tokenModel, String stnModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
 		super(classNo, threshold);
@@ -93,7 +75,26 @@ public class DocAnalyzer extends Analyzer {
 		m_releaseContent = true;
 	}
 	
-	
+	//Constructor with ngram and fValue.
+	public DocAnalyzer(String tokenModel, String stnModel, String tagModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException {
+		super(classNo, threshold);
+		m_tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(tokenModel)));
+		m_stemmer = new englishStemmer();
+		//We need to spilt sentences before we do pos tagging.
+		if (stnModel!=null)
+			m_stnDetector = new SentenceDetectorME(new SentenceModel(new FileInputStream(stnModel)));
+		else
+			m_stnDetector = null;
+		
+		m_tagger = new POSTaggerME(new POSModel(new FileInputStream(tagModel)));
+
+		m_Ngram = Ngram;
+		m_isCVLoaded = LoadCV(providedCV);
+		m_stopwords = new HashSet<String>();
+		m_rawFilter = new HashSet<String>(); //The adj/adv words used to construct the new features.
+		m_filter = new HashMap<Integer, String>();
+		m_releaseContent = true;
+	}
 	
 	public void setReleaseContent(boolean release) {
 		m_releaseContent = release;
@@ -221,6 +222,61 @@ public class DocAnalyzer extends Analyzer {
 	    return sentences;
 	}
 	
+	/*Analyze a document and add the analyzed document back to corpus.
+	 *In the case CV is not loaded, we need two if loops to check.
+	 * The first is if the term is in the vocabulary.***I forgot to check this one!
+	 * The second is if the term is in the sparseVector.
+	 * In the case CV is loaded, we still need two if loops to check.*/
+	protected boolean AnalyzeDoc(_Doc doc) {
+		String[] tokens = TokenizerNormalizeStemmer(doc.getSource());// Three-step analysis.
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		int index = 0;
+		double value = 0;
+		// Construct the sparse vector.
+		for (String token : tokens) {
+			// CV is not loaded, take all the tokens as features.
+			if (!m_isCVLoaded) {
+				if (m_featureNameIndex.containsKey(token)) {
+					index = m_featureNameIndex.get(token);
+					if (spVct.containsKey(index)) {
+						value = spVct.get(index) + 1;
+						spVct.put(index, value);
+					} else {
+						spVct.put(index, 1.0);
+						m_featureStat.get(token).addOneDF(doc.getYLabel());
+					}
+				} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
+					expandVocabulary(token);// update the m_featureNames.
+					index = m_featureNameIndex.get(token);
+					spVct.put(index, 1.0);
+					m_featureStat.get(token).addOneDF(doc.getYLabel());
+				}
+				m_featureStat.get(token).addOneTTF(doc.getYLabel());
+			} else if (m_featureNameIndex.containsKey(token)) {// CV is loaded.
+				index = m_featureNameIndex.get(token);
+				if (spVct.containsKey(index)) {
+					value = spVct.get(index) + 1;
+					spVct.put(index, value);
+				} else {
+					spVct.put(index, 1.0);
+					m_featureStat.get(token).addOneDF(doc.getYLabel());
+				}
+				m_featureStat.get(token).addOneTTF(doc.getYLabel());
+			}
+			// if the token is not in the vocabulary, nothing to do.
+		}
+		
+		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+			doc.createSpVct(spVct);
+			m_corpus.addDoc(doc);
+			m_classMemberNo[doc.getYLabel()]++;
+			if (m_releaseContent)
+				doc.clearSource();
+			return true;
+		} else
+			return false;
+	}
+	
 	// adding sentence splitting function, modified for HTMM
 	protected boolean AnalyzeDocWithStnSplit(_Doc doc) {
 		String[] sentences = m_stnDetector.sentDetect(doc.getSource());
@@ -303,72 +359,18 @@ public class DocAnalyzer extends Analyzer {
 			return false;
 	}
 	
-	
-	/*Analyze a document and add the analyzed document back to corpus.
-	 *In the case CV is not loaded, we need two if loops to check.
-	 * The first is if the term is in the vocabulary.***I forgot to check this one!
-	 * The second is if the term is in the sparseVector.
-	 * In the case CV is loaded, we still need two if loops to check.*/
-	protected boolean AnalyzeDoc(_Doc doc) {
-		String[] tokens = TokenizerNormalizeStemmer(doc.getSource());// Three-step analysis.
-		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
-		int index = 0;
-		double value = 0;
-		// Construct the sparse vector.
-		for (String token : tokens) {
-			// CV is not loaded, take all the tokens as features.
-			if (!m_isCVLoaded) {
-				if (m_featureNameIndex.containsKey(token)) {
-					index = m_featureNameIndex.get(token);
-					if (spVct.containsKey(index)) {
-						value = spVct.get(index) + 1;
-						spVct.put(index, value);
-					} else {
-						spVct.put(index, 1.0);
-						m_featureStat.get(token).addOneDF(doc.getYLabel());
-					}
-				} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
-					expandVocabulary(token);// update the m_featureNames.
-					index = m_featureNameIndex.get(token);
-					spVct.put(index, 1.0);
-					m_featureStat.get(token).addOneDF(doc.getYLabel());
-				}
-				m_featureStat.get(token).addOneTTF(doc.getYLabel());
-			} else if (m_featureNameIndex.containsKey(token)) {// CV is loaded.
-				index = m_featureNameIndex.get(token);
-				if (spVct.containsKey(index)) {
-					value = spVct.get(index) + 1;
-					spVct.put(index, value);
-				} else {
-					spVct.put(index, 1.0);
-					m_featureStat.get(token).addOneDF(doc.getYLabel());
-				}
-				m_featureStat.get(token).addOneTTF(doc.getYLabel());
-			}
-			// if the token is not in the vocabulary, nothing to do.
-		}
-		
-		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
-			doc.createSpVct(spVct);
-			m_corpus.addDoc(doc);
-			m_classMemberNo[doc.getYLabel()]++;
-			if (m_releaseContent)
-				doc.clearSource();
-			return true;
-		} else
-			return false;
-	}
-	
 	@SuppressWarnings("deprecation")
 	protected boolean AnalyzeDocWithPosTagging(_Doc doc) {		
-		String[] tokens = Tokenizer(doc.getSource());
-		for(int i = 0; i < tokens.length; i++){
-			String[] tagger = m_tagger.tag(tokens);
-			String[] tmpToken = tagger.split("/");
-			if (tmpToken[1].equals("RB")||tmpToken[1].equals("RBR")||tmpToken[1].equals("RBS")||tmpToken[1].equals("JJ")||tmpToken[1].equals("JJR")||tmpToken[1].equals("JJS") ){
-				m_rawFilter.add(Normalize(SnowballStemming(tmpToken[0])));
+		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
+		for(String s: sentences){
+			String[] tokens = Tokenizer(s);
+			String[] tags = m_tagger.tag(tokens);
+			if(tokens.length == tags.length){
+				for(int i = 0; i < tokens.length; i++){
+					if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS"))
+						m_rawFilter.add(Normalize(SnowballStemming(tokens[i])));//Add the adj/adv to the feature list.
+				}
 			}
-			tokens[i] = Normalize(SnowballStemming(tokens[i]));
 		}
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		int index = 0;

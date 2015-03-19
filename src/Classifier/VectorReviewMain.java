@@ -21,19 +21,15 @@ public class VectorReviewMain {
 		/*****Set these parameters before run the classifiers.*****/
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
 		int lengthThreshold = 10; //Document length threshold
-		
 		int CVFold = 10; //k fold-cross validation
-		
-		//Supervised classification models: "NB", "LR", "PR-LR", "SVM"
-		//Semi-supervised classification models: "GF", "GF-RW", "GF-RW-ML"
+
+		//"SUP", "SEMI", "FV: save features and vectors to files"
+		String style = "SEMI";//"SUP", "SEMI"
+		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
 		String classifier = "GF-RW"; //Which classifier to use.
-//		String modelPath = "./data/Model/";
-		double C = 1.0;
-		
-		//"SUP", "SEMI"
-		String style = "SEMI";
 		String multipleLearner = "SVM";
-		
+		double C = 1.0;		
+
 		/*****The parameters used in loading files.*****/
 		String diffFolder = "20json";
 		String path = "data/" + diffFolder + "/";
@@ -41,27 +37,25 @@ public class VectorReviewMain {
 		String vctfile = path + "projected_vct_1gram_BM25_CHI_" + diffFolder + ".dat";
 		
 		String matrixFile = path + "matrixA.dat";
-		
-		/*****Parameters in time series analysis.*****/
 		String debugOutput = "data/debug/GF-RW.output";
 		
 		/****Pre-process the data.*****/
-		//Feture selection.
 		System.out.println("Loading vectors from file, wait...");
 		VctAnalyzer analyzer = new VctAnalyzer(classNumber, lengthThreshold, featureLocation);
 		analyzer.LoadDoc(vctfile); //Load all the documents as the data set.
 		
+//		//We can also print the matrix of X and Y with vectors.
 //		String xFile = path + diffFolder + "X.csv";
 //		String yFile = path + diffFolder + "Y.csv";
 //		analyzer.printXY(xFile, yFile);
 		
 		_Corpus corpus = analyzer.getCorpus();
 		int featureSize = corpus.getFeatureSize();
+		
+//		//Print the distance vs similar(dissimilar pairs)
 //		String simFile = path + "similarPlot.csv";
 //		String dissimFile = path + "dissimilarPlot.csv";
 //		analyzer.printPlotData(simFile, dissimFile);
-		
-		//analyzer.printPlotData(simFile, dissimFile)
 		
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {
@@ -75,18 +69,17 @@ public class VectorReviewMain {
 				//Define a new logistics regression with the parameters.
 				System.out.println("Start logistic regression, wait...");
 				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
-				//myLR.setDebugOutput(debugOutput);
-				
 				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
 				//myLR.saveModel(modelPath + "LR.model");
+				
 			} else if(classifier.equals("PRLR")){
 				//Define a new logistics regression with the parameters.
 				System.out.println("Start posterior regularized logistic regression, wait...");
 				PRLogisticRegression myLR = new PRLogisticRegression(corpus, classNumber, featureSize, C);
 				myLR.setDebugOutput(debugOutput);
-				
 				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
 				//myLR.saveModel(modelPath + "LR.model");
+				
 			} else if(classifier.equals("SVM")){
 				System.out.println("Start SVM, wait...");
 				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.001);//default value of eps from Lin's implementation
@@ -105,7 +98,6 @@ public class VectorReviewMain {
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner,
 						0.1, 100, 50, 1.0, 0.1, 1e-4, 0.3, false);
-				//mySemi.setDebugOutput(debugOutput
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {

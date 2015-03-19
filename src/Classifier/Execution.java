@@ -51,7 +51,7 @@ public class Execution  {
 		} else {
 			/***Load the data from text file***/
 			if (param.m_suffix.equals(".json"))
-				analyzer = new jsonAnalyzer(param.m_tokenModel, param.m_classNumber, param.m_featureFile, param.m_Ngram, param.m_lengthThreshold, stnModel);
+				analyzer = new jsonAnalyzer(param.m_tokenModel, stnModel, param.m_classNumber, param.m_featureFile, param.m_Ngram, param.m_lengthThreshold);
 			else
 				analyzer = new DocAnalyzer(param.m_tokenModel, stnModel, param.m_classNumber, param.m_featureFile, param.m_Ngram, param.m_lengthThreshold);
 			((DocAnalyzer)analyzer).setReleaseContent(!param.m_weightScheme.equals("PR"));
