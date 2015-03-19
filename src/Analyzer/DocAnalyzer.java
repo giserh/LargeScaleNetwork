@@ -363,7 +363,7 @@ public class DocAnalyzer extends Analyzer {
 	protected boolean AnalyzeDocWithPosTagging(_Doc doc) {		
 		String[] tokens = Tokenizer(doc.getSource());
 		for(int i = 0; i < tokens.length; i++){
-			String tagger = m_tagger.tag(tokens[i]);
+			String[] tagger = m_tagger.tag(tokens);
 			String[] tmpToken = tagger.split("/");
 			if (tmpToken[1].equals("RB")||tmpToken[1].equals("RBR")||tmpToken[1].equals("RBS")||tmpToken[1].equals("JJ")||tmpToken[1].equals("JJR")||tmpToken[1].equals("JJS") ){
 				m_rawFilter.add(Normalize(SnowballStemming(tmpToken[0])));
