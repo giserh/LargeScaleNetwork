@@ -167,7 +167,7 @@ public class _Corpus {
 			}
 			writer.close();
 			
-			System.out.format("%d feature vectors saved to %s\n", m_collection.size(), filename);
+			System.out.format("%d projected feature vectors saved to %s\n", m_collection.size(), filename);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 

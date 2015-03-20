@@ -19,18 +19,18 @@ public class AmazonReviewMain {
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before running the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
-		int Ngram = 2; //The default value is bigram. 
+		int Ngram = 1; //The default value is bigram. 
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
 		int norm = 2;//The way of normalization.(only 1 and 2)
 		
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
-		int lengthThreshold = 10; //Document length threshold
+		int lengthThreshold = 0; //Document length threshold
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SEMI";//"SUP", "SEMI"
+		String style = "FV";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
 		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
@@ -125,7 +125,7 @@ public class AmazonReviewMain {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.3, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {

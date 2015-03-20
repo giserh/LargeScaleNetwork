@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.text.ParseException;
 import structures._Corpus;
 import Analyzer.jsonAnalyzer;
+import Classifier.metricLearning.LinearSVMMetricLearning;
 import Classifier.semisupervised.GaussianFields;
+import Classifier.semisupervised.GaussianFieldsByRandomWalk;
 import Classifier.supervised.LogisticRegression;
 import Classifier.supervised.NaiveBayes;
 import Classifier.supervised.SVM;
@@ -16,7 +18,7 @@ public class POSTaggingMain {
 		/*****Set these parameters before run the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
-		int Ngram = 1; //The default value is bigram. 
+		int Ngram = 1; //The default value is unigram for pos tagging. 
 		int lengthThreshold = 10; //Document length threshold
 		
 		//"TF", "TFIDF", "BM25", "PLN"
@@ -24,12 +26,13 @@ public class POSTaggingMain {
 		int norm = 2;//The way of normalization.(only 1 and 2)
 		int CVFold = 10; //k fold-cross validation
 	
-		//"SUP", "SEMI", "FV"
-		String style = "FV";
+		//"SUP", "SEMI", "FV: save features and vectors to files"
+		String style = "FV";//"SUP", "SEMI"
+		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
+		String classifier = "SVM"; //Which classifier to use.
+		String multipleLearner = "SVM";
+		double C = 1.0;		
 		
-		//"NB", "LR", "SVM", "PR"
-		String classifier = "LR"; //Which classifier to use.
-		double C = 0.1;
 //		String modelPath = "./data/Model/";
 		String debugOutput = "data/debug/LR.output";
 		
@@ -39,7 +42,7 @@ public class POSTaggingMain {
 //		/*****Parameters in feature selection.*****/
 		String featureSelection = "CHI"; //Feature selection method.
 		String stopwords = "./data/Model/stopwords.dat";
-		double startProb = 0.3; // Used in feature selection, the starting point of the features.
+		double startProb = 0.0; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
 		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
@@ -57,89 +60,92 @@ public class POSTaggingMain {
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
 		String tagModel = "./data/Model/en-pos-maxent.bin";		
-		String projectedFeatureLocation = String.format(path + "projected_fv_%s.txt", pattern);//feature location
+		//String projectedFeatureLocation = String.format(path + "projected_fv_%s.txt", pattern);//feature location
 		String projectedVctFile = String.format(path + "projected_vct_%s.dat", pattern);	
 		
 		/*****Parameters in time series analysis.*****/
 		int window = 0;
 		System.out.println("Window length: " + window);
-		System.out.println("--------------------------------------------------------------------------------------");
 		
-		//We have two ways to do pos tagging: one is taking all adj/advs as features, another is taking the adj/advs from the selected features.
-		/****Feature selection*****/
-		System.out.println("Performing feature selection, wait...");
-		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, tagModel, classNumber, "", Ngram, lengthThreshold);
+		/**We have two ways to do pos tagging: 1 is taking all adj/advs as features; 2 is taking the adj/advs from the selected features.*/
+		int posTaggingMethod = 2; //Which way to use to build features with pos tagging.
+		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, "", Ngram, lengthThreshold, posTaggingMethod);
 		analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-		
-		
-		
-		
 		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
-		
-		System.out.println("Creating feature vectors, wait...");
-		analyzer.disablePosTagger();//set the m_tagger = null so that no postagging is performed when load documents again.
-		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-		analyzer.setFeatureValues(featureValue, norm);
-		analyzer.builderFilter(); //Build the filter for projection use.
-		analyzer.buildProjectSpVct(); //Build the project SpVct for all the documents.
-		
-//		System.out.println("Performing feature selection, wait...");
-//		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);	
-//		analyzer.LoadStopwords(stopwords);
-//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-//		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
-//		System.out.println("Creating feature vectors, wait...");
-//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-//		analyzer.setFeatureValues(featureValue, norm);
-//		analyzer.setTimeFeatures(window);
-		
-		String xFile = path + diffFolder + "X.csv";
-		String yFile = path + diffFolder + "Y.csv";
-		featureSize = analyzer.getFeatureSize();
-		analyzer.printXY(xFile, yFile);
-		
-		//temporal code to add pagerank weights
-//		PageRank tmpPR = new PageRank(corpus, classNumber, featureSize + window, C, 100, 50, 1e-6);
-//		tmpPR.train(corpus.getCollection());
+
+		if (posTaggingMethod == 1){
+			/**1: Load directory one time to build the sparse vector for all docs.*/
+			System.out.println("Creating feature vectors for postagging methond 1, wait...");
+			analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+			analyzer.setFeatureValues(featureValue, norm);
+		} else if(posTaggingMethod == 2){
+			/**2: Load directory two times: first for feature selection, second for building sparse vectors.*/
+			System.out.println("Creating feature vectors for postagging methond 2, wait...");
+			analyzer.disablePosTagging();//set the m_tagger = null so that no postagging is performed when load documents again.
+			analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+			analyzer.setFeatureValues(featureValue, norm);
+			System.out.format("The number of features: %d/%d.\n", analyzer.builderFilter(), analyzer.getFeatureSize()); //Build the filter for projection use.	
+			analyzer.buildProjectSpVct(); //Build the project SpVct for all the documents.
+		}
+//		String xFile = path + diffFolder + "X.csv";
+//		String yFile = path + diffFolder + "Y.csv";
+//		analyzer.printXY(xFile, yFile);
 		
 		_Corpus corpus = analyzer.getCorpus();
+		
+//		//Print the distance vs similar(dissimilar pairs)
+//		String simFile = path + "similarPlot.csv";
+//		String dissimFile = path + "dissimilarPlot.csv";
+//		analyzer.printPlotData(simFile, dissimFile);
+		
 		/********Choose different classification methods.*********/
-		//Execute different classifiers.
 		if (style.equals("SUP")) {
 			if(classifier.equals("NB")){
 				//Define a new naive bayes with the parameters.
 				System.out.println("Start naive bayes, wait...");
-				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize + window + 1);
+				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize);
 				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
 				
 			} else if(classifier.equals("LR")){
 				//Define a new logistics regression with the parameters.
 				System.out.println("Start logistic regression, wait...");
-				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize + window + 1, C);
-				myLR.setDebugOutput(debugOutput);
-				
+				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
+				myLR.setDebugOutput(debugOutput);//Save debug information into file.
 				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
 				//myLR.saveModel(modelPath + "LR.model");
 			} else if(classifier.equals("SVM")){
+				//Define a new SVM with the parameters.
 				System.out.println("Start SVM, wait...");
-				SVM mySVM = new SVM(corpus, classNumber, featureSize + window + 1, C, 0.01);//default eps value from Lin's implementation
+				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.01);//default eps value from Lin's implementation
 				mySVM.crossValidation(CVFold, corpus);
 				
 			} else if (classifier.equals("PR")){
+				//Define a new Pagerank with parameters.
 				System.out.println("Start PageRank, wait...");
-				PageRank myPR = new PageRank(corpus, classNumber, featureSize + window + 1, C, 100, 50, 1e-6);
+				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
 				myPR.train(corpus.getCollection());
 				
 			} else System.out.println("Classifier has not developed yet!");
-		} else if (style.equals("SEMI")) {
-			GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize + window + 1, classifier);
-			mySemi.crossValidation(CVFold, corpus);
+		}
+		else if (style.equals("SEMI")) {
+			if (classifier.equals("GF")) {
+				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
+				mySemi.crossValidation(CVFold, corpus);
+			} else if (classifier.equals("GF-RW")) {
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
+				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+				mySemi.crossValidation(CVFold, corpus);
+			} else if (classifier.equals("GF-RW-ML")) {
+				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
+				lMetricLearner.setDebugOutput(debugOutput);
+				lMetricLearner.crossValidation(CVFold, corpus);
+			} else System.out.println("Classifier has not been developed yet!");
 		} else if (style.equals("FV")) {
 			corpus.save2File(vctFile);
-			analyzer.saveProjectedFvs(projectedFeatureLocation);
 			corpus.save2FileProjectSpVct(projectedVctFile);
 			System.out.format("Vectors saved to %s...\n", vctFile);
-		} else System.out.println("Learning paradigm has not developed yet!");
+		} else 
+			System.out.println("Learning paradigm has not developed yet!");
 	}
 }

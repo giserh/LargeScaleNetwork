@@ -70,12 +70,15 @@ public abstract class Analyzer {
 	
 	//Load the features from a file and store them in the m_featurNames.@added by Lin.
 	protected boolean LoadCV(String filename) {
+		System.out.println("--------------------------------------------------------------------------------------");
 		if (filename==null || filename.isEmpty())
 			return false;
 		
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
 			String line;
+			if((line = reader.readLine()) == null) 
+				System.err.println("Empty line detected!!");
 			while ((line = reader.readLine()) != null) {
 				if (line.startsWith("#")){
 					if (line.startsWith("#NGram")) {//has to be decoded
@@ -83,7 +86,7 @@ public abstract class Analyzer {
 						m_Ngram = Integer.valueOf(line.substring(pos+1));
 					}
 						
-				} else 
+				} else
 					expandVocabulary(line);
 			}
 			reader.close();
@@ -271,7 +274,7 @@ public abstract class Analyzer {
 	public void featureSelection(String location, String featureSelection, double startProb, double endProb, int threshold) throws FileNotFoundException {
 		FeatureSelector selector = new FeatureSelector(startProb, endProb, threshold);
 
-		System.out.println("*******************************************************************");
+		System.out.println("--------------------------------------------------------------------------------------");
 		if (featureSelection.equals("DF"))
 			selector.DF(m_featureStat);
 		else if (featureSelection.equals("IG"))
@@ -427,13 +430,13 @@ public abstract class Analyzer {
 //			m_dissimilar.set(m_dissimilar.size() - 1 - i, tmp);
 //		}
 		PrintWriter writer1 = new PrintWriter(new File(simFile));
-		for(int i = 0; i < m_similar.size(); i++){
+		for(int i = 0; i < m_similar.size(); i=i+20){//take one sample every 20 points 
 			double percentage = (double)(i+1) / m_similar.size();
 			writer1.write(percentage + "," + m_similar.get(i) + "\n");
 		}
 		writer1.close();
 		PrintWriter writer2 = new PrintWriter(new File(dissimFile));
-		for(int i = 0; i < m_dissimilar.size(); i++){
+		for(int i = 0; i < m_dissimilar.size(); i=i+20){//take one sample every 20 points 
 			double percentage = (double)(i+1) / m_dissimilar.size();
 			writer2.write(percentage + "," + m_dissimilar.get(i) + "\n");
 		}

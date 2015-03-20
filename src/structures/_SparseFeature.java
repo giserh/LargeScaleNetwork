@@ -11,7 +11,7 @@ public class _SparseFeature implements Comparable<_SparseFeature> {
 	private String content; //Content of the feature.
 	private int m_index; // Index of the feature
 	private double m_value; // Value of the feature (non-zero)
-	
+
 	//Constructor.
 	public _SparseFeature(){
 		this.content = "";

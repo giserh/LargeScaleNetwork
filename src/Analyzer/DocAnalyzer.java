@@ -44,6 +44,7 @@ public class DocAnalyzer extends Analyzer {
 	protected HashMap<Integer, String> m_filter;//Use this to store all the indexes of adj/advs for use.
 	Set<String> m_stopwords;
 	protected boolean m_releaseContent;
+	protected int m_posTaggingMethod;
 	
 	//Constructor with ngram and fValue.
 	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
@@ -73,10 +74,11 @@ public class DocAnalyzer extends Analyzer {
 		m_isCVLoaded = LoadCV(providedCV);
 		m_stopwords = new HashSet<String>();
 		m_releaseContent = true;
+		m_posTaggingMethod = 1; //default value is 1.
 	}
 	
 	//Constructor with ngram and fValue.
-	public DocAnalyzer(String tokenModel, String stnModel, String tagModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException {
+	public DocAnalyzer(String tokenModel, String stnModel, String tagModel, int classNo, String providedCV, int Ngram, int threshold, int posTaggingMethod) throws InvalidFormatException, FileNotFoundException, IOException {
 		super(classNo, threshold);
 		m_tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(tokenModel)));
 		m_stemmer = new englishStemmer();
@@ -94,6 +96,7 @@ public class DocAnalyzer extends Analyzer {
 		m_rawFilter = new HashSet<String>(); //The adj/adv words used to construct the new features.
 		m_filter = new HashMap<Integer, String>();
 		m_releaseContent = true;
+		m_posTaggingMethod = posTaggingMethod;
 	}
 	
 	public void setReleaseContent(boolean release) {
@@ -111,7 +114,7 @@ public class DocAnalyzer extends Analyzer {
 					m_stopwords.add(line);
 			}
 			reader.close();
-			System.out.format("Loading %d stopwords from %s\n", m_stopwords.size(), filename);
+			System.out.format("Loading %d stopwords from %s", m_stopwords.size(), filename);
 		} catch(IOException e){
 			System.err.format("[Error]Failed to open file %s!!", filename);
 		}
@@ -359,56 +362,60 @@ public class DocAnalyzer extends Analyzer {
 			return false;
 	}
 	
-	@SuppressWarnings("deprecation")
-	protected boolean AnalyzeDocWithPosTagging(_Doc doc) {		
+	protected boolean selectPOSTaggingMethod(_Doc doc, int posTaggingMethod){
+		if(posTaggingMethod == 1)
+			return AnalyzeDocWithPosTagging1(doc);
+		else if (posTaggingMethod == 2)
+			return AnalyzeDocWithPosTagging2(doc);
+		else {
+			System.err.println("The pos tagging method is not valid!!");
+			return false;
+		}
+	}
+	
+	protected boolean AnalyzeDocWithPosTagging2(_Doc doc) {
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		int index = 0;
+		double value = 0;
 		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
 		for(String s: sentences){
 			String[] tokens = Tokenizer(s);
 			String[] tags = m_tagger.tag(tokens);
-			if(tokens.length == tags.length){
-				for(int i = 0; i < tokens.length; i++){
-					if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS"))
-						m_rawFilter.add(Normalize(SnowballStemming(tokens[i])));//Add the adj/adv to the feature list.
-				}
-			}
-		}
-		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
-		int index = 0;
-		double value = 0;
-		// Construct the sparse vector.
-		for (String token : tokens) {
-			// CV is not loaded, take all the tokens as features.
-			if (!m_isCVLoaded) {
-				if (m_featureNameIndex.containsKey(token)) {
-					index = m_featureNameIndex.get(token);
+			for(int i = 0; i < tokens.length; i++){
+				if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS"))
+					m_rawFilter.add(SnowballStemming(Normalize(tokens[i]))); //Collect all adjs/advs
+					
+				// CV is not loaded, take all the adjs/advs as features.
+				if (!m_isCVLoaded) {
+					if (m_featureNameIndex.containsKey(tokens[i])) {
+						index = m_featureNameIndex.get(tokens[i]);
+						if (spVct.containsKey(index)) {
+							value = spVct.get(index) + 1;
+							spVct.put(index, value);
+						} else {
+							spVct.put(index, 1.0);
+							m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+						}
+					} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
+						expandVocabulary(tokens[i]);// update the m_featureNames.
+						index = m_featureNameIndex.get(tokens[i]);
+						spVct.put(index, 1.0);
+						m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+					}
+					m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
+				} else if (m_featureNameIndex.containsKey(tokens[i])) {// CV is loaded.
+					index = m_featureNameIndex.get(tokens[i]);
 					if (spVct.containsKey(index)) {
 						value = spVct.get(index) + 1;
 						spVct.put(index, value);
 					} else {
 						spVct.put(index, 1.0);
-						m_featureStat.get(token).addOneDF(doc.getYLabel());
+						m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
 					}
-				} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
-					expandVocabulary(token);// update the m_featureNames.
-					index = m_featureNameIndex.get(token);
-					spVct.put(index, 1.0);
-					m_featureStat.get(token).addOneDF(doc.getYLabel());
+					m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
 				}
-				m_featureStat.get(token).addOneTTF(doc.getYLabel());
-			} else if (m_featureNameIndex.containsKey(token)) {// CV is loaded.
-				index = m_featureNameIndex.get(token);
-				if (spVct.containsKey(index)) {
-					value = spVct.get(index) + 1;
-					spVct.put(index, value);
-				} else {
-					spVct.put(index, 1.0);
-					m_featureStat.get(token).addOneDF(doc.getYLabel());
-				}
-				m_featureStat.get(token).addOneTTF(doc.getYLabel());
 			}
-			// if the token is not in the vocabulary, nothing to do.
 		}
-		
 		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
 			doc.createSpVct(spVct);
 			m_corpus.addDoc(doc);
@@ -419,12 +426,68 @@ public class DocAnalyzer extends Analyzer {
 		} else
 			return false;
 	}
+			
+	protected boolean AnalyzeDocWithPosTagging1(_Doc doc) {
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		int index = 0;
+		double value = 0;
+		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
+		for(String s: sentences){
+			String[] tokens = Tokenizer(s);
+			String[] tags = m_tagger.tag(tokens);
+			for(int i = 0; i < tokens.length; i++){
+				if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
+					// CV is not loaded, take all the adjs/advs as features.
+					if (!m_isCVLoaded) {
+						if (m_featureNameIndex.containsKey(tokens[i])) {
+							index = m_featureNameIndex.get(tokens[i]);
+							if (spVct.containsKey(index)) {
+								value = spVct.get(index) + 1;
+								spVct.put(index, value);
+							} else {
+								spVct.put(index, 1.0);
+								m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+							}
+						} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
+							expandVocabulary(tokens[i]);// update the m_featureNames.
+							index = m_featureNameIndex.get(tokens[i]);
+							spVct.put(index, 1.0);
+							m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+						}
+						m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
+					} else if (m_featureNameIndex.containsKey(tokens[i])) {// CV is loaded.
+						index = m_featureNameIndex.get(tokens[i]);
+						if (spVct.containsKey(index)) {
+							value = spVct.get(index) + 1;
+							spVct.put(index, value);
+						} else {
+							spVct.put(index, 1.0);
+							m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+						}
+						m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
+					}
+				}
+			}
+		}
+		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+			doc.createSpVct(spVct);
+			m_corpus.addDoc(doc);
+			m_classMemberNo[doc.getYLabel()]++;
+			if (m_releaseContent)
+				doc.clearSource();
+			return true;
+		} else
+			return false;
+	}
+		
+		
 	//Build the filter based on the raw filter and features.
-	public void builderFilter(){
+	public int builderFilter(){
 		for(String f: m_rawFilter){
 			if(m_featureNameIndex.containsKey(f))
 				m_filter.put(m_featureNameIndex.get(f), f);
 		}
+		return m_filter.size();
 	}
 	//Bulid the project vector for every document.
 	public void buildProjectSpVct(){
@@ -432,7 +495,8 @@ public class DocAnalyzer extends Analyzer {
 			d.setProjectedFv(m_filter);
 	}
 	
-	public void disablePosTagger(){
+	public void disablePosTagging(){
+		m_stnDetector = null;
 		m_tagger = null;
 	}
 	

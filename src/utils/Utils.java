@@ -473,8 +473,9 @@ public class Utils {
 			return pFv.toArray(new _SparseFeature[pFv.size()]);
 	}
 	
+	//After getting the matrix A, feed back to calculate the similarity, d =(x_i-x_j)'A(x_i-x_j), similarity = exp(-d)
 	public static double calculateMetricLearning(_Doc d1, _Doc d2, double[][] A){
-		double similarity = 0, tmp = 0;
+		double distance = 0, tmp = 0;
 		_SparseFeature[] diffVct = diffVector(d1.getSparse(), d2.getSparse());
 		double[] tmpArray = new double[A.length]; 
 		for(int i = 0; i < tmpArray.length; i++){
@@ -487,8 +488,8 @@ public class Utils {
 		}//(x_i - x_j)^T * A
 		for(_SparseFeature sf: diffVct){
 			int index = sf.getIndex();
-			similarity += sf.getValue() * tmpArray[index];
+			distance += sf.getValue() * tmpArray[index];
 		} //(x_i - x_j)^T * A * (x_i - x_j)
-		return -similarity;
+		return Math.exp(-distance);
 	}
 }

@@ -20,13 +20,13 @@ public class VectorReviewMain {
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before run the classifiers.*****/
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
-		int lengthThreshold = 10; //Document length threshold
+		int lengthThreshold = 0; //Document length threshold
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SEMI";//"SUP", "SEMI"
+		String style = "SUP";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "GF-RW"; //Which classifier to use.
+		String classifier = "SVM"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 
@@ -97,8 +97,8 @@ public class VectorReviewMain {
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner,
-						0.1, 100, 50, 1.0, 0.1, 1e-4, 0.3, false);
-				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+						0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
+				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
 				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner,
