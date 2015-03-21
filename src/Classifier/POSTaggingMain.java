@@ -27,7 +27,7 @@ public class POSTaggingMain {
 		int CVFold = 10; //k fold-cross validation
 	
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "FV";//"SUP", "SEMI"
+		String style = "SUP";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
 		String classifier = "SVM"; //Which classifier to use.
 		String multipleLearner = "SVM";
@@ -42,9 +42,9 @@ public class POSTaggingMain {
 //		/*****Parameters in feature selection.*****/
 		String featureSelection = "CHI"; //Feature selection method.
 		String stopwords = "./data/Model/stopwords.dat";
-		double startProb = 0.0; // Used in feature selection, the starting point of the features.
+		double startProb = 0.3; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
-		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
+		int DFthreshold = 5; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
@@ -68,7 +68,7 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/**We have two ways to do pos tagging: 1 is taking all adj/advs as features; 2 is taking the adj/advs from the selected features.*/
-		int posTaggingMethod = 2; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, "", Ngram, lengthThreshold, posTaggingMethod);
 		analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
@@ -91,7 +91,8 @@ public class POSTaggingMain {
 //		String xFile = path + diffFolder + "X.csv";
 //		String yFile = path + diffFolder + "Y.csv";
 //		analyzer.printXY(xFile, yFile);
-		
+	
+		featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.getCorpus();
 		
 //		//Print the distance vs similar(dissimilar pairs)
