@@ -447,4 +447,37 @@ public abstract class Analyzer {
 		}
 		writer2.close();
 	}
+	
+	public void printPlotDataDiffClasses(String path, int classNo ){
+		ArrayList<ArrayList<_Doc>> groupedDocs = new ArrayList<ArrayList<_Doc>>();
+		ArrayList<ArrayList<Double>> groupedSimilarity = new ArrayList<ArrayList<Double>>();
+		
+		for(int i = 0; i < classNo; i++){
+			groupedDocs.add(new ArrayList<_Doc>());
+		}
+		for(int i = 0; i < classNo * classNo; i++){
+			groupedSimilarity.add(new ArrayList<Double>());
+		}
+		//Group all the documents into different classes.
+		for(_Doc d: m_corpus.getCollection()){ 
+			if(d.getYLabel() == 0)
+				groupedDocs.get(0).add(d);
+			else if (d.getYLabel() == 1) 
+				groupedDocs.get(1).add(d);
+			else if (d.getYLabel() == 2)
+				groupedDocs.get(2).add(d);
+			else if (d.getYLabel() == 3) 
+				groupedDocs.get(4).add(d);
+			else if (d.getYLabel() == 4) 
+				groupedDocs.get(4).add(d);
+			else 
+				System.err.println("Beyond the class number!!");
+		}
+		//Enumerate all similarities among all pairs.
+		for(int i = 0; i < classNo; i++){
+			for(int j = 0; j < classNo; j++){
+				groupedSimilarity.get();
+			}
+		}
+	}
 }

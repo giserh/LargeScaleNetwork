@@ -20,7 +20,7 @@ public class VectorReviewMain {
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before run the classifiers.*****/
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
-		int lengthThreshold = 0; //Document length threshold
+		int lengthThreshold = 10; //Document length threshold
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
@@ -31,10 +31,10 @@ public class VectorReviewMain {
 		double C = 1.0;		
 
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "20json";
+		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
-		String featureLocation = path + "fv_1gram_BM25_CHI_" + diffFolder + ".txt";
-		String vctfile = path + "projected_vct_1gram_BM25_CHI_" + diffFolder + ".dat";
+		String featureLocation = path + "fv_2gram_BM25_CHI_" + diffFolder + ".txt";
+		String vctfile = path + "vct_2gram_BM25_CHI_" + diffFolder + ".dat";
 		
 		String matrixFile = path + "matrixA.dat";
 		String debugOutput = "data/debug/GF-RW.output";
