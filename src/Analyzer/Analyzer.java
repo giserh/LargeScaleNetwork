@@ -4,14 +4,18 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 
 import structures._Corpus;
 import structures._Doc;
@@ -42,7 +46,7 @@ public abstract class Analyzer {
 	
 	private ArrayList<Double> m_similar;
 	private ArrayList<Double> m_dissimilar;
-
+	
 	public Analyzer(int classNo, int minDocLength) {
 		m_corpus = new _Corpus();
 		
@@ -100,6 +104,7 @@ public abstract class Analyzer {
 			return false;
 		}
 	}
+	
 	//Load the matrix from the matlab result.
 	public double[][] loadMatrixA(String filename){
 		int featureSize = m_corpus.getFeatureSize();

@@ -24,6 +24,7 @@ public class VctAnalyzer extends Analyzer {
 
 	@Override
 	public void LoadDoc(String filename) {
+		int count = 0;
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
 			String line;
@@ -57,11 +58,11 @@ public class VctAnalyzer extends Analyzer {
 							maxFvIndex = index;
 					}
 				}
-				
 				doc.setSpVct(spVct);
 				m_corpus.addDoc(doc);
 				m_classMemberNo[doc.getYLabel()]++;
 			}
+			System.out.println(count);
 			reader.close();
 			reviseCV(maxFvIndex);
 			

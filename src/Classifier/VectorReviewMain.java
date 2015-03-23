@@ -24,9 +24,9 @@ public class VectorReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "SVM"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 
@@ -98,7 +98,7 @@ public class VectorReviewMain {
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner,
 						0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
-				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
 				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner,

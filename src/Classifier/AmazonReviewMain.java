@@ -19,7 +19,7 @@ public class AmazonReviewMain {
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before running the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
-		int Ngram = 1; //The default value is bigram. 
+		int Ngram = 2; //The default value is bigram. 
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
@@ -30,9 +30,9 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "SVM"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 		
@@ -81,11 +81,11 @@ public class AmazonReviewMain {
 		
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
-		
-		/***Print the matrix of X and Y for metric learning.***/
-		String xFile = path + diffFolder + "X.csv";
-		String yFile = path + diffFolder + "Y.csv";
-		analyzer.printXY(xFile, yFile);
+		String matrixFile = path + "matrixA0321.dat";
+//		/***Print the matrix of X and Y for metric learning.***/
+//		String xFile = path + diffFolder + "X.csv";
+//		String yFile = path + diffFolder + "Y.csv";
+//		analyzer.printXY(xFile, yFile);
 		
 		//temporal code to add pagerank weights
 //		PageRank tmpPR = new PageRank(corpus, classNumber, featureSize + window, C, 100, 50, 1e-6);
@@ -126,7 +126,7 @@ public class AmazonReviewMain {
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
-				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
 				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);

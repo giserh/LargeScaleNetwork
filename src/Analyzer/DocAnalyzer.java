@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Set;
 
 import opennlp.tools.postag.POSModel;
@@ -45,6 +47,7 @@ public class DocAnalyzer extends Analyzer {
 	Set<String> m_stopwords;
 	protected boolean m_releaseContent;
 	protected int m_posTaggingMethod;
+	protected Set<String> m_dictionary;//The map for storing sentinet word.
 	
 	//Constructor with ngram and fValue.
 	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
@@ -75,6 +78,7 @@ public class DocAnalyzer extends Analyzer {
 		m_stopwords = new HashSet<String>();
 		m_releaseContent = true;
 		m_posTaggingMethod = 1; //default value is 1.
+		
 	}
 	
 	//Constructor with ngram and fValue.
@@ -97,6 +101,7 @@ public class DocAnalyzer extends Analyzer {
 		m_filter = new HashMap<Integer, String>();
 		m_releaseContent = true;
 		m_posTaggingMethod = posTaggingMethod;
+		m_dictionary = new HashSet<String>();//for tagging3 to store features.
 	}
 	
 	public void setReleaseContent(boolean release) {
@@ -367,6 +372,8 @@ public class DocAnalyzer extends Analyzer {
 			return AnalyzeDocWithPosTagging1(doc);
 		else if (posTaggingMethod == 2)
 			return AnalyzeDocWithPosTagging2(doc);
+		else if (posTaggingMethod == 3)
+			return AnalyzeDocWithPosTagging3(doc);
 		else {
 			System.err.println("The pos tagging method is not valid!!");
 			return false;
@@ -382,61 +389,11 @@ public class DocAnalyzer extends Analyzer {
 			String[] tokens = Tokenizer(s);
 			String[] tags = m_tagger.tag(tokens);
 			for(int i = 0; i < tokens.length; i++){
-				if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS"))
-					m_rawFilter.add(SnowballStemming(Normalize(tokens[i]))); //Collect all adjs/advs
-					
-				// CV is not loaded, take all the adjs/advs as features.
-				if (!m_isCVLoaded) {
-					if (m_featureNameIndex.containsKey(tokens[i])) {
-						index = m_featureNameIndex.get(tokens[i]);
-						if (spVct.containsKey(index)) {
-							value = spVct.get(index) + 1;
-							spVct.put(index, value);
-						} else {
-							spVct.put(index, 1.0);
-							m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
-						}
-					} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
-						expandVocabulary(tokens[i]);// update the m_featureNames.
-						index = m_featureNameIndex.get(tokens[i]);
-						spVct.put(index, 1.0);
-						m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
-					}
-					m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
-				} else if (m_featureNameIndex.containsKey(tokens[i])) {// CV is loaded.
-					index = m_featureNameIndex.get(tokens[i]);
-					if (spVct.containsKey(index)) {
-						value = spVct.get(index) + 1;
-						spVct.put(index, value);
-					} else {
-						spVct.put(index, 1.0);
-						m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
-					}
-					m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
-				}
-			}
-		}
-		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
-			doc.createSpVct(spVct);
-			m_corpus.addDoc(doc);
-			m_classMemberNo[doc.getYLabel()]++;
-			if (m_releaseContent)
-				doc.clearSource();
-			return true;
-		} else
-			return false;
-	}
-			
-	protected boolean AnalyzeDocWithPosTagging1(_Doc doc) {
-		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
-		int index = 0;
-		double value = 0;
-		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
-		for(String s: sentences){
-			String[] tokens = Tokenizer(s);
-			String[] tags = m_tagger.tag(tokens);
-			for(int i = 0; i < tokens.length; i++){
-				if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
+				tokens[i] = SnowballStemming(Normalize(tokens[i])); //Preprocess.
+				if (isLegit(tokens[i])){
+					if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS"))
+						m_rawFilter.add(tokens[i]); //Collect all adjs/advs
+						
 					// CV is not loaded, take all the adjs/advs as features.
 					if (!m_isCVLoaded) {
 						if (m_featureNameIndex.containsKey(tokens[i])) {
@@ -479,7 +436,127 @@ public class DocAnalyzer extends Analyzer {
 		} else
 			return false;
 	}
+			
+	protected boolean AnalyzeDocWithPosTagging1(_Doc doc) {
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		int index = 0;
+		double value = 0;
+		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
+		for(String s: sentences){
+			String[] tokens = Tokenizer(s);
+			String[] tags = m_tagger.tag(tokens);
+			for(int i = 0; i < tokens.length; i++){
+				tokens[i] = SnowballStemming(Normalize(tokens[i]));
+				//if (isLegit(tokens[i])){
+					if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
+						// CV is not loaded, take all the adjs/advs as features.
+						if (!m_isCVLoaded) {
+							if (m_featureNameIndex.containsKey(tokens[i])) {
+								index = m_featureNameIndex.get(tokens[i]);
+								if (spVct.containsKey(index)) {
+									value = spVct.get(index) + 1;
+									spVct.put(index, value);
+								} else {
+									spVct.put(index, 1.0);
+									m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+								}
+							} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
+								expandVocabulary(tokens[i]);// update the m_featureNames.
+								index = m_featureNameIndex.get(tokens[i]);
+								spVct.put(index, 1.0);
+								m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+							}
+							m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
+						} else if (m_featureNameIndex.containsKey(tokens[i])) {// CV is loaded.
+							index = m_featureNameIndex.get(tokens[i]);
+							if (spVct.containsKey(index)) {
+								value = spVct.get(index) + 1;
+								spVct.put(index, value);
+							} else {
+								spVct.put(index, 1.0);
+								m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+							}
+							m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
+						}
+					//}
+				}
+			}
+		}
+		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+			doc.createSpVct(spVct);
+			m_corpus.addDoc(doc);
+			m_classMemberNo[doc.getYLabel()]++;
+			if (m_releaseContent)
+				doc.clearSource();
+			return true;
+		} else
+			return false;
+	}
 		
+	protected boolean AnalyzeDocWithPosTagging3(_Doc doc) {
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		int index = 0;
+		double value = 0;
+		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
+		for(String s: sentences){
+			String[] tokens = Tokenizer(s);
+			String[] tags = m_tagger.tag(tokens);
+			for(int i = 0; i < tokens.length; i++){
+				//tokens[i] = SnowballStemming(Normalize(tokens[i]));
+				if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")){
+					tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#r";
+				} else if (tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
+					tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#a";
+				} else if (tags[i].equals("NN")||tags[i].equals("NNS")||tags[i].equals("NNP")||tags[i].equals("NNPS")){
+					tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#n";
+				} else if (tags[i].equals("VB")||tags[i].equals("VBD")||tags[i].equals("VBG")||tags[i].equals("VBN")||tags[i].equals("VBP")||tags[i].equals("VBZ")){
+					tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#v";
+				} else
+					tokens[i] = SnowballStemming(Normalize(tokens[i]));
+				
+				if (m_dictionary.contains(tokens[i])){
+					if (!m_isCVLoaded) {
+						if (m_featureNameIndex.containsKey(tokens[i])) {
+							index = m_featureNameIndex.get(tokens[i]);
+							if (spVct.containsKey(index)) {
+								value = spVct.get(index) + 1;
+								spVct.put(index, value);
+							} else {
+								spVct.put(index, 1.0);
+								m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+							}
+						} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
+							expandVocabulary(tokens[i]);// update the m_featureNames.
+							index = m_featureNameIndex.get(tokens[i]);
+							spVct.put(index, 1.0);
+							m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+						}
+						m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
+					} else if (m_featureNameIndex.containsKey(tokens[i])) {// CV is loaded.
+						index = m_featureNameIndex.get(tokens[i]);
+						if (spVct.containsKey(index)) {
+							value = spVct.get(index) + 1;
+							spVct.put(index, value);
+						} else {
+							spVct.put(index, 1.0);
+							m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
+						}
+						m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
+					}
+				}
+			}
+		}
+						
+		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+			doc.createSpVct(spVct);
+			m_corpus.addDoc(doc);
+			m_classMemberNo[doc.getYLabel()]++;
+			if (m_releaseContent)
+				doc.clearSource();
+			return true;
+		} else
+			return false;
+	}
 		
 	//Build the filter based on the raw filter and features.
 	public int builderFilter(){
@@ -511,6 +588,75 @@ public class DocAnalyzer extends Analyzer {
 		for (String s: projectedFvs) //printed out all the projected features.
 			writer.println(s);
 		writer.close();
+	}
+	
+	//Load the sentinet word and store them in the dictionary for later use.
+	public void LoadSNW(String filename) throws IOException {
+		// From String to list of doubles.
+		HashMap<String, HashMap<Integer, Double>> tempDictionary = new HashMap<String, HashMap<Integer, Double>>();
+
+		BufferedReader csv = null;
+		try {
+			csv = new BufferedReader(new FileReader(filename));
+			int lineNumber = 0;
+			String line;
+			while ((line = csv.readLine()) != null) {
+				lineNumber++;
+				// If it's a comment, skip this line.
+				if (!line.trim().startsWith("#")) {
+					// We use tab separation
+					String[] data = line.split("\t");
+					String wordTypeMarker = data[0];
+
+					// Is it a valid line? Otherwise, through exception.
+					if (data.length != 6)
+						throw new IllegalArgumentException("Incorrect tabulation format in file, line: " + lineNumber);
+
+					// Calculate synset score as score = PosS - NegS. If it's 0,
+					// then it is neutral word, ignore it.
+					Double synsetScore = Double.parseDouble(data[2])- Double.parseDouble(data[3]);
+
+					// Get all Synset terms
+					String[] synTermsSplit = data[4].split(" ");
+
+					// Go through all terms of current synset.
+					for (String synTermSplit : synTermsSplit) {
+						// Get synterm and synterm rank
+						String[] synTermAndRank = synTermSplit.split("#"); // able#1 = [able, 1]
+						String synTerm = synTermAndRank[0] + "#" + wordTypeMarker; // able#a
+						int synTermRank = Integer.parseInt(synTermAndRank[1]); // different senses of a word
+						// Add the current term to map if it doesn't have one
+						if (!tempDictionary.containsKey(synTerm))
+							tempDictionary.put(synTerm, new HashMap<Integer, Double>());// <able#a, <<1, score>, <2, score>...>>
+
+						// If the dict already has the synTerm, just add synset
+						// link-<2, score> to synterm.
+						tempDictionary.get(synTerm).put(synTermRank, synsetScore);
+					}
+				}
+			}
+
+			// Go through all the terms.
+			Set<String> synTerms = tempDictionary.keySet();
+
+			for (String synTerm : synTerms) {
+				double score = 0;
+				HashMap<Integer, Double> synSetScoreMap = tempDictionary.get(synTerm);
+				Collection<Double> scores = synSetScoreMap.values();
+				for (double s : scores)
+					score += s;
+				if (score != 0){
+					String[] termMarker = synTerm.split("#");
+					m_dictionary.add(SnowballStemming(Normalize(termMarker[0])) + "#" + termMarker[1]);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (csv != null) {
+				csv.close();
+			}
+		}
 	}
 }	
 
