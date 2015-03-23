@@ -448,36 +448,69 @@ public abstract class Analyzer {
 		writer2.close();
 	}
 	
-	public void printPlotDataDiffClasses(String path, int classNo ){
+	public void printPlotDataDiffClasses(String path) throws FileNotFoundException{
 		ArrayList<ArrayList<_Doc>> groupedDocs = new ArrayList<ArrayList<_Doc>>();
-		ArrayList<ArrayList<Double>> groupedSimilarity = new ArrayList<ArrayList<Double>>();
+		//ArrayList<ArrayList<Double>> groupedSimilarity = new ArrayList<ArrayList<Double>>();
 		
-		for(int i = 0; i < classNo; i++){
+		for(int i = 0; i < m_classNo; i++)
 			groupedDocs.add(new ArrayList<_Doc>());
-		}
-		for(int i = 0; i < classNo * classNo; i++){
-			groupedSimilarity.add(new ArrayList<Double>());
-		}
+		
+//		for(int i = 0; i < classNo * classNo; i++)
+//			groupedSimilarity.add(i, new ArrayList<Double>());
+		
 		//Group all the documents into different classes.
 		for(_Doc d: m_corpus.getCollection()){ 
-			if(d.getYLabel() == 0)
-				groupedDocs.get(0).add(d);
-			else if (d.getYLabel() == 1) 
-				groupedDocs.get(1).add(d);
-			else if (d.getYLabel() == 2)
-				groupedDocs.get(2).add(d);
-			else if (d.getYLabel() == 3) 
-				groupedDocs.get(4).add(d);
-			else if (d.getYLabel() == 4) 
-				groupedDocs.get(4).add(d);
-			else 
-				System.err.println("Beyond the class number!!");
+			if(d.getYLabel() == 0)	groupedDocs.get(0).add(d);
+			else if (d.getYLabel() == 1)	groupedDocs.get(1).add(d);
+			else if (d.getYLabel() == 2)	groupedDocs.get(2).add(d);
+			else if (d.getYLabel() == 3) 	groupedDocs.get(4).add(d);
+			else if (d.getYLabel() == 4) 	groupedDocs.get(4).add(d);
+			else 	System.err.println("Beyond the class number!!");
 		}
 		//Enumerate all similarities among all pairs.
-		for(int i = 0; i < classNo; i++){
-			for(int j = 0; j < classNo; j++){
-				groupedSimilarity.get();
+		for(int i = 0; i < m_classNo; i++){//i is index.
+			ArrayList<_Doc> tmp1 = groupedDocs.get(i);//Get the first set of docs.
+			for(int j = 0; j < m_classNo; j++){
+				if(i == j){
+					//groupedSimilarity.add(i * classNo + j, calculateSimiPairs(tmp1));
+					printSimilarity(path, i, j, calculateSimiPairs(tmp1));
+				} else{
+					ArrayList<_Doc> tmp2 = groupedDocs.get(j);//Get the second set of docs.
+					//groupedSimilarity.add(i * classNo + j, calculateDissimiPairs(tmp1, tmp2));
+					printSimilarity(path, i, j, calculateDissimiPairs(tmp1, tmp2));
+				}
 			}
 		}
+	}
+	public void printSimilarity(String path, int m, int n, ArrayList<Double> similarities) throws FileNotFoundException{
+		String fileName = path + m + "_" + n + ".csv";
+		PrintWriter writer1 = new PrintWriter(new File(fileName));
+		for(int i = 0; i < similarities.size(); i++){//take one sample every 20 points 
+			double percentage = (double)(i+1) / similarities.size();
+			writer1.write(percentage + "," + similarities.get(i) + "\n");
+		}
+		writer1.close();
+	}
+	//Calculate the similarities between similar pairs and return sorted similarities.
+	public ArrayList<Double> calculateSimiPairs(ArrayList<_Doc> docs){
+		ArrayList<Double> similarities = new ArrayList<Double>();
+		for(int i = 0; i < docs.size(); i++){
+			for(int j = i + 1; j < docs.size(); j++ ){
+				similarities.add(Math.exp(-Utils.calculateCosineSimilarity(docs.get(i), docs.get(j))));
+			}
+		}
+		Collections.sort(similarities);
+		return similarities;
+	}
+	//Calculate the similarities between dissimilar pairs and return sorted similarities.
+	public ArrayList<Double> calculateDissimiPairs(ArrayList<_Doc> tmp1, ArrayList<_Doc> tmp2){
+		ArrayList<Double> similarities = new ArrayList<Double>();
+		for(int i = 0; i < tmp1.size(); i++){
+			for(int j = 0; j < tmp2.size(); j++ ){
+				similarities.add(Math.exp(-Utils.calculateCosineSimilarity(tmp1.get(i), tmp2.get(j))));
+			}
+		}
+		Collections.sort(similarities);
+		return similarities;
 	}
 }

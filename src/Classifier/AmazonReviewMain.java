@@ -81,6 +81,10 @@ public class AmazonReviewMain {
 		
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
+		
+		String simiFile = path + "diffLabels/";
+		analyzer.printPlotDataDiffClasses(simiFile);
+		
 		String matrixFile = path + "matrixA0321.dat";
 //		/***Print the matrix of X and Y for metric learning.***/
 //		String xFile = path + diffFolder + "X.csv";
