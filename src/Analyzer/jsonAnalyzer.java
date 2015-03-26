@@ -74,7 +74,7 @@ public class jsonAnalyzer extends DocAnalyzer{
 					_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
 					
 					if(this.m_tagger != null && this.m_stnDetector!=null)
-						selectPOSTaggingMethod(review, m_posTaggingMethod);
+						AnalyzeDocWithPOSTagging(review);
 					else
 						AnalyzeDoc(review);
 				}

@@ -463,7 +463,7 @@ public abstract class Analyzer {
 			if(d.getYLabel() == 0)	groupedDocs.get(0).add(d);
 			else if (d.getYLabel() == 1)	groupedDocs.get(1).add(d);
 			else if (d.getYLabel() == 2)	groupedDocs.get(2).add(d);
-			else if (d.getYLabel() == 3) 	groupedDocs.get(4).add(d);
+			else if (d.getYLabel() == 3) 	groupedDocs.get(3).add(d);
 			else if (d.getYLabel() == 4) 	groupedDocs.get(4).add(d);
 			else 	System.err.println("Beyond the class number!!");
 		}
@@ -483,7 +483,7 @@ public abstract class Analyzer {
 		}
 	}
 	public void printSimilarity(String path, int m, int n, ArrayList<Double> similarities) throws FileNotFoundException{
-		String fileName = path + m + "_" + n + ".csv";
+		String fileName = path + m + "_" + n + "_small.csv";
 		PrintWriter writer1 = new PrintWriter(new File(fileName));
 		for(int i = 0; i < similarities.size(); i++){//take one sample every 20 points 
 			double percentage = (double)(i+1) / similarities.size();

@@ -19,14 +19,14 @@ public class AmazonReviewMain {
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before running the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
-		int Ngram = 2; //The default value is bigram. 
+		int Ngram = 1; //The default value is bigram. 
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
 		int norm = 2;//The way of normalization.(only 1 and 2)
 		
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
-		int lengthThreshold = 10; //Document length threshold
+		int lengthThreshold = 0; //Document length threshold
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
@@ -51,7 +51,7 @@ public class AmazonReviewMain {
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "20json";
+		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
 		String folder = path + "RawData";
 		String suffix = ".json";
@@ -69,7 +69,7 @@ public class AmazonReviewMain {
 		/****Feature selection*****/
 		System.out.println("Performing feature selection, wait...");
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
-		analyzer.LoadStopwords(stopwords);
+		//analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
 		
@@ -82,10 +82,10 @@ public class AmazonReviewMain {
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
 		
-		String simiFile = path + "diffLabels/";
-		analyzer.printPlotDataDiffClasses(simiFile);
+//		String simiFile = path + "diffLabels/";
+//		analyzer.printPlotDataDiffClasses(simiFile);
 		
-		String matrixFile = path + "matrixA0321.dat";
+		//String matrixFile = path + "matrixA0321.dat";
 //		/***Print the matrix of X and Y for metric learning.***/
 //		String xFile = path + diffFolder + "X.csv";
 //		String yFile = path + diffFolder + "Y.csv";
@@ -130,7 +130,7 @@ public class AmazonReviewMain {
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
-				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
 				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);

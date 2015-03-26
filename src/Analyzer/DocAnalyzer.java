@@ -48,7 +48,7 @@ public class DocAnalyzer extends Analyzer {
 	protected boolean m_releaseContent;
 	protected int m_posTaggingMethod;
 	protected Set<String> m_dictionary;//The map for storing sentinet word.
-	
+
 	//Constructor with ngram and fValue.
 	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
 		super(classNo, threshold);
@@ -367,20 +367,103 @@ public class DocAnalyzer extends Analyzer {
 			return false;
 	}
 	
-	protected boolean selectPOSTaggingMethod(_Doc doc, int posTaggingMethod){
-		if(posTaggingMethod == 1)
-			return AnalyzeDocWithPosTagging1(doc);
-		else if (posTaggingMethod == 2)
-			return AnalyzeDocWithPosTagging2(doc);
-		else if (posTaggingMethod == 3)
-			return AnalyzeDocWithPosTagging3(doc);
-		else {
-			System.err.println("The pos tagging method is not valid!!");
-			return false;
+//	protected boolean selectPOSTaggingMethod(_Doc doc, int posTaggingMethod){
+//		if(posTaggingMethod == 1)
+//			return AnalyzeDocWithAdjAdvs(doc);
+//		else if (posTaggingMethod == 2)
+//			return AnalyzeDocWithProjectedAdjAdvs(doc);
+//		else if (posTaggingMethod == 3)
+//			return AnalyzeDocWithSentiWordNet(doc);
+//		else {
+//			System.err.println("The pos tagging method is not valid!!");
+//			return false;
+//		}
+//	}
+//	
+	protected boolean AnalyzeDocWithPOSTagging(_Doc doc) {
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
+		for(String s: sentences){
+			String[] tokens = Tokenizer(s);
+			String[] tags = m_tagger.tag(tokens);
+			for(int i = 0; i < tokens.length; i++){
+				if (isLegit(tokens[i])){
+					if(m_posTaggingMethod == 1){
+						if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
+							tokens[i] = SnowballStemming(Normalize(tokens[i]));
+							spVct = update(tokens[i], spVct, doc.getYLabel());
+						}
+							
+					} else if(m_posTaggingMethod == 2){
+						if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS"))
+							m_rawFilter.add(tokens[i]); //Collect all adjs/advs
+						tokens[i] = SnowballStemming(Normalize(tokens[i])); //We still keep all the tokens as features.
+						spVct = update(tokens[i], spVct, doc.getYLabel());
+						
+					} else if(m_posTaggingMethod == 3){
+						if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")){
+							tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#r";
+						} else if (tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
+							tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#a";
+						} else if (tags[i].equals("NN")||tags[i].equals("NNS")||tags[i].equals("NNP")||tags[i].equals("NNPS")){
+							tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#n";
+						} else if (tags[i].equals("VB")||tags[i].equals("VBD")||tags[i].equals("VBG")||tags[i].equals("VBN")||tags[i].equals("VBP")||tags[i].equals("VBZ")){
+							tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#v";
+						} else
+							tokens[i] = SnowballStemming(Normalize(tokens[i]));
+						if(m_dictionary.contains(tokens[i]))
+							spVct = update(tokens[i], spVct, doc.getYLabel());
+					}
+				}
+			}
 		}
+		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+			doc.createSpVct(spVct);
+			m_corpus.addDoc(doc);
+			m_classMemberNo[doc.getYLabel()]++;
+			if (m_releaseContent)
+				doc.clearSource();
+			return true;
+		} else
+			return false;
 	}
 	
-	protected boolean AnalyzeDocWithPosTagging2(_Doc doc) {
+	public HashMap<Integer, Double> update(String token, HashMap<Integer, Double> spVct, int label){
+		int index = 0;
+		double value = 0;
+		// CV is not loaded, take all the adjs/advs as features.
+		if (!m_isCVLoaded) {
+			if (m_featureNameIndex.containsKey(token)) {
+				index = m_featureNameIndex.get(token);
+				if (spVct.containsKey(index)) {
+					value = spVct.get(index) + 1;
+					spVct.put(index, value);
+				} else {
+					spVct.put(index, 1.0);
+					m_featureStat.get(token).addOneDF(label);
+				}
+			} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
+				expandVocabulary(token);// update the m_featureNames.
+				index = m_featureNameIndex.get(token);
+				spVct.put(index, 1.0);
+				m_featureStat.get(token).addOneDF(label);
+			}
+			m_featureStat.get(token).addOneTTF(label);
+		} else if (m_featureNameIndex.containsKey(token)) {// CV is loaded.
+			index = m_featureNameIndex.get(token);
+			if (spVct.containsKey(index)) {
+				value = spVct.get(index) + 1;
+				spVct.put(index, value);
+			} else {
+				spVct.put(index, 1.0);
+				m_featureStat.get(token).addOneDF(label);
+			}
+			m_featureStat.get(token).addOneTTF(label);
+		}
+		return spVct;
+	}
+	/**
+	protected boolean AnalyzeDocWithProjectedAdjAdvs(_Doc doc) {
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		int index = 0;
 		double value = 0;
@@ -391,8 +474,7 @@ public class DocAnalyzer extends Analyzer {
 			for(int i = 0; i < tokens.length; i++){
 				tokens[i] = SnowballStemming(Normalize(tokens[i])); //Preprocess.
 				if (isLegit(tokens[i])){
-					if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS"))
-						m_rawFilter.add(tokens[i]); //Collect all adjs/advs
+					
 						
 					// CV is not loaded, take all the adjs/advs as features.
 					if (!m_isCVLoaded) {
@@ -436,64 +518,8 @@ public class DocAnalyzer extends Analyzer {
 		} else
 			return false;
 	}
-			
-	protected boolean AnalyzeDocWithPosTagging1(_Doc doc) {
-		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
-		int index = 0;
-		double value = 0;
-		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
-		for(String s: sentences){
-			String[] tokens = Tokenizer(s);
-			String[] tags = m_tagger.tag(tokens);
-			for(int i = 0; i < tokens.length; i++){
-				tokens[i] = SnowballStemming(Normalize(tokens[i]));
-				//if (isLegit(tokens[i])){
-					if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")||tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
-						// CV is not loaded, take all the adjs/advs as features.
-						if (!m_isCVLoaded) {
-							if (m_featureNameIndex.containsKey(tokens[i])) {
-								index = m_featureNameIndex.get(tokens[i]);
-								if (spVct.containsKey(index)) {
-									value = spVct.get(index) + 1;
-									spVct.put(index, value);
-								} else {
-									spVct.put(index, 1.0);
-									m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
-								}
-							} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
-								expandVocabulary(tokens[i]);// update the m_featureNames.
-								index = m_featureNameIndex.get(tokens[i]);
-								spVct.put(index, 1.0);
-								m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
-							}
-							m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
-						} else if (m_featureNameIndex.containsKey(tokens[i])) {// CV is loaded.
-							index = m_featureNameIndex.get(tokens[i]);
-							if (spVct.containsKey(index)) {
-								value = spVct.get(index) + 1;
-								spVct.put(index, value);
-							} else {
-								spVct.put(index, 1.0);
-								m_featureStat.get(tokens[i]).addOneDF(doc.getYLabel());
-							}
-							m_featureStat.get(tokens[i]).addOneTTF(doc.getYLabel());
-						}
-					//}
-				}
-			}
-		}
-		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
-			doc.createSpVct(spVct);
-			m_corpus.addDoc(doc);
-			m_classMemberNo[doc.getYLabel()]++;
-			if (m_releaseContent)
-				doc.clearSource();
-			return true;
-		} else
-			return false;
-	}
 		
-	protected boolean AnalyzeDocWithPosTagging3(_Doc doc) {
+	protected boolean AnalyzeDocWithSentiWordNet(_Doc doc) {
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		int index = 0;
 		double value = 0;
@@ -556,7 +582,7 @@ public class DocAnalyzer extends Analyzer {
 			return true;
 		} else
 			return false;
-	}
+	}***/
 		
 	//Build the filter based on the raw filter and features.
 	public int builderFilter(){

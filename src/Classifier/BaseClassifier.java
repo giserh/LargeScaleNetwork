@@ -174,7 +174,7 @@ public abstract class BaseClassifier {
 			weightedF1 += totalClassProbs[i] * (2.0 * columnSum[i] * prec[i] / (columnSum[i] + prec[i] + 0.0001));
 			System.out.format("\t%.4f", 2.0 * columnSum[i] * prec[i] / (columnSum[i] + prec[i] + 0.0001));
 		}
-		System.out.format("\navg F1 %.4f\tweighted F1 %.4f\n", avgF1, weightedF1);
+		System.out.format("\navg F1\t%.4f\tweighted F1\t%.4f\n", avgF1, weightedF1);
 	}
 	
 	//Calculate the mean and variance of precision and recall.
