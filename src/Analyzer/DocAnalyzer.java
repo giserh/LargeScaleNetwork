@@ -10,13 +10,10 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
 
 import opennlp.tools.postag.POSModel;
@@ -367,19 +364,6 @@ public class DocAnalyzer extends Analyzer {
 			return false;
 	}
 	
-//	protected boolean selectPOSTaggingMethod(_Doc doc, int posTaggingMethod){
-//		if(posTaggingMethod == 1)
-//			return AnalyzeDocWithAdjAdvs(doc);
-//		else if (posTaggingMethod == 2)
-//			return AnalyzeDocWithProjectedAdjAdvs(doc);
-//		else if (posTaggingMethod == 3)
-//			return AnalyzeDocWithSentiWordNet(doc);
-//		else {
-//			System.err.println("The pos tagging method is not valid!!");
-//			return false;
-//		}
-//	}
-//	
 	protected boolean AnalyzeDocWithPOSTagging(_Doc doc) {
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
