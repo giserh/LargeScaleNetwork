@@ -510,4 +510,8 @@ public abstract class Analyzer {
 		Collections.sort(similarities);
 		return similarities;
 	}
+	
+	public HashMap<String, Integer> getFeaturesLookup(){
+		return m_featureNameIndex;
+	}
 }

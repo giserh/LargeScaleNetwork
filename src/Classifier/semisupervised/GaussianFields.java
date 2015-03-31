@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Random;
 
 import structures.MyPriorityQueue;
 import structures._Corpus;
 import structures._Doc;
 import structures._RankItem;
+import structures._SparseFeature;
 import utils.Utils;
 import Classifier.BaseClassifier;
 import Classifier.supervised.LogisticRegression;
@@ -45,6 +47,7 @@ public class GaussianFields extends BaseClassifier {
 	double m_discount = 0.5; // default similarity discount if across different products
 	double[][] m_A; //The matrix used to store the result of metric learning.
 	
+	HashMap<Integer, String> m_IndexFeature;//For debug purpose.
 	//Randomly pick 10% of all the training documents.
 	public GaussianFields(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
@@ -324,6 +327,13 @@ public class GaussianFields extends BaseClassifier {
 		return Utils.maxOfArrayIndex(m_cProbs);
 	}
 	
+	//Construct the look-up table for the later debugging use.
+	public void setFeaturesLookup(HashMap<String, Integer> featureNameIndex){
+		m_IndexFeature = new HashMap<Integer, String>();
+		for(String f: featureNameIndex.keySet()){
+			m_IndexFeature.put(featureNameIndex.get(f), f);
+		}
+	}
 	@Override
 	protected void debug(_Doc d){
 		int id = d.getID();
@@ -332,8 +342,15 @@ public class GaussianFields extends BaseClassifier {
 		double sim, wijSumU=0, wijSumL=0;
 		
 		try {
-			m_debugWriter.write(String.format("%d\t%.4f(%d,%d)\t%d\n", d.getYLabel(), m_fu[id], getLabel(m_fu[id]), getLabel3(m_fu[id]), (int)m_Y[id]));
-		
+			m_debugWriter.write("============================================================================\n");
+			m_debugWriter.write(String.format("Label:%d, fu:%.4f(getLabel1:%d, getLabel3:%d), SVM:%d, Content:%s\n", d.getYLabel(), m_fu[id], getLabel(m_fu[id]), getLabel3(m_fu[id]), (int)m_Y[id], d.getSource()));
+			_SparseFeature[] dsfs = d.getSparse();
+			for(_SparseFeature sf: dsfs){
+				String feature = m_IndexFeature.get(sf.getIndex());
+				m_debugWriter.write(String.format("(%s,%.4f)\t", feature, sf.getValue()));
+			}
+			m_debugWriter.write("\n***");
+			
 			//find top five labeled
 			/****Construct the top k labeled data for the current data.****/
 			for (int j = 0; j < m_L; j++)
@@ -344,17 +361,28 @@ public class GaussianFields extends BaseClassifier {
 				wijSumL += n.m_value; //get the similarity between two nodes.
 			
 			/****Get the top 5 elements from kUL******/
+			m_debugWriter.write("Labeled data:\n");
 			for(int k=0; k<5; k++){
 				item = m_kUL.get(k);
 				neighbor = m_labeled.get(item.m_index);
 				sim = item.m_value/wijSumL;
 				
-				if (k==0)
-					m_debugWriter.write(String.format("L[%d:%.4f, ", neighbor.getYLabel(), sim));
-				else if (k==4)
-					m_debugWriter.write(String.format("%d:%.4f]\n", neighbor.getYLabel(), sim));
-				else
-					m_debugWriter.write(String.format("%d:%.4f, ", neighbor.getYLabel(), sim));
+//				if (k==0)
+//					m_debugWriter.write(String.format("L[%d:%.4f, ", neighbor.getYLabel(), sim));
+//				else if (k==4)
+//					m_debugWriter.write(String.format("%d:%.4f]\n", neighbor.getYLabel(), sim));
+//				else
+//					m_debugWriter.write(String.format("%d:%.4f, ", neighbor.getYLabel(), sim));
+				
+				//Print out the sparse vectors of the neighbors.
+				m_debugWriter.write(String.format("Label:%d, Similarity:%.4f, Content:%s\n", neighbor.getYLabel(), sim, neighbor.getSource()));
+				_SparseFeature[] sfs = neighbor.getSparse();
+				for(_SparseFeature sf: sfs){
+					String feature = m_IndexFeature.get(sf.getIndex());
+					m_debugWriter.write(String.format("(%s,%.4f)\t", feature, sf.getValue()));
+				}
+				m_debugWriter.write("\n***");
+				
 			}
 			m_kUL.clear();
 			
@@ -371,17 +399,25 @@ public class GaussianFields extends BaseClassifier {
 				wijSumU += n.m_value; //get the similarity between two nodes.
 			
 			/****Get the top 5 elements from k'UU******/
+			m_debugWriter.write("Unlabeled data:\n");
 			for(int k=0; k<5; k++){
 				item = m_kUU.get(k);
 				neighbor = m_testSet.get(item.m_index);
 				sim = item.m_value/wijSumU;
 				
-				if (k==0)
-					m_debugWriter.write(String.format("U[%.2f:%.4f, ", m_fu[neighbor.getID()], sim));
-				else if (k==4)
-					m_debugWriter.write(String.format("%.2f:%.4f]\n", m_fu[neighbor.getID()], sim));
-				else
-					m_debugWriter.write(String.format("%.2f:%.4f, ", m_fu[neighbor.getID()], sim));
+				m_debugWriter.write(String.format("True Label:%d, f_u:%.2f, Similarity:%.4f, Content:%s\n", neighbor.getYLabel(),m_fu[neighbor.getID()], sim, neighbor.getSource()));
+				_SparseFeature[] sfs = neighbor.getSparse();
+				for(_SparseFeature sf: sfs){
+					String feature = m_IndexFeature.get(sf.getIndex());
+					m_debugWriter.write(String.format("(%s,%.4f)\t", feature, sf.getValue()));
+				}
+				m_debugWriter.write("\n***");
+//				if (k==0)
+//					m_debugWriter.write(String.format("U[%.2f:%.4f, ", m_fu[neighbor.getID()], sim));
+//				else if (k==4)
+//					m_debugWriter.write(String.format("%.2f:%.4f]\n", m_fu[neighbor.getID()], sim));
+//				else
+//					m_debugWriter.write(String.format("%.2f:%.4f, ", m_fu[neighbor.getID()], sim));
 			}
 			m_kUU.clear();
 			m_debugWriter.write("\n");		

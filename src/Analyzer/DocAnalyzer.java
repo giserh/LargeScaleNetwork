@@ -275,8 +275,8 @@ public class DocAnalyzer extends Analyzer {
 			doc.createSpVct(spVct);
 			m_corpus.addDoc(doc);
 			m_classMemberNo[doc.getYLabel()]++;
-			if (m_releaseContent)
-				doc.clearSource();
+//			if (m_releaseContent)
+//				doc.clearSource();
 			return true;
 		} else
 			return false;

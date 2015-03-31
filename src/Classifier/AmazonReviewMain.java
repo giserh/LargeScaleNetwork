@@ -23,7 +23,7 @@ public class AmazonReviewMain {
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
-		int norm = 2;//The way of normalization.(only 1 and 2)
+		int norm = 1;//The way of normalization.(only 1 and 2)
 		
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
 		int lengthThreshold = 0; //Document length threshold
@@ -37,7 +37,7 @@ public class AmazonReviewMain {
 		double C = 1.0;		
 		
 //		String modelPath = "./data/Model/";
-		String debugOutput = "data/debug/LR.output";
+		String debugOutput = "data/debug/" + classifier + ".output";
 		
 		System.out.println("--------------------------------------------------------------------------------------");
 		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + classifier + "\nCross validation: " + CVFold);
@@ -69,7 +69,7 @@ public class AmazonReviewMain {
 		/****Feature selection*****/
 		System.out.println("Performing feature selection, wait...");
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
-		//analyzer.LoadStopwords(stopwords);
+		analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
 		
@@ -129,7 +129,9 @@ public class AmazonReviewMain {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1, 0.1, 1e-4, 0.5, false);
+				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup());
+				mySemi.setDebugOutput(debugOutput);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
