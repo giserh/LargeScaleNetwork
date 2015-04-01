@@ -42,7 +42,7 @@ public class POSTaggingMain {
 //		/*****Parameters in feature selection.*****/
 		String featureSelection = "CHI"; //Feature selection method.
 		String stopwords = "./data/Model/stopwords.dat";
-		double startProb = 0.1; // Used in feature selection, the starting point of the features.
+		double startProb = 0.4; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
 		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
@@ -70,7 +70,7 @@ public class POSTaggingMain {
 		 * 1 is taking all adj/advs as features; 
 		 * 2 is taking the adj/advs from the selected features;
 		 * 3 is building the dictionary according to the SNW and build docs' vectors.*/
-		int posTaggingMethod = 3; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		

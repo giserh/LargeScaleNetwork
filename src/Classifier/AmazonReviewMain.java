@@ -23,7 +23,7 @@ public class AmazonReviewMain {
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
-		int norm = 1;//The way of normalization.(only 1 and 2)
+		int norm = 2;//The way of normalization.(only 1 and 2)
 		
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
 		int lengthThreshold = 0; //Document length threshold
@@ -34,7 +34,7 @@ public class AmazonReviewMain {
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
 		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
-		double C = 1.0;		
+		double C = 1.0;
 		
 //		String modelPath = "./data/Model/";
 		String debugOutput = "data/debug/" + classifier + ".output";
@@ -75,6 +75,8 @@ public class AmazonReviewMain {
 		
 		/****Create feature vectors*****/
 		System.out.println("Creating feature vectors, wait...");
+		//jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
+		//analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
@@ -129,7 +131,7 @@ public class AmazonReviewMain {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1, 0.1, 1e-4, 0.5, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
 				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup());
 				mySemi.setDebugOutput(debugOutput);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
