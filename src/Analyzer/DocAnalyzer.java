@@ -234,6 +234,10 @@ public class DocAnalyzer extends Analyzer {
 	 * In the case CV is loaded, we still need two if loops to check.*/
 	protected boolean AnalyzeDoc(_Doc doc) {
 		String[] tokens = TokenizerNormalizeStemmer(doc.getSource());// Three-step analysis.
+		
+		if (tokens.length<20)
+			return false;
+		
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		int index = 0;
 		double value = 0;

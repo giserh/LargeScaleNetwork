@@ -75,24 +75,25 @@ public class MyPriorityQueue<E extends Comparable<? super E>> extends Vector<E> 
 	
 	static public void main(String[] args){
 		//efficiency comparison
-		Vector<Integer> container = new Vector<Integer>();
+		Vector<Double> container = new Vector<Double>();
 		Random rand = new Random(); 
 		for(int i=0; i<2000000; i++)
-			container.add(rand.nextInt());
+			container.add(rand.nextDouble());
 		
 		//Testing my priority queue
 		long time = System.currentTimeMillis();
-		MyPriorityQueue<Integer> test = new MyPriorityQueue<Integer>(10, false);
-		for(Integer val:container)
+		MyPriorityQueue<Double> test = new MyPriorityQueue<Double>(10, false);
+		for(Double val:container)
 			test.add(val);
-		for(Integer i : test)
+		
+		for(Double i : test)
 			System.out.println(i);
 		System.out.println(System.currentTimeMillis()-time);
 		
 		//Testing the system one
 		time = System.currentTimeMillis();
-		PriorityQueue<Integer> test2 = new PriorityQueue<Integer>();
-		for(Integer val:container)
+		PriorityQueue<Double> test2 = new PriorityQueue<Double>();
+		for(Double val:container)
 			test2.add(val);
 		
 		for(int i=0; i<10; i++)
