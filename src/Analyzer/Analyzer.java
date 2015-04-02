@@ -397,7 +397,7 @@ public abstract class Analyzer {
 		writer2.close();
 	}
 	
-	public void printPlotData(String simFile, String dissimFile) throws FileNotFoundException{
+	public void printPlotData2File(String simFile, String dissimFile) throws FileNotFoundException{
 		ArrayList<_Doc> docs = m_corpus.getCollection();
 		for(int i = 0; i < docs.size(); i++){
 			for(int j = i+1; j < docs.size(); j++){
@@ -409,28 +409,9 @@ public abstract class Analyzer {
 					m_dissimilar.add(Math.exp(-Utils.calculateCosineSimilarity(d1, d2)));
 			}
 		}
-//		//Define a descending comparator.
-//		Comparator<Double> descending = new Comparator<Double>(){
-//			public int compare(Double a, Double b){
-//				if (a > b) return -1;
-//				else if (a == b) return 0;
-//				else return 1;
-//			}
-//		};
 		Collections.sort(m_similar);
 		Collections.sort(m_dissimilar);
-//		//reverse the elements in m_similar.
-//		for(int i = 0; i < m_similar.size() / 2; i++){
-//			double tmp = m_similar.get(i);
-//			m_similar.set(i, m_similar.get(m_similar.size() - 1 - i));
-//			m_similar.set(m_similar.size() - 1 - i, tmp);
-//		}
-//		//reverse the elements in m_dissimilar.
-//		for(int i = 0; i < m_dissimilar.size() / 2; i++){
-//			double tmp = m_dissimilar.get(i);
-//			m_dissimilar.set(i, m_dissimilar.get(m_dissimilar.size() - 1 - i));
-//			m_dissimilar.set(m_dissimilar.size() - 1 - i, tmp);
-//		}
+
 		PrintWriter writer1 = new PrintWriter(new File(simFile));
 		for(int i = 0; i < m_similar.size(); i=i+20){//take one sample every 20 points 
 			double percentage = (double)(i+1) / m_similar.size();
@@ -444,17 +425,12 @@ public abstract class Analyzer {
 		}
 		writer2.close();
 	}
-	
-	public void printPlotDataDiffClasses(String path) throws FileNotFoundException{
-		ArrayList<ArrayList<_Doc>> groupedDocs = new ArrayList<ArrayList<_Doc>>();
-		//ArrayList<ArrayList<Double>> groupedSimilarity = new ArrayList<ArrayList<Double>>();
-		
+	/****
+	//The following two functions are used to print similar and dissimilar data for different pairs.
+	public void printPlotDataNFiles(String path) throws FileNotFoundException{
+		ArrayList<ArrayList<_Doc>> groupedDocs = new ArrayList<ArrayList<_Doc>>();		
 		for(int i = 0; i < m_classNo; i++)
 			groupedDocs.add(new ArrayList<_Doc>());
-		
-//		for(int i = 0; i < classNo * classNo; i++)
-//			groupedSimilarity.add(i, new ArrayList<Double>());
-		
 		//Group all the documents into different classes.
 		for(_Doc d: m_corpus.getCollection()){ 
 			if(d.getYLabel() == 0)	groupedDocs.get(0).add(d);
@@ -469,11 +445,9 @@ public abstract class Analyzer {
 			ArrayList<_Doc> tmp1 = groupedDocs.get(i);//Get the first set of docs.
 			for(int j = 0; j < m_classNo; j++){
 				if(i == j){
-					//groupedSimilarity.add(i * classNo + j, calculateSimiPairs(tmp1));
 					printSimilarity(path, i, j, calculateSimiPairs(tmp1));
 				} else{
 					ArrayList<_Doc> tmp2 = groupedDocs.get(j);//Get the second set of docs.
-					//groupedSimilarity.add(i * classNo + j, calculateDissimiPairs(tmp1, tmp2));
 					printSimilarity(path, i, j, calculateDissimiPairs(tmp1, tmp2));
 				}
 			}
@@ -510,7 +484,21 @@ public abstract class Analyzer {
 		Collections.sort(similarities);
 		return similarities;
 	}
-	
+	*****/
+	//Print all the similarities in one file.
+	public void printPlotData1File(String fileName) throws FileNotFoundException{
+		PrintWriter writer = new PrintWriter(new File(fileName));
+		ArrayList<_Doc> docs = m_corpus.getCollection();
+		double similarity = 0;
+		for(int i = 0; i < docs.size(); i++){
+			for(int j = i+1; j < docs.size(); j++){
+				_Doc d1 = docs.get(i);
+				_Doc d2 = docs.get(j);
+				similarity = Math.exp(-Utils.calculateCosineSimilarity(docs.get(i), docs.get(j)));
+				writer.write(d1.getYLabel()+"-"+d2.getYLabel()+"\t"+similarity+"\n");
+			}
+		}
+	}
 	public HashMap<String, Integer> getFeaturesLookup(){
 		return m_featureNameIndex;
 	}

@@ -84,8 +84,8 @@ public class AmazonReviewMain {
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
 		
-//		String simiFile = path + "diffLabels/";
-//		analyzer.printPlotDataDiffClasses(simiFile);
+		String plotFile = path + "pairData_" + lengthThreshold + ".dat";
+		analyzer.printPlotData1File(plotFile);
 		
 		//String matrixFile = path + "matrixA0321.dat";
 //		/***Print the matrix of X and Y for metric learning.***/
@@ -98,53 +98,53 @@ public class AmazonReviewMain {
 //		tmpPR.train(corpus.getCollection());
 		
 		/********Choose different classification methods.*********/
-		if (style.equals("SUP")) {
-			if(classifier.equals("NB")){
-				//Define a new naive bayes with the parameters.
-				System.out.println("Start naive bayes, wait...");
-				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize);
-				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
-				
-			} else if(classifier.equals("LR")){
-				//Define a new logistics regression with the parameters.
-				System.out.println("Start logistic regression, wait...");
-				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
-				myLR.setDebugOutput(debugOutput);//Save debug information into file.
-				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
-				//myLR.saveModel(modelPath + "LR.model");
-			} else if(classifier.equals("SVM")){
-				//Define a new SVM with the parameters.
-				System.out.println("Start SVM, wait...");
-				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.01);//default eps value from Lin's implementation
-				mySVM.crossValidation(CVFold, corpus);
-				
-			} else if (classifier.equals("PR")){
-				//Define a new Pagerank with parameters.
-				System.out.println("Start PageRank, wait...");
-				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
-				myPR.train(corpus.getCollection());
-				
-			} else System.out.println("Classifier has not developed yet!");
-		}
-		else if (style.equals("SEMI")) {
-			if (classifier.equals("GF")) {
-				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
-				mySemi.crossValidation(CVFold, corpus);
-			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
-				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup());
-				mySemi.setDebugOutput(debugOutput);
-				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
-				mySemi.crossValidation(CVFold, corpus);
-			} else if (classifier.equals("GF-RW-ML")) {
-				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
-				lMetricLearner.setDebugOutput(debugOutput);
-				lMetricLearner.crossValidation(CVFold, corpus);
-			} else System.out.println("Classifier has not been developed yet!");
-		} else if (style.equals("FV")) {
-			corpus.save2File(vctFile);
-			System.out.format("Vectors saved to %s...\n", vctFile);
-		} else 
-			System.out.println("Learning paradigm has not developed yet!");
+//		if (style.equals("SUP")) {
+//			if(classifier.equals("NB")){
+//				//Define a new naive bayes with the parameters.
+//				System.out.println("Start naive bayes, wait...");
+//				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize);
+//				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
+//				
+//			} else if(classifier.equals("LR")){
+//				//Define a new logistics regression with the parameters.
+//				System.out.println("Start logistic regression, wait...");
+//				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
+//				myLR.setDebugOutput(debugOutput);//Save debug information into file.
+//				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
+//				//myLR.saveModel(modelPath + "LR.model");
+//			} else if(classifier.equals("SVM")){
+//				//Define a new SVM with the parameters.
+//				System.out.println("Start SVM, wait...");
+//				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.01);//default eps value from Lin's implementation
+//				mySVM.crossValidation(CVFold, corpus);
+//				
+//			} else if (classifier.equals("PR")){
+//				//Define a new Pagerank with parameters.
+//				System.out.println("Start PageRank, wait...");
+//				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
+//				myPR.train(corpus.getCollection());
+//				
+//			} else System.out.println("Classifier has not developed yet!");
+//		}
+//		else if (style.equals("SEMI")) {
+//			if (classifier.equals("GF")) {
+//				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
+//				mySemi.crossValidation(CVFold, corpus);
+//			} else if (classifier.equals("GF-RW")) {
+//				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
+//				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup());
+//				mySemi.setDebugOutput(debugOutput);
+//				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+//				mySemi.crossValidation(CVFold, corpus);
+//			} else if (classifier.equals("GF-RW-ML")) {
+//				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
+//				lMetricLearner.setDebugOutput(debugOutput);
+//				lMetricLearner.crossValidation(CVFold, corpus);
+//			} else System.out.println("Classifier has not been developed yet!");
+//		} else if (style.equals("FV")) {
+//			corpus.save2File(vctFile);
+//			System.out.format("Vectors saved to %s...\n", vctFile);
+//		} else 
+//			System.out.println("Learning paradigm has not developed yet!");
 	}
 }
