@@ -234,8 +234,8 @@ public class DocAnalyzer extends Analyzer {
 	 * In the case CV is loaded, we still need two if loops to check.*/
 	protected boolean AnalyzeDoc(_Doc doc) {
 		String[] tokens = TokenizerNormalizeStemmer(doc.getSource());// Three-step analysis.
-		
-		if (tokens.length<20)
+		//When we load the docuemnts for selecting CV, we ignore the documents.
+		if (tokens.length< m_lengthThreshold)
 			return false;
 		
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
@@ -275,7 +275,7 @@ public class DocAnalyzer extends Analyzer {
 			// if the token is not in the vocabulary, nothing to do.
 		}
 		
-		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+		if (spVct.size() >= 1) {//temporary code for debugging purpose
 			doc.createSpVct(spVct);
 			m_corpus.addDoc(doc);
 			m_classMemberNo[doc.getYLabel()]++;
