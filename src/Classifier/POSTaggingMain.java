@@ -70,12 +70,12 @@ public class POSTaggingMain {
 		 * 1 is taking all adj/advs as features; 
 		 * 2 is taking the adj/advs from the selected features;
 		 * 3 is building the dictionary according to the SNW and build docs' vectors.*/
-		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 3; //Which way to use to build features with pos tagging.
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, "", Ngram, lengthThreshold, posTaggingMethod);
-		//analyzer.LoadStopwords(stopwords); //isLegit must be called later if we want stopwords removal.
+		analyzer.LoadStopwords(stopwords); //isLegit must be called later if we want stopwords removal.
 		//If it is the third way of postagging, then load the SNW file first.
 		if( posTaggingMethod == 3) analyzer.LoadSNW(SNWfile);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
