@@ -39,10 +39,10 @@ public class POSTaggingMain {
 		System.out.println("--------------------------------------------------------------------------------------");
 		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + classifier + "\nCross validation: " + CVFold);
 
-//		/*****Parameters in feature selection.*****/
+		/*****Parameters in feature selection.*****/
 		String featureSelection = "CHI"; //Feature selection method.
 		String stopwords = "./data/Model/stopwords.dat";
-		double startProb = 0.4; // Used in feature selection, the starting point of the features.
+		double startProb = 0.3; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
 		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
@@ -60,51 +60,35 @@ public class POSTaggingMain {
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
 		String tagModel = "./data/Model/en-pos-maxent.bin";		
-		String projectedVctFile = String.format(path + "projected_vct_%s.dat", pattern);	
 		
 		/*****Parameters in time series analysis.*****/
 		int window = 0;
 		System.out.println("Window length: " + window);
-		
-		/**We have three ways to do pos tagging: 
-		 * 1 is taking all adj/advs as features; 
-		 * 2 is taking the adj/advs from the selected features;
-		 * 3 is building the dictionary according to the SNW and build docs' vectors.*/
-		int posTaggingMethod = 3; //Which way to use to build features with pos tagging.
-		System.out.format("Postagging method: %d\n", posTaggingMethod);
+	
+		/****Parameter related with POS Tagging.***/
+		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
+		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		
-		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, "", Ngram, lengthThreshold, posTaggingMethod);
-		analyzer.LoadStopwords(stopwords); //isLegit must be called later if we want stopwords removal.
+		//With the given CV, build the projected vectors for all documents.
+		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, featureLocation, Ngram, lengthThreshold, posTaggingMethod);
 		//If it is the third way of postagging, then load the SNW file first.
 		if( posTaggingMethod == 3) analyzer.LoadSNW(SNWfile);
-		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
-		
-		if (posTaggingMethod == 1 || posTaggingMethod == 3){
-			/**1 3: Load directory one time to build the sparse vector for all docs.*/
-			analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-			analyzer.setFeatureValues(featureValue, norm);
-		} else if(posTaggingMethod == 2){
-			/**2: Load directory two times: first for feature selection, second for building sparse vectors.*/
-			analyzer.disablePosTagging();//set the m_tagger = null so that no postagging is performed when load documents again.
-			analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-			analyzer.setFeatureValues(featureValue, norm);
-			System.out.format("The number of features: %d/%d.\n", analyzer.builderFilter(), analyzer.getFeatureSize()); //Build the filter for projection use.	
-			analyzer.buildProjectSpVct(); //Build the project SpVct for all the documents.
-		} else 
-			System.out.println("The postagging method is not developed yet!!");
-		
-//		String xFile = path + diffFolder + "X.csv";
-//		String yFile = path + diffFolder + "Y.csv";
-//		analyzer.printXY(xFile, yFile);
+		analyzer.LoadDirectory(folder, suffix); //Load all the documents to build the sparse vectors and projected vectors.
+
+//		//Currently, we do not consider pos tagging 2.
+//		} else if(posTaggingMethod == 2){
+//			/**2: Load directory two times: first for feature selection, second for building sparse vectors.*/
+//			analyzer.disablePosTagging();//set the m_tagger = null so that no postagging is performed when load documents again.
+//			analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+//			analyzer.setFeatureValues(featureValue, norm);
+//			System.out.format("The number of features: %d/%d.\n", analyzer.builderFilter(), analyzer.getFeatureSize()); //Build the filter for projection use.	
+//			analyzer.buildProjectSpVct(); //Build the project SpVct for all the documents.
+//		} else 
+//			System.out.println("The postagging method is not developed yet!!");
 	
 		featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.getCorpus();
-		
-//		//Print the distance vs similar(dissimilar pairs)
-//		String simiFile = path + "diffLabels/";
-//		analyzer.printPlotDataDiffClasses(simiFile);
 		
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {

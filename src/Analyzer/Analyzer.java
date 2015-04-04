@@ -30,6 +30,9 @@ public abstract class Analyzer {
 	protected ArrayList<String> m_featureNames; //ArrayList for features
 	protected HashMap<String, Integer> m_featureNameIndex;//key: content of the feature; value: the index of the feature
 	protected HashMap<String, _stat> m_featureStat; //Key: feature Name; value: the stat of the feature
+	
+	protected HashMap<String, Integer> m_projFeatureNameIndex;
+	protected HashMap<String, _stat> m_projFeatureStat;
 	/* Indicate if we can allow new features.After loading the CV file, the flag is set to true, 
 	 * which means no new features will be allowed.*/
 	protected boolean m_isCVLoaded;
@@ -397,7 +400,7 @@ public abstract class Analyzer {
 		writer2.close();
 	}
 	
-	public void printPlotData2File(String simFile, String dissimFile) throws FileNotFoundException{
+	public void printPlotData2TwoFiles(String simFile, String dissimFile) throws FileNotFoundException{
 		ArrayList<_Doc> docs = m_corpus.getCollection();
 		for(int i = 0; i < docs.size(); i++){
 			for(int j = i+1; j < docs.size(); j++){
@@ -486,18 +489,23 @@ public abstract class Analyzer {
 	}
 	*****/
 	//Print all the similarities in one file.
-	public void printPlotData1File(String fileName) throws FileNotFoundException{
+	public void printPlotData2OneFile(String fileName) throws FileNotFoundException{
 		PrintWriter writer = new PrintWriter(new File(fileName));
 		ArrayList<_Doc> docs = m_corpus.getCollection();
+		int count = 0; 
 		double similarity = 0;
 		for(int i = 0; i < docs.size(); i++){
 			for(int j = i+1; j < docs.size(); j++){
-				_Doc d1 = docs.get(i);
-				_Doc d2 = docs.get(j);
-				similarity = Math.exp(-Utils.calculateCosineSimilarity(docs.get(i), docs.get(j)));
-				writer.write(d1.getYLabel()+"-"+d2.getYLabel()+"\t"+similarity+"\n");
+				count++;
+				if(count % 10 == 0){ //We sample the data point at the rate of 1/10.
+					_Doc d1 = docs.get(i);
+					_Doc d2 = docs.get(j);
+					similarity = Math.exp(-Utils.calculateCosineSimilarity(docs.get(i), docs.get(j)));
+					writer.write(d1.getYLabel()+"-"+d2.getYLabel()+"\t"+similarity+"\n");
+				}
 			}
 		}
+		writer.close();
 	}
 	public HashMap<String, Integer> getFeaturesLookup(){
 		return m_featureNameIndex;
