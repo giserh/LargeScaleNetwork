@@ -27,6 +27,7 @@ import opennlp.tools.util.InvalidFormatException;
 
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
+import org.tartarus.snowball.ext.porterStemmer;
 
 import structures._Doc;
 import structures._SparseFeature;
@@ -36,7 +37,7 @@ import utils.Utils;
 public class DocAnalyzer extends Analyzer {
 
 	protected Tokenizer m_tokenizer;
-	protected SnowballStemmer m_stemmer;
+	protected porterStemmer m_stemmer;
 	protected SentenceDetectorME m_stnDetector;
 	
 	protected POSTaggerME m_tagger;
@@ -51,7 +52,7 @@ public class DocAnalyzer extends Analyzer {
 	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
 		super(classNo, threshold);
 		m_tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(tokenModel)));
-		m_stemmer = new englishStemmer();
+		m_stemmer = new porterStemmer();
 		m_stnDetector = null; // indicating we don't need sentence splitting
 		
 		m_Ngram = Ngram;
@@ -64,7 +65,7 @@ public class DocAnalyzer extends Analyzer {
 	public DocAnalyzer(String tokenModel, String stnModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
 		super(classNo, threshold);
 		m_tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(tokenModel)));
-		m_stemmer = new englishStemmer();
+		m_stemmer = new porterStemmer();
 		
 		if (stnModel!=null)
 			m_stnDetector = new SentenceDetectorME(new SentenceModel(new FileInputStream(stnModel)));
@@ -81,7 +82,7 @@ public class DocAnalyzer extends Analyzer {
 	public DocAnalyzer(String tokenModel, String stnModel, String tagModel, int classNo, String providedCV, int Ngram, int threshold, int posTaggingMethod) throws InvalidFormatException, FileNotFoundException, IOException {
 		super(classNo, threshold);
 		m_tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(tokenModel)));
-		m_stemmer = new englishStemmer();
+		m_stemmer = new porterStemmer();
 		//We need to spilt sentences before we do pos tagging.
 		if (stnModel!=null)
 			m_stnDetector = new SentenceDetectorME(new SentenceModel(new FileInputStream(stnModel)));
@@ -113,7 +114,7 @@ public class DocAnalyzer extends Analyzer {
 			String line;
 
 			while ((line = reader.readLine()) != null) {
-				line = SnowballStemming(Normalize(line));
+				line = PorterStemming(Normalize(line));//****
 				if (!line.isEmpty())
 					m_stopwords.add(line);
 			}
@@ -132,7 +133,7 @@ public class DocAnalyzer extends Analyzer {
 	
 	//Normalize.
 	protected String Normalize(String token){
-		token = Normalizer.normalize(token, Normalizer.Form.NFKC);
+		//token = Normalizer.normalize(token, Normalizer.Form.NFKC);
 		token = token.replaceAll("\\W+", "");
 		token = token.toLowerCase();
 		
@@ -142,15 +143,23 @@ public class DocAnalyzer extends Analyzer {
 			return token;
 	}
 	
-	//Snowball Stemmer.
-	protected String SnowballStemming(String token){
+//	//Snowball Stemmer.
+//	protected String SnowballStemming(String token){
+//		m_stemmer.setCurrent(token);
+//		if(m_stemmer.stem())
+//			return m_stemmer.getCurrent();
+//		else
+//			return token;
+//	}
+	
+	public String PorterStemming(String token) {
+//		porterStemmer stemmer = new porterStemmer();
 		m_stemmer.setCurrent(token);
-		if(m_stemmer.stem())
+		if (m_stemmer.stem())
 			return m_stemmer.getCurrent();
 		else
 			return token;
 	}
-	
 	protected boolean isLegit(String token) {
 		return !token.isEmpty() 
 			&& !m_stopwords.contains(token)
@@ -167,7 +176,7 @@ public class DocAnalyzer extends Analyzer {
 		String[] tokens = Tokenizer(source); //Original tokens.
 		//Normalize them and stem them.		
 		for(int i = 0; i < tokens.length; i++)
-			tokens[i] = SnowballStemming(Normalize(tokens[i]));
+			tokens[i] = PorterStemming(Normalize(tokens[i]));
 		
 		LinkedList<String> Ngrams = new LinkedList<String>();
 		int tokenLength = tokens.length, N = m_Ngram;		
@@ -370,7 +379,7 @@ public class DocAnalyzer extends Analyzer {
 		} else
 			return;
 	}
-	
+	/*
 	//Analyze document with POS Tagging.
 	protected void AnalyzeDocWithPOSTagging(_Doc doc) {
 		if ((Tokenizer(doc.getSource()).length) < m_lengthThreshold) return;
@@ -443,7 +452,7 @@ public class DocAnalyzer extends Analyzer {
 			return;
 		} else return;
 	}
-	
+	*/
 	public HashMap<Integer, Double> update(String token, HashMap<Integer, Double> spVct, int label){
 		int index = 0;
 		double value = 0;
@@ -510,7 +519,7 @@ public class DocAnalyzer extends Analyzer {
 			writer.println(s);
 		writer.close();
 	}
-	
+	/*
 	//Load the sentinet word and store them in the dictionary for later use.
 	public void LoadSNW(String filename) throws IOException {
 		// From String to list of doubles.
@@ -578,6 +587,12 @@ public class DocAnalyzer extends Analyzer {
 				csv.close();
 			}
 		}
+	}
+
+	*/
+	@Override
+	public void LoadYelpDoc(String absolutePath) {
+		// TODO Auto-generated method stub
 	}
 }	
 

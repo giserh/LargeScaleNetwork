@@ -134,7 +134,7 @@ public class POSTaggingMain {
 			} else System.out.println("Classifier has not been developed yet!");
 		} else if (style.equals("FV")) {
 			corpus.save2File(vctFile);
-			corpus.save2FileProjectSpVct(projectedVctFile);
+//			corpus.save2FileProjectSpVct(projectedVctFile);
 			System.out.format("Vectors saved to %s...\n", vctFile);
 		} else 
 			System.out.println("Learning paradigm has not developed yet!");

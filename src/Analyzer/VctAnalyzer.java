@@ -91,4 +91,9 @@ public class VctAnalyzer extends Analyzer {
 		}
 	}
 
+	@Override
+	public void LoadYelpDoc(String absolutePath) {
+		// TODO Auto-generated method stub
+	}
+
 }

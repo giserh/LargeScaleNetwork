@@ -73,9 +73,9 @@ public class jsonAnalyzer extends DocAnalyzer{
 						content = post.getTitle() + ". " + post.getContent();
 					_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
 					
-					if(this.m_tagger != null && this.m_stnDetector!=null)
-						AnalyzeDocWithPOSTagging(review);
-					else
+//					if(this.m_tagger != null && this.m_stnDetector!=null)
+//						AnalyzeDocWithPOSTagging(review);
+//					else
 						AnalyzeDoc(review);
 				}
 			} catch (ParseException e) {
@@ -86,6 +86,39 @@ public class jsonAnalyzer extends DocAnalyzer{
 		}
 	}
 	
+	public void LoadYelpDoc(String filename) {
+		JSONArray jarray = null;
+		
+		try {
+			JSONObject json = LoadJson(filename);
+			jarray = json.getJSONArray("Reviews");
+		} catch (Exception e) {
+			System.out.print('X');
+			return;
+		}	
+		
+		for(int i=0; i<jarray.length(); i++) {
+			try {
+				Post post = new Post(jarray.getJSONObject(i));
+//				if (checkPostFormat(post)){
+//					long timeStamp = m_dateFormatter.parse(post.getDate()).getTime();
+					String content = post.getContent();
+//					if (Utils.endWithPunct(post.getTitle()))
+//						content = post.getTitle() + " " + post.getContent();
+//					else
+//						content = post.getTitle() + ". " + post.getContent();
+					_Doc review = new _Doc(m_corpus.getSize(), content, post.getLabel()-1);
+					
+//					if(this.m_tagger != null && this.m_stnDetector!=null)
+//						AnalyzeDocWithPOSTagging(review);
+//					else
+						AnalyzeDoc(review);
+//				}
+			} catch (JSONException e) {
+				System.out.print('P');
+			}
+		}
+	}
 	//sample code for loading the json file
 	public JSONObject LoadJson(String filename) {
 		try {
