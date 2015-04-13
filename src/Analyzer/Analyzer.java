@@ -146,22 +146,21 @@ public abstract class Analyzer {
 		System.out.println();
 	}
 	
-	//Load all the files in the Yelp directory.
-	public void LoadYelpDirectory(String folder, String suffix) throws IOException {
-		int count = 0;
-		File dir = new File(folder);
-		for (File f : dir.listFiles()) {
-			if (f.isFile() && f.getName().endsWith(suffix)) {
-				LoadYelpDoc(f.getAbsolutePath());
-				System.out.print(count++);
-				if(count%20 == 0) System.out.println();
-			} else if (f.isDirectory())
-				LoadYelpDirectory(f.getAbsolutePath(), suffix);
-		}
-		System.out.println();
-	}
+//	//Load all the files in the Yelp directory.
+//	public void LoadYelpDirectory(String folder, String suffix) throws IOException {
+//		int count = 0;
+//		File dir = new File(folder);
+//		for (File f : dir.listFiles()) {
+//			if (f.isFile() && f.getName().endsWith(suffix)) {
+//				LoadYelpDoc(f.getAbsolutePath());
+//				System.out.print(count++);
+//				if(count%20 == 0) System.out.println();
+//			} else if (f.isDirectory())
+//				LoadYelpDirectory(f.getAbsolutePath(), suffix);
+//		}
+//		System.out.println();
+//	}
 	
-	abstract public void LoadYelpDoc(String absolutePath);
 	abstract public void LoadDoc(String filename);
 	
 	//Save all the features and feature stat into a file.

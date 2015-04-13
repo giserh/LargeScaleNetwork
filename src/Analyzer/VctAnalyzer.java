@@ -90,10 +90,4 @@ public class VctAnalyzer extends Analyzer {
 			m_featureNameIndex.remove(feature);
 		}
 	}
-
-	@Override
-	public void LoadYelpDoc(String absolutePath) {
-		// TODO Auto-generated method stub
-	}
-
 }
