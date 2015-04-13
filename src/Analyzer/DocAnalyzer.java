@@ -420,39 +420,47 @@ public class DocAnalyzer extends Analyzer {
 										projectedVct.put(projIndex, 1.0);
 										m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
 									}
-								} else {
-									m_projFeatureNameIndex.put(tmpToken, m_projFeatureNameIndex.size());
-								}
+								} else m_projFeatureNameIndex.put(tmpToken, m_projFeatureNameIndex.size());
 							}
 						} else if(m_posTaggingMethod == 3){
 							if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")){
-								tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#r";
+								tmpToken = tmpToken + "#r";
 							} else if (tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
-								tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#a";
+								tmpToken = tmpToken + "#a";
 							} else if (tags[i].equals("NN")||tags[i].equals("NNS")||tags[i].equals("NNP")||tags[i].equals("NNPS")){
-								tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#n";
+								tmpToken = tmpToken + "#n";
 							} else if (tags[i].equals("VB")||tags[i].equals("VBD")||tags[i].equals("VBG")||tags[i].equals("VBN")||tags[i].equals("VBP")||tags[i].equals("VBZ")){
-								tokens[i] = SnowballStemming(Normalize(tokens[i])) + "#v";
-							} else
-								tokens[i] = SnowballStemming(Normalize(tokens[i]));
-							if(m_dictionary.contains(tokens[i]))
-								spVct = update(tokens[i], spVct, doc.getYLabel());
+								tmpToken = tmpToken + "#v";
+							} 
+							if(m_dictionary.contains(tokens[i])){
+								if(m_projFeatureNameIndex.containsKey(tmpToken)){
+									projIndex = m_projFeatureNameIndex.get(tmpToken);
+									if(projectedVct.containsKey(projIndex)){
+										projValue = projectedVct.get(projIndex) + 1;
+										projectedVct.put(projIndex, projValue);
+									} else{
+										projectedVct.put(projIndex, 1.0);
+										m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
+									}
+								} else m_projFeatureNameIndex.put(tmpToken, m_projFeatureNameIndex.size());
+							}
 						}
 					}
 				}
 			}
 		}
-		
 		m_classMemberNo[doc.getYLabel()]++;
 		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
 			doc.createSpVct(spVct);
+			doc.createProjSpVct(projectedVct);
 			m_corpus.addDoc(doc);
-			if (m_releaseContent)
-				doc.clearSource();
+//			if (m_releaseContent)
+//				doc.clearSource();
 			return;
 		} else return;
 	}
 	*/
+	
 	public HashMap<Integer, Double> update(String token, HashMap<Integer, Double> spVct, int label){
 		int index = 0;
 		double value = 0;
@@ -519,7 +527,7 @@ public class DocAnalyzer extends Analyzer {
 			writer.println(s);
 		writer.close();
 	}
-	/*
+	
 	//Load the sentinet word and store them in the dictionary for later use.
 	public void LoadSNW(String filename) throws IOException {
 		// From String to list of doubles.
@@ -587,12 +595,6 @@ public class DocAnalyzer extends Analyzer {
 				csv.close();
 			}
 		}
-	}
-
-	*/
-	@Override
-	public void LoadYelpDoc(String absolutePath) {
-		// TODO Auto-generated method stub
 	}
 }	
 
