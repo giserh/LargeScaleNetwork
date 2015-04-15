@@ -19,7 +19,7 @@ public class AmazonReviewMain {
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before running the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
-		int Ngram = 2; //The default value is bigram. 
+		int Ngram = 1; //The default value is bigram. 
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
@@ -51,7 +51,7 @@ public class AmazonReviewMain {
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "small";
+		String diffFolder = "20json";
 		String path = "data/" + diffFolder + "/";
 		String folder = path + "RawData";
 		String suffix = ".json";

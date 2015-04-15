@@ -48,12 +48,11 @@ public class POSTaggingMain {
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "small";
+		String diffFolder = "20json";
 		String path = "data/" + diffFolder + "/";
 		String folder = path + "RawData";
 		String suffix = ".json";
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
-		
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
 		String vctFile = String.format(path + "vct_%s.dat", pattern);
 		
@@ -61,10 +60,10 @@ public class POSTaggingMain {
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
 		String tagModel = "./data/Model/en-pos-maxent.bin";		
 		
-		/*****Parameters in time series analysis.*****/
-		int window = 0;
-		System.out.println("Window length: " + window);
-	
+//		/*****Parameters in time series analysis.*****/
+//		int window = 0;
+//		System.out.println("Window length: " + window);
+		
 		/****Parameter related with POS Tagging.***/
 		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";

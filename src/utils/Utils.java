@@ -271,7 +271,9 @@ public class Utils {
 		return calculateSimilarity(spVct1, spVct2) / sumOfFeaturesL2(spVct1) / sumOfFeaturesL2(spVct2);
 	}
 	
-	
+	public static double calculateProjSimilarity(_Doc d1, _Doc d2){
+		return cosine(d1.getProjectedFv(), d2.getProjectedFv());
+	}
 	//Calculate the similarity between two sparse vectors.
 	public static double calculateSimilarity(_SparseFeature[] spVct1, _SparseFeature[] spVct2) {
 		if (spVct1==null || spVct2==null)

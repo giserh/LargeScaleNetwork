@@ -394,7 +394,7 @@ public class DocAnalyzer extends Analyzer {
 			for(int i = 0; i < tokens.length; i++){
 				String tmpToken = SnowballStemming(Normalize(tokens[i]));
 				if (isLegit(tmpToken)){
-					//If the token is in the CV,build the sparse hashmap first.
+					//If the token is in the CV, build the sparse hashmap first.
 					if(m_featureNameIndex.containsKey(tmpToken)) {// CV is loaded.
 						index = m_featureNameIndex.get(tmpToken);
 						if (spVct.containsKey(index)) {
@@ -416,9 +416,13 @@ public class DocAnalyzer extends Analyzer {
 										projectedVct.put(projIndex, projValue);
 									} else{
 										projectedVct.put(projIndex, 1.0);
-										m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
+										//m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
 									}
-								} else m_projFeatureNameIndex.put(tmpToken, m_projFeatureNameIndex.size());
+								} else{
+									projIndex = m_projFeatureNameIndex.size();
+									m_projFeatureNameIndex.put(tmpToken, projIndex);
+									projectedVct.put(projIndex, 1.0);
+								}
 							}
 						} else if(m_posTaggingMethod == 3){
 							if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")){
@@ -450,7 +454,7 @@ public class DocAnalyzer extends Analyzer {
 		m_classMemberNo[doc.getYLabel()]++;
 		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
 			doc.createSpVct(spVct);
-			//doc.createProjSpVct(projectedVct);
+			doc.createProjVct(projectedVct);
 			m_corpus.addDoc(doc);
 //			if (m_releaseContent)
 //				doc.clearSource();
