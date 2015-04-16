@@ -33,7 +33,6 @@ import structures._stat;
 import utils.Utils;
 
 public class DocAnalyzer extends Analyzer {
-
 	protected Tokenizer m_tokenizer;
 	protected SnowballStemmer m_stemmer;
 	protected SentenceDetectorME m_stnDetector;
@@ -380,8 +379,8 @@ public class DocAnalyzer extends Analyzer {
 	
 	//Analyze document with POS Tagging.
 	protected void AnalyzeDocWithPOSTagging(_Doc doc) {
-		if ((Tokenizer(doc.getSource()).length) < m_lengthThreshold) return;
-		
+		if ((TokenizerNormalizeStemmer(doc.getSource()).length) < m_lengthThreshold) return;
+			
 		int index = 0, projIndex = 0; 
 		double value = 0, projValue = 0;
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
@@ -426,15 +425,15 @@ public class DocAnalyzer extends Analyzer {
 							}
 						} else if(m_posTaggingMethod == 3){
 							if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")){
-								tmpToken = tmpToken + "#r";
+								tmpToken = tokens[i] + "#r";
 							} else if (tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
-								tmpToken = tmpToken + "#a";
+								tmpToken = tokens[i] + "#a";
 							} else if (tags[i].equals("NN")||tags[i].equals("NNS")||tags[i].equals("NNP")||tags[i].equals("NNPS")){
-								tmpToken = tmpToken + "#n";
+								tmpToken = tokens[i] + "#n";
 							} else if (tags[i].equals("VB")||tags[i].equals("VBD")||tags[i].equals("VBG")||tags[i].equals("VBN")||tags[i].equals("VBP")||tags[i].equals("VBZ")){
-								tmpToken = tmpToken + "#v";
+								tmpToken = tokens[i] + "#v";
 							} 
-							if(m_dictionary.contains(tokens[i])){
+							if(m_dictionary.contains(tmpToken)){
 								if(m_projFeatureNameIndex.containsKey(tmpToken)){
 									projIndex = m_projFeatureNameIndex.get(tmpToken);
 									if(projectedVct.containsKey(projIndex)){
@@ -442,9 +441,13 @@ public class DocAnalyzer extends Analyzer {
 										projectedVct.put(projIndex, projValue);
 									} else{
 										projectedVct.put(projIndex, 1.0);
-										m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
+										//m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
 									}
-								} else m_projFeatureNameIndex.put(tmpToken, m_projFeatureNameIndex.size());
+								} else {
+									projIndex = m_projFeatureNameIndex.size();
+									m_projFeatureNameIndex.put(tmpToken, projIndex);
+									projectedVct.put(projIndex, 1.0);
+								}
 							}
 						}
 					}
@@ -452,7 +455,7 @@ public class DocAnalyzer extends Analyzer {
 			}
 		}
 		m_classMemberNo[doc.getYLabel()]++;
-		if (spVct.size()>=m_lengthThreshold) {//temporary code for debugging purpose
+		if (spVct.size()>= 1) {//temporary code for debugging purpose
 			doc.createSpVct(spVct);
 			doc.createProjVct(projectedVct);
 			m_corpus.addDoc(doc);
@@ -460,42 +463,6 @@ public class DocAnalyzer extends Analyzer {
 //				doc.clearSource();
 			return;
 		} else return;
-	}
-	
-	
-	public HashMap<Integer, Double> update(String token, HashMap<Integer, Double> spVct, int label){
-		int index = 0;
-		double value = 0;
-		// CV is not loaded, take all the adjs/advs as features.
-		if (!m_isCVLoaded) {
-			if (m_featureNameIndex.containsKey(token)) {
-				index = m_featureNameIndex.get(token);
-				if (spVct.containsKey(index)) {
-					value = spVct.get(index) + 1;
-					spVct.put(index, value);
-				} else {
-					spVct.put(index, 1.0);
-					m_featureStat.get(token).addOneDF(label);
-				}
-			} else {// indicate we allow the analyzer to dynamically expand the feature vocabulary
-				expandVocabulary(token);// update the m_featureNames.
-				index = m_featureNameIndex.get(token);
-				spVct.put(index, 1.0);
-				m_featureStat.get(token).addOneDF(label);
-			}
-			m_featureStat.get(token).addOneTTF(label);
-		} else if (m_featureNameIndex.containsKey(token)) {// CV is loaded.
-			index = m_featureNameIndex.get(token);
-			if (spVct.containsKey(index)) {
-				value = spVct.get(index) + 1;
-				spVct.put(index, value);
-			} else {
-				spVct.put(index, 1.0);
-				m_featureStat.get(token).addOneDF(label);
-			}
-			m_featureStat.get(token).addOneTTF(label);
-		}
-		return spVct;
 	}
 		
 	//Build the filter based on the raw filter and features.

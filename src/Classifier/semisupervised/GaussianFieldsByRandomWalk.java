@@ -151,6 +151,10 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			for(int j=0; j<m_classNo; j++)
 				m_pYSum[j] += Math.exp(-Math.abs(j-m_fu[i]));			
 		}
+		System.out.println("\nfu values for this run of training.");
+		for(int i = 0 ; i < m_fu.length ; i++){
+			System.out.print(m_fu[i] + "\t");
+		}
 		
 		/***evaluate the performance***/
 		double acc = 0;

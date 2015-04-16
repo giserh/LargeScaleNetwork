@@ -268,7 +268,10 @@ public class Utils {
 	}
 	
 	public static double cosine(_SparseFeature[] spVct1, _SparseFeature[] spVct2) {
-		return calculateSimilarity(spVct1, spVct2) / sumOfFeaturesL2(spVct1) / sumOfFeaturesL2(spVct2);
+		if (sumOfFeaturesL2(spVct1)==0 || sumOfFeaturesL2(spVct2)==0){
+			return 0;
+		} else
+			return calculateSimilarity(spVct1, spVct2) / sumOfFeaturesL2(spVct1) / sumOfFeaturesL2(spVct2);
 	}
 	
 	public static double calculateProjSimilarity(_Doc d1, _Doc d2){

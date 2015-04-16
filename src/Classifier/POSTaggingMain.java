@@ -19,7 +19,7 @@ public class POSTaggingMain {
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
 		int Ngram = 1; //The default value is unigram for pos tagging. 
-		int lengthThreshold = 0; //Document length threshold
+		int lengthThreshold = 10; //Document length threshold
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
@@ -44,28 +44,27 @@ public class POSTaggingMain {
 		String stopwords = "./data/Model/stopwords.dat";
 		double startProb = 0.3; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
-		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
+		int DFthreshold = 50; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "20json";
+		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
 		String folder = path + "RawData";
 		String suffix = ".json";
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
-		String vctFile = String.format(path + "vct_%s.dat", pattern);
 		
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
 		String tagModel = "./data/Model/en-pos-maxent.bin";		
 		
-//		/*****Parameters in time series analysis.*****/
-//		int window = 0;
-//		System.out.println("Window length: " + window);
+		/*****Parameters in time series analysis.*****/
+		int window = 0;
+		System.out.println("Window length: " + window);
 		
 		/****Parameter related with POS Tagging.***/
-		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 3; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		
@@ -74,20 +73,16 @@ public class POSTaggingMain {
 		//If it is the third way of postagging, then load the SNW file first.
 		if( posTaggingMethod == 3) analyzer.LoadSNW(SNWfile);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents to build the sparse vectors and projected vectors.
-
-//		//Currently, we do not consider pos tagging 2.
-//		} else if(posTaggingMethod == 2){
-//			/**2: Load directory two times: first for feature selection, second for building sparse vectors.*/
-//			analyzer.disablePosTagging();//set the m_tagger = null so that no postagging is performed when load documents again.
-//			analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-//			analyzer.setFeatureValues(featureValue, norm);
-//			System.out.format("The number of features: %d/%d.\n", analyzer.builderFilter(), analyzer.getFeatureSize()); //Build the filter for projection use.	
-//			analyzer.buildProjectSpVct(); //Build the project SpVct for all the documents.
-//		} else 
-//			System.out.println("The postagging method is not developed yet!!");
-	
+		
+		analyzer.setFeatureValues(featureValue, norm);
+		analyzer.setTimeFeatures(window);
+		
 		featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.getCorpus();
+		String vctFile = String.format(path + "vct_pos_%s.dat", pattern);
+		String projectedVctFile = String.format(path + "vct_projected_%s.dat", pattern);
+//		corpus.save2File(vctFile);
+		corpus.save2FileProjectSpVct(projectedVctFile);
 		
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {
