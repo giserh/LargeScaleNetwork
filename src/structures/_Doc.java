@@ -173,6 +173,9 @@ public class _Doc implements Comparable<_Doc> {
 		for(_SparseFeature fv:m_x_sparse)
 			m_totalLength += fv.getValue();
 	}
+//	public void createProjVct(HashMap<Integer, Double> projectedVct){
+//		
+//	}
 	//Create the sparse vector for similarity calculation.
 	public void createProjVct(HashMap<Integer, Double> projectedVct){
 		m_x_projection = Utils.createSpVct(projectedVct);

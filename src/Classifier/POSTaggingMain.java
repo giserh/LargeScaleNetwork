@@ -82,7 +82,7 @@ public class POSTaggingMain {
 		String vctFile = String.format(path + "vct_pos_%s.dat", pattern);
 		String projectedVctFile = String.format(path + "vct_projected_%s.dat", pattern);
 //		corpus.save2File(vctFile);
-		corpus.save2FileProjectSpVct(projectedVctFile);
+//		corpus.save2FileProjectSpVct(projectedVctFile);
 		
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {
