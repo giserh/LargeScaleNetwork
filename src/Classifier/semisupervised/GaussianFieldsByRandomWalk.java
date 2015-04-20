@@ -74,7 +74,10 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			}
 			m_kUL.clear();
 			
-			m_fu[i] = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
+			if(wijSumL!=0 || wijSumU!=0)
+				m_fu[i] = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
+//			if(m_fu[i] == Double.NaN)
+//				System.out.println("NaN detected!!!");
 		}
 	}
 	
@@ -110,8 +113,14 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				wijSumL += wij;
 				fSumL += wij * m_Y[j];
 			}
-			
+			if(wijSumL == 0)
+				System.out.println("0 detected!!");
+			if(wijSumU == 0)
+				System.out.println("0 detected!!");
 			m_fu[i] = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
+			System.out.println(m_fu[i]);
+			if(Double.isNaN(m_fu[i]))
+				System.out.println("NaN detected!!!");
 		}
 	}
 	
@@ -151,9 +160,9 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			for(int j=0; j<m_classNo; j++)
 				m_pYSum[j] += Math.exp(-Math.abs(j-m_fu[i]));			
 		}
-		System.out.println("\nfu values for this run of training.");
+		m_printWriter.write("fu values for this run of testing:" + "\n");
 		for(int i = 0 ; i < m_fu.length ; i++){
-			System.out.print(m_fu[i] + "\t");
+			m_printWriter.write(m_fu[i] + "\n");
 		}
 		
 		/***evaluate the performance***/

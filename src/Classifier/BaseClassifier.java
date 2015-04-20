@@ -1,9 +1,11 @@
 package Classifier;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -27,6 +29,8 @@ public abstract class BaseClassifier {
 
 	protected String m_debugOutput; // set up debug output (default: no debug output)
 	protected BufferedWriter m_debugWriter; // debug output writer
+	
+	protected PrintWriter m_printWriter;
 	
 	public void train() {
 		train(m_trainSet);
@@ -83,7 +87,8 @@ public abstract class BaseClassifier {
 	}
 	
 	//k-fold Cross Validation.
-	public void crossValidation(int k, _Corpus c){
+	public void crossValidation(int k, _Corpus c) throws FileNotFoundException{
+		m_printWriter = new PrintWriter(new File("./data/fu.csv"));
 		try {
 			if (m_debugOutput!=null)
 				m_debugWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(m_debugOutput, false), "UTF-8"));

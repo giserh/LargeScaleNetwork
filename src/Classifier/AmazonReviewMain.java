@@ -66,24 +66,24 @@ public class AmazonReviewMain {
 		System.out.println("Window length: " + window);
 		System.out.println("--------------------------------------------------------------------------------------");
 		
-//		/****Feature selection*****/
-//		System.out.println("Performing feature selection, wait...");
-//		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
-//		analyzer.LoadStopwords(stopwords);
-//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-//		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
-//		
-		/****Create feature vectors*****/
-		System.out.println("Creating feature vectors, wait...");
-		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
-		//analyzer.LoadStopwords(stopwords);
+		/****Feature selection*****/
+		System.out.println("Performing feature selection, wait...");
+		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
+		analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-		analyzer.setFeatureValues(featureValue, norm);
-		analyzer.setTimeFeatures(window);
+		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
 		
-		_Corpus corpus = analyzer.getCorpus();
-		featureSize = analyzer.getFeatureSize();
-		corpus.save2File(vctFile);
+		/****Create feature vectors*****/
+//		System.out.println("Creating feature vectors, wait...");
+//		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
+//		//analyzer.LoadStopwords(stopwords);
+//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+//		analyzer.setFeatureValues(featureValue, norm);
+//		analyzer.setTimeFeatures(window);
+//		
+//		_Corpus corpus = analyzer.getCorpus();
+//		featureSize = analyzer.getFeatureSize();
+//		corpus.save2File(vctFile);
 		
 //		String plotFile = path + "pairData_" + lengthThreshold + ".dat";
 //		analyzer.printPlotData2OneFile(plotFile);

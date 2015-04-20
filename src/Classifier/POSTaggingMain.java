@@ -27,9 +27,9 @@ public class POSTaggingMain {
 		int CVFold = 10; //k fold-cross validation
 	
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SEMI";//"SUP", "SEMI"
+		String style = "SUP";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "GF-RW"; //Which classifier to use.
+		String classifier = "SVM"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 		
@@ -48,7 +48,7 @@ public class POSTaggingMain {
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "small";
+		String diffFolder = "20json";
 		String path = "data/" + diffFolder + "/";
 		String folder = path + "RawData";
 		String suffix = ".json";
@@ -64,7 +64,7 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/****Parameter related with POS Tagging.***/
-		int posTaggingMethod = 3; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		
