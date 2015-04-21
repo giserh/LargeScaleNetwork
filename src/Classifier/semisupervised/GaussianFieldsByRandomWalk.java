@@ -76,8 +76,8 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			
 			if(wijSumL!=0 || wijSumU!=0)
 				m_fu[i] = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
-//			if(m_fu[i] == Double.NaN)
-//				System.out.println("NaN detected!!!");
+			if(Double.isNaN(m_fu[i]))
+				System.out.println("NaN detected!!!");
 		}
 	}
 	
@@ -113,12 +113,10 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				wijSumL += wij;
 				fSumL += wij * m_Y[j];
 			}
-			if(wijSumL == 0)
-				System.out.println("0 detected!!");
-			if(wijSumU == 0)
-				System.out.println("0 detected!!");
-			m_fu[i] = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
-			System.out.println(m_fu[i]);
+			
+			if(wijSumL!=0 || wijSumU!=0)
+				m_fu[i] = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
+
 			if(Double.isNaN(m_fu[i]))
 				System.out.println("NaN detected!!!");
 		}
@@ -188,4 +186,11 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 		
 		return acc/m_U;
 	}
+	
+//	public static void main(String[] args){
+//		double a = Double.NaN;
+//		if(Double.isNaN(a))
+//			System.out.println("Nan");
+//	}
+	
 }

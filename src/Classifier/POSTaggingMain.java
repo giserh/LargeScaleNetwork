@@ -27,9 +27,9 @@ public class POSTaggingMain {
 		int CVFold = 10; //k fold-cross validation
 	
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "SVM"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 		
@@ -48,7 +48,7 @@ public class POSTaggingMain {
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "20json";
+		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
 		String folder = path + "RawData";
 		String suffix = ".json";
@@ -64,16 +64,23 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/****Parameter related with POS Tagging.***/
-		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 4; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		
 		//With the given CV, build the projected vectors for all documents.
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, featureLocation, Ngram, lengthThreshold, posTaggingMethod);
-		//If it is the third way of postagging, then load the SNW file first.
-		if( posTaggingMethod == 3) analyzer.LoadSNW(SNWfile);
-		analyzer.LoadDirectory(folder, suffix); //Load all the documents to build the sparse vectors and projected vectors.
+		if( posTaggingMethod == 3) // Load the SNW file first.
+			analyzer.LoadSNW(SNWfile);
 		
+		if( posTaggingMethod == 4) { // Load the SNW with scores.
+			int k = 15;
+			analyzer.LoadSNWWithScore(SNWfile);
+			analyzer.saveFeatureScore("./data/sentiwordnet_score.csv");
+			analyzer.setFeatureDimension(k);
+		}
+
+		analyzer.LoadDirectory(folder, suffix); //Load all the documents to build the sparse vectors and projected vectors.
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
 		

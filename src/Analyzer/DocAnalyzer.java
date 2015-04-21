@@ -43,8 +43,10 @@ public class DocAnalyzer extends Analyzer {
 	Set<String> m_stopwords;
 	protected boolean m_releaseContent;
 	protected int m_posTaggingMethod;
-	protected Set<String> m_dictionary;//The map for storing sentinet word.
-
+	protected Set<String> m_dictionary;//The set for storing sentinet word.
+    protected HashMap<String, Double> m_dictMap; //The map stores the strings and corrresponding scores.
+    protected int m_featureDimension;
+    
 	//Constructor with ngram and fValue.
 	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
 		super(classNo, threshold);
@@ -94,10 +96,10 @@ public class DocAnalyzer extends Analyzer {
 		m_filter = new HashMap<Integer, String>();
 		m_releaseContent = true;
 		m_posTaggingMethod = posTaggingMethod;
-		m_dictionary = new HashSet<String>();//for tagging3 to store features.
 		
 		m_projFeatureNameIndex = new HashMap<String, Integer>();
 		m_projFeatureStat = new HashMap<String, _stat>();
+		m_featureDimension = 10; //Default value for feature dimension.
 	}
 	
 	public void setReleaseContent(boolean release) {
@@ -385,6 +387,7 @@ public class DocAnalyzer extends Analyzer {
 		double value = 0, projValue = 0;
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		HashMap<Integer, Double> projectedVct = new HashMap<Integer, Double>();//Collect the index and counts of projected features.
+		int[] featureArray = new int[m_featureDimension]; //Array used to store feature statistics of docs.
 		
 		String[] sentences = m_stnDetector.sentDetect(doc.getSource());//Split sentences first.
 		for(String s: sentences){
@@ -423,7 +426,7 @@ public class DocAnalyzer extends Analyzer {
 									projectedVct.put(projIndex, 1.0);
 								}
 							}
-						} else if(m_posTaggingMethod == 3){
+						} else if(m_posTaggingMethod == 3 || m_posTaggingMethod == 4){
 							if(tags[i].equals("RB")||tags[i].equals("RBR")||tags[i].equals("RBS")){
 								tmpToken = tokens[i] + "#r";
 							} else if (tags[i].equals("JJ")||tags[i].equals("JJR")||tags[i].equals("JJS")){
@@ -433,20 +436,26 @@ public class DocAnalyzer extends Analyzer {
 							} else if (tags[i].equals("VB")||tags[i].equals("VBD")||tags[i].equals("VBG")||tags[i].equals("VBN")||tags[i].equals("VBP")||tags[i].equals("VBZ")){
 								tmpToken = tokens[i] + "#v";
 							} 
-							if(m_dictionary.contains(tmpToken)){
-								if(m_projFeatureNameIndex.containsKey(tmpToken)){
-									projIndex = m_projFeatureNameIndex.get(tmpToken);
-									if(projectedVct.containsKey(projIndex)){
-										projValue = projectedVct.get(projIndex) + 1;
-										projectedVct.put(projIndex, projValue);
-									} else{
-										projectedVct.put(projIndex, 1.0);
-										//m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
+							if(m_posTaggingMethod == 3){
+								if(m_dictionary.contains(tmpToken)){
+									if(m_projFeatureNameIndex.containsKey(tmpToken)){
+										projIndex = m_projFeatureNameIndex.get(tmpToken);
+										if(projectedVct.containsKey(projIndex)){
+											projValue = projectedVct.get(projIndex) + 1;
+											projectedVct.put(projIndex, projValue);
+										} else
+											projectedVct.put(projIndex, 1.0);
 									}
 								} else {
 									projIndex = m_projFeatureNameIndex.size();
 									m_projFeatureNameIndex.put(tmpToken, projIndex);
 									projectedVct.put(projIndex, 1.0);
+								}
+							} else if(m_posTaggingMethod == 4){
+								if(m_dictMap.containsKey(tmpToken)){
+									double score = m_dictMap.get(tmpToken);
+									int ind = findIndex(score);
+									featureArray[ind]++;
 								}
 							}
 						}
@@ -457,14 +466,41 @@ public class DocAnalyzer extends Analyzer {
 		m_classMemberNo[doc.getYLabel()]++;
 		if (spVct.size()>= 1) {//temporary code for debugging purpose
 			doc.createSpVct(spVct);
-			doc.createProjVct(projectedVct);
+			if(m_posTaggingMethod == 3)
+				doc.createProjVct(projectedVct);
+			else if(m_posTaggingMethod == 4)
+				doc.createProjVct2(featureArray);
 			m_corpus.addDoc(doc);
 //			if (m_releaseContent)
 //				doc.clearSource();
 			return;
 		} else return;
 	}
-		
+	
+	public int findIndex(double score){
+		if(score == -1) 
+			return 0;
+		int index = 0, start = 0, end = m_featureDimension;
+		double[] values = new double[m_featureDimension+1];
+		for(int i = 0; i < m_featureDimension + 1; i++){
+			values[i] = 2.0 / m_featureDimension * i - 1.0;
+		}
+		for(int i = 0; i < values.length; i++){
+			index = (start + end) / 2;
+			if(values[index] < score)
+				if(values[index+1] > score) break;
+				else start = index;
+			else if(values[index] >= score)
+				if(values[index-1] < score){
+					index = index-1;
+					break;
+				}
+				else end = index;
+			else break;
+		}
+		return index;
+	}
+
 	//Build the filter based on the raw filter and features.
 	public int builderFilter(){
 		for(String f: m_rawFilter){
@@ -499,6 +535,7 @@ public class DocAnalyzer extends Analyzer {
 	
 	//Load the sentinet word and store them in the dictionary for later use.
 	public void LoadSNW(String filename) throws IOException {
+		m_dictionary = new HashSet<String>();//for tagging3 to store features.
 		// From String to list of doubles.
 		HashMap<String, HashMap<Integer, Double>> tempDictionary = new HashMap<String, HashMap<Integer, Double>>();
 
@@ -514,18 +551,13 @@ public class DocAnalyzer extends Analyzer {
 					// We use tab separation
 					String[] data = line.split("\t");
 					String wordTypeMarker = data[0];
-
 					// Is it a valid line? Otherwise, through exception.
 					if (data.length != 6)
 						throw new IllegalArgumentException("Incorrect tabulation format in file, line: " + lineNumber);
-
-					// Calculate synset score as score = PosS - NegS. If it's 0,
-					// then it is neutral word, ignore it.
+					// Calculate synset score as score = PosS - NegS. If it's 0, then it is neutral word, ignore it.
 					Double synsetScore = Double.parseDouble(data[2])- Double.parseDouble(data[3]);
-
 					// Get all Synset terms
 					String[] synTermsSplit = data[4].split(" ");
-
 					// Go through all terms of current synset.
 					for (String synTermSplit : synTermsSplit) {
 						// Get synterm and synterm rank
@@ -535,14 +567,11 @@ public class DocAnalyzer extends Analyzer {
 						// Add the current term to map if it doesn't have one
 						if (!tempDictionary.containsKey(synTerm))
 							tempDictionary.put(synTerm, new HashMap<Integer, Double>());// <able#a, <<1, score>, <2, score>...>>
-
-						// If the dict already has the synTerm, just add synset
-						// link-<2, score> to synterm.
+						// If the dict already has the synTerm, just add synset link-<2, score> to synterm.
 						tempDictionary.get(synTerm).put(synTermRank, synsetScore);
 					}
 				}
 			}
-
 			// Go through all the terms.
 			Set<String> synTerms = tempDictionary.keySet();
 
@@ -564,6 +593,85 @@ public class DocAnalyzer extends Analyzer {
 				csv.close();
 			}
 		}
+	}
+	//Load the sentinet word and store them in the dictionary for later use.
+	public void LoadSNWWithScore(String filename) throws IOException {
+		m_dictMap = new HashMap<String, Double>();//for tagging3 to store features.
+		// From String to list of doubles.
+		HashMap<String, HashMap<Integer, Double>> tempDictionary = new HashMap<String, HashMap<Integer, Double>>();
+
+		BufferedReader csv = null;
+		try { 
+			csv = new BufferedReader(new FileReader(filename));
+			int lineNumber = 0;
+			String line;
+			while ((line = csv.readLine()) != null) {
+				lineNumber++;
+				// If it's a comment, skip this line.
+				if (!line.trim().startsWith("#")) {
+					// We use tab separation
+					String[] data = line.split("\t");
+					String wordTypeMarker = data[0];
+					// Is it a valid line? Otherwise, through exception.
+					if (data.length != 6)
+						throw new IllegalArgumentException("Incorrect tabulation format in file, line: " + lineNumber);
+					// Calculate synset score as score = PosS - NegS. If it's 0, then it is neutral word, ignore it.
+					Double synsetScore = Double.parseDouble(data[2]) - Double.parseDouble(data[3]);
+					// Get all Synset terms
+					String[] synTermsSplit = data[4].split(" ");
+					// Go through all terms of current synset.
+					for (String synTermSplit : synTermsSplit) {
+						// Get synterm and synterm rank
+						String[] synTermAndRank = synTermSplit.split("#"); // able#1 = [able, 1]
+						String synTerm = synTermAndRank[0] + "#" + wordTypeMarker; // able#a
+						int synTermRank = Integer.parseInt(synTermAndRank[1]); // different senses of a word
+						// Add the current term to map if it doesn't have one
+						if (!tempDictionary.containsKey(synTerm))
+							tempDictionary.put(synTerm, new HashMap<Integer, Double>());// <able#a, <<1, score>, <2, score>...>>
+						// If the dict already has the synTerm, just add synset link-<2, score> to synterm.
+						tempDictionary.get(synTerm).put(synTermRank, synsetScore);
+					}
+				}
+			}
+
+			// Go through all the terms.
+			Set<String> synTerms = tempDictionary.keySet();
+
+			for (String synTerm : synTerms) {
+				double score = 0;
+				int count = 0;
+				HashMap<Integer, Double> synSetScoreMap = tempDictionary.get(synTerm);
+				Collection<Double> scores = synSetScoreMap.values();
+				for (double s : scores){
+					if(s != 0){
+						score += s;
+						count++;
+					}
+					if(score != 0)
+						score = (double) score / count;
+				}
+				String[] termMarker = synTerm.split("#");
+				m_dictMap.put(SnowballStemming(Normalize(termMarker[0])) + "#" + termMarker[1], score);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (csv != null) {
+				csv.close();
+			}
+		}
+	}
+	
+	public void setFeatureDimension(int k){
+		m_featureDimension = k;
+	}
+	
+	public void saveFeatureScore(String filename) throws FileNotFoundException{
+		PrintWriter writer = new PrintWriter(new File(filename));
+		for(String f: m_dictMap.keySet()){
+			writer.format("%s,%.3f\n", f, m_dictMap.get(f));
+		}
+		writer.close();
 	}
 }	
 

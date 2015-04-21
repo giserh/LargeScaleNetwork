@@ -342,6 +342,17 @@ public class Utils {
 		return spVct;
 	}
 	
+	public static _SparseFeature[] createSpVct2(int[] featureArray){
+		ArrayList<_SparseFeature> sfArrayList = new ArrayList<_SparseFeature>();
+		for(int i= 0; i < featureArray.length; i++){
+			if(featureArray[i] != 0)
+				sfArrayList.add(new _SparseFeature(i, featureArray[i]));
+		}
+		_SparseFeature[] spVct = new _SparseFeature[sfArrayList.size()];
+		sfArrayList.toArray(spVct);
+		Arrays.sort(spVct);
+		return spVct;
+	}
 	public static String cleanHTML(String content) {
 		if (content.indexOf("<!--")==-1 || content.indexOf("-->")==-1)
 			return content;//clean text
