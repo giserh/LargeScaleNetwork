@@ -1,7 +1,11 @@
 package Classifier.semisupervised;
 
+import java.io.IOException;
+
 import structures._Corpus;
+import structures._Doc;
 import structures._RankItem;
+import structures._SparseFeature;
 
 public class GaussianFieldsByRandomWalk extends GaussianFields {
 	double m_difference; //The difference between the previous labels and current labels.
@@ -138,6 +142,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 		
 		if (m_fu_last==null || m_fu_last.length<m_U)
 			m_fu_last = new double[m_U]; //otherwise we can reuse the current memory
+//		m_debugArray = new MyPriorityQueue [m_U][2];//Initialize the debugArray.
 		
 		//initialize fu and fu_last
 		for(int i=0; i<m_U; i++) {
@@ -158,11 +163,23 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			for(int j=0; j<m_classNo; j++)
 				m_pYSum[j] += Math.exp(-Math.abs(j-m_fu[i]));			
 		}
-		m_printWriter.write("fu values for this run of testing:" + "\n");
-		for(int i = 0 ; i < m_fu.length ; i++){
-			m_printWriter.write(m_fu[i] + "\n");
-		}
-		
+//		m_printWriter.write("fu values for this run of testing:" + "\n");
+//		
+//		for(int i = 0 ; i < m_fu.length ; i++){
+//			_SparseFeature[] fu = m_testSet.get(i).getSparse();
+//			m_printWriter.format("test review %d, content %s\n", i, m_testSet.get(i).getSource());//First, print the tested review.
+//			m_printWriter.write("Its nearest neighbors are as follows: \n");
+//			MyPriorityQueue<_RankItem> tmpU = m_debugArray[i][0];
+//			MyPriorityQueue<_RankItem> tmpL = m_debugArray[i][1];
+//			for(int j = 0; j < tmpU.size(); j++){
+//				_RankItem tmp = tmpU.get(i);
+//				_SparseFeature[] neighbor = m_testSet.get(tmp.m_index).getSparse();
+//				printOverlapping(fu, neighbor);
+//			}
+//			for(int l = 0; l < tmpL.size(); l++){
+//				
+//			}
+//		}
 		/***evaluate the performance***/
 		double acc = 0;
 		int pred, ans;
@@ -183,14 +200,106 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 //			}
 		}
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
-		
 		return acc/m_U;
 	}
+	//If we use pos tagging, then projected vectors are used to calculate similarity.
+	protected void debug(_Doc d){
+		int id = d.getID();
+		_SparseFeature[] dsfs = d.getSparse();
+		_RankItem item;
+		_Doc neighbor;
+		double sim, wijSumU=0, wijSumL=0;
+		
+		try {
+			m_debugWriter.write("============================================================================\n");
+			m_debugWriter.write(String.format("Label:%d, fu:%.4f, getLabel1:%d, getLabel3:%d, SVM:%d, Content:%s\n", d.getYLabel(), m_fu[id], getLabel(m_fu[id]), getLabel3(m_fu[id]), (int)m_Y[id], d.getSource()));
+			
+			for(int i = 0; i< dsfs.length; i++){
+				String feature = m_IndexFeature.get(dsfs[i].getIndex());
+				m_debugWriter.write(String.format("(%s %.4f),", feature, dsfs[i].getValue()));
+			}
+			m_debugWriter.write("\n");
+			
+			//find top five labeled
+			/****Construct the top k labeled data for the current data.****/
+			for (int j = 0; j < m_L; j++)
+				m_kUL.add(new _RankItem(j, getCache(id, m_U + j)));
+			
+			/****Get the sum of kUL******/
+			for(_RankItem n: m_kUL)
+				wijSumL += n.m_value; //get the similarity between two nodes.
+			
+			/****Get the top 5 elements from kUL******/
+			m_debugWriter.write("*************************Labeled data*************************************\n");
+			for(int k=0; k < 10; k++){
+				item = m_kUL.get(k);
+				neighbor = m_labeled.get(item.m_index);
+				sim = item.m_value/wijSumL;
+				
+				//Print out the sparse vectors of the neighbors.
+				m_debugWriter.write(String.format("Label:%d, Similarity:%.4f\n", neighbor.getYLabel(), sim));
+				_SparseFeature[] sfs = neighbor.getSparse();
+				int pointer1 = 0, pointer2 = 0;
+				//Find out all the overlapping features and print them out.
+				while(pointer1 < dsfs.length && pointer2 < sfs.length){
+					_SparseFeature tmp1 = dsfs[pointer1];
+					_SparseFeature tmp2 = sfs[pointer2];
+					if(tmp1.getIndex() == tmp2.getIndex()){
+						String feature = m_IndexFeature.get(tmp1.getIndex());
+						m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
+						pointer1++;
+						pointer2++;
+					} else if(tmp1.getIndex() < tmp2.getIndex())
+						pointer1++;
+					else pointer2++;
+				}
+				m_debugWriter.write("\n");
+			}
+			m_kUL.clear();
+			
+			//find top five unlabeled
+			/****Construct the top k' unlabeled data for the current data.****/
+			for (int j = 0; j < m_U; j++) {
+				if (j == id)
+					continue;
+				m_kUU.add(new _RankItem(j, getCache(id, j)));
+			}
+			
+			/****Get the sum of k'UU******/
+			for(_RankItem n: m_kUU)
+				wijSumU += n.m_value; //get the similarity between two nodes.
+			
+			/****Get the top 5 elements from k'UU******/
+			m_debugWriter.write("*************************Unlabeled data*************************************\n");
+			for(int k=0; k<10; k++){
+				item = m_kUU.get(k);
+				neighbor = m_testSet.get(item.m_index);
+				sim = item.m_value/wijSumU;
+				
+				m_debugWriter.write(String.format("True Label:%d, f_u:%.4f, Similarity:%.4f\n", neighbor.getYLabel(), m_fu[neighbor.getID()], sim));
+				_SparseFeature[] sfs = neighbor.getSparse();
+				int pointer1 = 0, pointer2 = 0;
+				//Find out all the overlapping features and print them out.
+				while(pointer1 < dsfs.length && pointer2 < sfs.length){
+					_SparseFeature tmp1 = dsfs[pointer1];
+					_SparseFeature tmp2 = sfs[pointer2];
+					if(tmp1.getIndex() == tmp2.getIndex()){
+						String feature = m_IndexFeature.get(tmp1.getIndex());
+						m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
+						pointer1++;
+						pointer2++;
+					} else if(tmp1.getIndex() < tmp2.getIndex())
+						pointer1++;
+					else pointer2++;
+				}
+				m_debugWriter.write("\n");
+			}
+			m_kUU.clear();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	} 
 	
-//	public static void main(String[] args){
-//		double a = Double.NaN;
-//		if(Double.isNaN(a))
-//			System.out.println("Nan");
-//	}
+	
 	
 }

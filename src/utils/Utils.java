@@ -223,6 +223,8 @@ public class Utils {
 	
 	//L2 normalization: fsValue/sqrt(sum of fsValue*fsValue)
 	static public double sumOfFeaturesL2(_SparseFeature[] fs) {
+		if(fs == null) return 0;
+		
 		double sum = 0;
 		for (_SparseFeature feature: fs){
 			double value = feature.getValue();
@@ -268,6 +270,7 @@ public class Utils {
 	}
 	
 	public static double cosine(_SparseFeature[] spVct1, _SparseFeature[] spVct2) {
+		
 		if (sumOfFeaturesL2(spVct1)==0 || sumOfFeaturesL2(spVct2)==0){
 			return 0;
 		} else

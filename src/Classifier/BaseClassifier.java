@@ -30,7 +30,7 @@ public abstract class BaseClassifier {
 	protected String m_debugOutput; // set up debug output (default: no debug output)
 	protected BufferedWriter m_debugWriter; // debug output writer
 	
-	protected PrintWriter m_printWriter;
+	protected PrintWriter m_printWriter; //Writer for overlapping features.
 	
 	public void train() {
 		train(m_trainSet);
@@ -88,7 +88,7 @@ public abstract class BaseClassifier {
 	
 	//k-fold Cross Validation.
 	public void crossValidation(int k, _Corpus c) throws FileNotFoundException{
-		m_printWriter = new PrintWriter(new File("./data/fu.csv"));
+//		m_printWriter = new PrintWriter(new File("./data/debugResults.csv"));
 		try {
 			if (m_debugOutput!=null)
 				m_debugWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(m_debugOutput, false), "UTF-8"));

@@ -100,6 +100,7 @@ public class DocAnalyzer extends Analyzer {
 		m_projFeatureNameIndex = new HashMap<String, Integer>();
 		m_projFeatureStat = new HashMap<String, _stat>();
 		m_featureDimension = 10; //Default value for feature dimension.
+		m_projFeatureScore = new HashMap<String, Double>();
 	}
 	
 	public void setReleaseContent(boolean release) {
@@ -243,11 +244,12 @@ public class DocAnalyzer extends Analyzer {
 	 * The second is if the term is in the sparseVector.
 	 * In the case CV is loaded, we still need two if loops to check.*/
 	protected void AnalyzeDoc(_Doc doc) {
+		
 		String[] tokens = TokenizerNormalizeStemmer(doc.getSource());// Three-step analysis.
 		//When we load the docuemnts for selecting CV, we ignore the documents.
 		if (tokens.length< m_lengthThreshold)
 			return;
-		
+
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		int index = 0;
 		double value = 0;
@@ -382,7 +384,6 @@ public class DocAnalyzer extends Analyzer {
 	//Analyze document with POS Tagging.
 	protected void AnalyzeDocWithPOSTagging(_Doc doc) {
 		if ((TokenizerNormalizeStemmer(doc.getSource()).length) < m_lengthThreshold) return;
-			
 		int index = 0, projIndex = 0; 
 		double value = 0, projValue = 0;
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
@@ -453,7 +454,9 @@ public class DocAnalyzer extends Analyzer {
 								}
 							} else if(m_posTaggingMethod == 4){
 								if(m_dictMap.containsKey(tmpToken)){
+									
 									double score = m_dictMap.get(tmpToken);
+									m_projFeatureScore.put(tmpToken, score);
 									int ind = findIndex(score);
 									featureArray[ind]++;
 								}
@@ -466,7 +469,7 @@ public class DocAnalyzer extends Analyzer {
 		m_classMemberNo[doc.getYLabel()]++;
 		if (spVct.size()>= 1) {//temporary code for debugging purpose
 			doc.createSpVct(spVct);
-			if(m_posTaggingMethod == 3)
+			if(m_posTaggingMethod == 3 || m_posTaggingMethod ==1)
 				doc.createProjVct(projectedVct);
 			else if(m_posTaggingMethod == 4)
 				doc.createProjVct2(featureArray);
@@ -477,6 +480,7 @@ public class DocAnalyzer extends Analyzer {
 		} else return;
 	}
 	
+	//Put the features into the groups according to their scores.
 	public int findIndex(double score){
 		if(score == -1) 
 			return 0;
@@ -666,12 +670,25 @@ public class DocAnalyzer extends Analyzer {
 		m_featureDimension = k;
 	}
 	
-	public void saveFeatureScore(String filename) throws FileNotFoundException{
+	//Save all the words in sentiword net.
+	public void saveSentiWordNetFeatures(String filename) throws FileNotFoundException{
 		PrintWriter writer = new PrintWriter(new File(filename));
 		for(String f: m_dictMap.keySet()){
 			writer.format("%s,%.3f\n", f, m_dictMap.get(f));
 		}
 		writer.close();
+	}
+	
+	//Save all the words that both in sentiwordnet and in general features.
+	public void saveProjFeaturesScores(String filename) throws FileNotFoundException{
+		PrintWriter writer = new PrintWriter(new File(filename));
+		for(String s: m_projFeatureScore.keySet())
+			writer.format("%s,%.3f\n", s, m_dictMap.get(s));
+		writer.close();
+	}
+	
+	public void resetStopwords(){
+		m_stopwords.clear();
 	}
 }	
 

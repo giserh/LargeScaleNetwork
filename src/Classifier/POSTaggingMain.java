@@ -34,7 +34,6 @@ public class POSTaggingMain {
 		double C = 1.0;		
 		
 //		String modelPath = "./data/Model/";
-		String debugOutput = "data/debug/LR.output";
 		
 		System.out.println("--------------------------------------------------------------------------------------");
 		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + classifier + "\nCross validation: " + CVFold);
@@ -54,7 +53,8 @@ public class POSTaggingMain {
 		String suffix = ".json";
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
-		
+		String debugOutput = path + classifier + ".csv";
+
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
 		String tagModel = "./data/Model/en-pos-maxent.bin";		
@@ -63,8 +63,8 @@ public class POSTaggingMain {
 		int window = 0;
 		System.out.println("Window length: " + window);
 		
-		/****Parameter related with POS Tagging.***/
-		int posTaggingMethod = 4; //Which way to use to build features with pos tagging.
+		/****Parameters related with POS Tagging.***/
+		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		
@@ -76,7 +76,7 @@ public class POSTaggingMain {
 		if( posTaggingMethod == 4) { // Load the SNW with scores.
 			int k = 15;
 			analyzer.LoadSNWWithScore(SNWfile);
-			analyzer.saveFeatureScore("./data/sentiwordnet_score.csv");
+			analyzer.saveSentiWordNetFeatures("./data/sentiwordnet_score.csv");
 			analyzer.setFeatureDimension(k);
 		}
 
@@ -84,13 +84,14 @@ public class POSTaggingMain {
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
 		
+		if(posTaggingMethod == 4 )
+			analyzer.saveProjFeaturesScores("./data/overlapFeatures.csv");
+		
 		featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.getCorpus();
-		String vctFile = String.format(path + "vct_pos_%s.dat", pattern);
+		String vctFile = String.format(path + "vct_%s.dat", pattern);
 		String projectedVctFile = String.format(path + "vct_projected_%s.dat", pattern);
-//		corpus.save2File(vctFile);
-//		corpus.save2FileProjectSpVct(projectedVctFile);
-		
+
 		/********Choose different classification methods.*********/
 		if (style.equals("SUP")) {
 			if(classifier.equals("NB")){
@@ -126,6 +127,8 @@ public class POSTaggingMain {
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
+				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifer for debugging purpose.
+				mySemi.setDebugOutput(debugOutput);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
@@ -135,7 +138,7 @@ public class POSTaggingMain {
 			} else System.out.println("Classifier has not been developed yet!");
 		} else if (style.equals("FV")) {
 			corpus.save2File(vctFile);
-//			corpus.save2FileProjectSpVct(projectedVctFile);
+			corpus.save2FileProjectSpVct(projectedVctFile);
 			System.out.format("Vectors saved to %s...\n", vctFile);
 		} else 
 			System.out.println("Learning paradigm has not developed yet!");

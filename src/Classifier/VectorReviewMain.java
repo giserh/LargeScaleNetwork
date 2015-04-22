@@ -21,21 +21,20 @@ public class VectorReviewMain {
 		/*****Set these parameters before run the classifiers.*****/
 		int classNumber = 5; //Define the number of classes in this Naive Bayes.
 		int lengthThreshold = 0; //Document length threshold
-		int preLengthThreshold = 10; //This is used for distinguishing different document length threshold.
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "LR"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 
 		/*****The parameters used in loading files.*****/
 		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
-		String featureLocation = String.format("%sfv_2gram_BM25_CHI_%s.txt", path, diffFolder);
-		String vctfile = String.format("%svct_2gram_BM25_CHI_%s_%s.dat", path, diffFolder, preLengthThreshold );
+		String featureLocation = String.format("%sfv_1gram_BM25_CHI_%s.txt", path, diffFolder);
+		String vctfile = String.format("%svct_1gram_BM25_CHI_%s.dat", path, diffFolder);
 		
 		String matrixFile = path + "matrixA.dat";
 		String debugOutput = "data/debug/GF-RW.output";

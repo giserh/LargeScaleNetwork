@@ -30,15 +30,13 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "SVM"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;
 		
 //		String modelPath = "./data/Model/";
-		String debugOutput = "data/debug/" + classifier + ".output";
-		
 		System.out.println("--------------------------------------------------------------------------------------");
 		System.out.println("Parameters of this run:" + "\nClassNumber: " + classNumber + "\tNgram: " + Ngram + "\tFeatureValue: " + featureValue + "\tLearning Method: " + style + "\tClassifier: " + classifier + "\nCross validation: " + CVFold);
 
@@ -47,7 +45,7 @@ public class AmazonReviewMain {
 		String stopwords = "./data/Model/stopwords.dat";
 		double startProb = 0.0; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
-		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
+		int DFthreshold = 5; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
@@ -60,7 +58,8 @@ public class AmazonReviewMain {
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
 		String vctFile = String.format(path + "vct_%s.dat", pattern);
-	
+		String debugOutput = path + classifier + ".csv";
+		
 		/*****Parameters in time series analysis.*****/
 		int window = 0;
 		System.out.println("Window length: " + window);
@@ -72,11 +71,11 @@ public class AmazonReviewMain {
 //		analyzer.LoadStopwords(stopwords);
 //		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 //		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
+//		analyzer.resetStopwords();
 		
 		/****Create feature vectors*****/
 		System.out.println("Creating feature vectors, wait...");
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
-		//analyzer.LoadStopwords(stopwords);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
@@ -133,7 +132,7 @@ public class AmazonReviewMain {
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
-				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup());
+				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifer for debugging purpose.
 				mySemi.setDebugOutput(debugOutput);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);

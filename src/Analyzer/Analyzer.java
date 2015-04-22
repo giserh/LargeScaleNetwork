@@ -32,6 +32,7 @@ public abstract class Analyzer {
 	protected HashMap<String, _stat> m_featureStat; //Key: feature Name; value: the stat of the feature
 	
 	protected HashMap<String, Integer> m_projFeatureNameIndex;
+	protected HashMap<String, Double> m_projFeatureScore;
 	protected HashMap<String, _stat> m_projFeatureStat;
 	/* Indicate if we can allow new features.After loading the CV file, the flag is set to true, 
 	 * which means no new features will be allowed.*/
