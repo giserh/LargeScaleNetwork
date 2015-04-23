@@ -456,9 +456,12 @@ public class DocAnalyzer extends Analyzer {
 								if(m_dictMap.containsKey(tmpToken)){
 									
 									double score = m_dictMap.get(tmpToken);
-									m_projFeatureScore.put(tmpToken, score);
-									int ind = findIndex(score);
-									featureArray[ind]++;
+									if(score != 0){
+										m_projFeatureScore.put(tmpToken, score);
+										int ind = findIndex(score);
+										featureArray[ind]++;
+									}
+									
 								}
 							}
 						}

@@ -85,8 +85,8 @@ public class AmazonReviewMain {
 		featureSize = analyzer.getFeatureSize();
 		
 		/**Paramters in KNN.**/
-		int[] kArray = {2, 3, 4, 5, 6, 7};
-		int[] lArray = {1, 2, 3, 4};
+		int[] kArray = {2, 3, 4, 5, 6};
+		int[] lArray = {1, 2, 3, 4, 5, 6, 7, 8 ,9, 10};
 //		corpus.save2File(vctFile);
 //		String plotFile = path + "pairData_" + lengthThreshold + ".dat";
 //		analyzer.printPlotData2OneFile(plotFile);

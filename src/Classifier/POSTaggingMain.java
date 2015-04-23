@@ -75,7 +75,7 @@ public class POSTaggingMain {
 			analyzer.LoadSNW(SNWfile);
 		
 		if( posTaggingMethod == 4) { // Load the SNW with scores.
-			int k = 15;
+			int k = 10;
 			analyzer.LoadSNWWithScore(SNWfile);
 			analyzer.saveSentiWordNetFeatures("./data/sentiwordnet_score.csv");
 			analyzer.setFeatureDimension(k);
