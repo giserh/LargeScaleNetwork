@@ -429,34 +429,7 @@ public abstract class Analyzer {
 		}
 		writer2.close();
 	}
-	/****
-	//The following two functions are used to print similar and dissimilar data for different pairs.
-	public void printPlotDataNFiles(String path) throws FileNotFoundException{
-		ArrayList<ArrayList<_Doc>> groupedDocs = new ArrayList<ArrayList<_Doc>>();		
-		for(int i = 0; i < m_classNo; i++)
-			groupedDocs.add(new ArrayList<_Doc>());
-		//Group all the documents into different classes.
-		for(_Doc d: m_corpus.getCollection()){ 
-			if(d.getYLabel() == 0)	groupedDocs.get(0).add(d);
-			else if (d.getYLabel() == 1)	groupedDocs.get(1).add(d);
-			else if (d.getYLabel() == 2)	groupedDocs.get(2).add(d);
-			else if (d.getYLabel() == 3) 	groupedDocs.get(3).add(d);
-			else if (d.getYLabel() == 4) 	groupedDocs.get(4).add(d);
-			else 	System.err.println("Beyond the class number!!");
-		}
-		//Enumerate all similarities among all pairs.
-		for(int i = 0; i < m_classNo; i++){//i is index.
-			ArrayList<_Doc> tmp1 = groupedDocs.get(i);//Get the first set of docs.
-			for(int j = 0; j < m_classNo; j++){
-				if(i == j){
-					printSimilarity(path, i, j, calculateSimiPairs(tmp1));
-				} else{
-					ArrayList<_Doc> tmp2 = groupedDocs.get(j);//Get the second set of docs.
-					printSimilarity(path, i, j, calculateDissimiPairs(tmp1, tmp2));
-				}
-			}
-		}
-	}
+	/**
 	public void printSimilarity(String path, int m, int n, ArrayList<Double> similarities) throws FileNotFoundException{
 		String fileName = path + m + "_" + n + "_small.csv";
 		PrintWriter writer1 = new PrintWriter(new File(fileName));
@@ -508,7 +481,12 @@ public abstract class Analyzer {
 		}
 		writer.close();
 	}
+	
 	public HashMap<String, Integer> getFeaturesLookup(){
 		return m_featureNameIndex;
+	}
+	
+	public HashMap<String, Integer> getProjFeaturesLookup(){
+		return m_projFeatureNameIndex;
 	}
 }

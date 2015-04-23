@@ -519,11 +519,6 @@ public class DocAnalyzer extends Analyzer {
 			d.setProjectedFv(m_filter);
 	}
 	
-	public void disablePosTagging(){
-		m_stnDetector = null;
-		m_tagger = null;
-	}
-	
 	//Save projected features to file.
 	public void saveProjectedFvs(String projectedFeatureLocation) throws FileNotFoundException{
 		if (projectedFeatureLocation==null || projectedFeatureLocation.isEmpty())

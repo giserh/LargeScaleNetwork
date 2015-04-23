@@ -26,8 +26,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 	}	
 	
 	//Constructor: given k and kPrime
-	public GaussianFieldsByRandomWalk(_Corpus c, int classNumber, int featureSize, String classifier, 
-			double ratio, int k, int kPrime, double alhpa, double beta, double delta, double eta, boolean storeGraph){
+	public GaussianFieldsByRandomWalk(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double alhpa, double beta, double delta, double eta, boolean storeGraph){
 		super(c, classNumber, featureSize, classifier, ratio, k, kPrime);
 		
 		m_eta = 0.1;
@@ -163,23 +162,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			for(int j=0; j<m_classNo; j++)
 				m_pYSum[j] += Math.exp(-Math.abs(j-m_fu[i]));			
 		}
-//		m_printWriter.write("fu values for this run of testing:" + "\n");
-//		
-//		for(int i = 0 ; i < m_fu.length ; i++){
-//			_SparseFeature[] fu = m_testSet.get(i).getSparse();
-//			m_printWriter.format("test review %d, content %s\n", i, m_testSet.get(i).getSource());//First, print the tested review.
-//			m_printWriter.write("Its nearest neighbors are as follows: \n");
-//			MyPriorityQueue<_RankItem> tmpU = m_debugArray[i][0];
-//			MyPriorityQueue<_RankItem> tmpL = m_debugArray[i][1];
-//			for(int j = 0; j < tmpU.size(); j++){
-//				_RankItem tmp = tmpU.get(i);
-//				_SparseFeature[] neighbor = m_testSet.get(tmp.m_index).getSparse();
-//				printOverlapping(fu, neighbor);
-//			}
-//			for(int l = 0; l < tmpL.size(); l++){
-//				
-//			}
-//		}
+
 		/***evaluate the performance***/
 		double acc = 0;
 		int pred, ans;
@@ -190,8 +173,13 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			m_TPTable[pred][ans] += 1;
 			
 			if (pred != ans) {
-				if (m_debugOutput!=null)
-					debug(m_testSet.get(i));
+				if (m_debugOutput!=null){
+					if (m_POSTagging != 0)
+						debugWithPOSTagging(m_testSet.get(i));
+					else 
+						debug(m_testSet.get(i));
+				}
+					
 			} else 
 				acc ++;
 //			if (m_debugOutput!=null){
@@ -203,9 +191,9 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 		return acc/m_U;
 	}
 	//If we use pos tagging, then projected vectors are used to calculate similarity.
-	protected void debug(_Doc d){
+	protected void debugWithPOSTagging(_Doc d){
 		int id = d.getID();
-		_SparseFeature[] dsfs = d.getSparse();
+		_SparseFeature[] dsfs = d.getProjectedFv();
 		_RankItem item;
 		_Doc neighbor;
 		double sim, wijSumU=0, wijSumL=0;
@@ -215,8 +203,11 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			m_debugWriter.write(String.format("Label:%d, fu:%.4f, getLabel1:%d, getLabel3:%d, SVM:%d, Content:%s\n", d.getYLabel(), m_fu[id], getLabel(m_fu[id]), getLabel3(m_fu[id]), (int)m_Y[id], d.getSource()));
 			
 			for(int i = 0; i< dsfs.length; i++){
-				String feature = m_IndexFeature.get(dsfs[i].getIndex());
-				m_debugWriter.write(String.format("(%s %.4f),", feature, dsfs[i].getValue()));
+				if( m_POSTagging !=4 ){
+					String feature = m_IndexFeature.get(dsfs[i].getIndex());
+					m_debugWriter.write(String.format("(%s %.4f),", feature, dsfs[i].getValue()));
+				} else
+					m_debugWriter.write(String.format("(%d %.2f),", dsfs[i].getIndex(), dsfs[i].getValue()));
 			}
 			m_debugWriter.write("\n");
 			
@@ -238,15 +229,19 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				
 				//Print out the sparse vectors of the neighbors.
 				m_debugWriter.write(String.format("Label:%d, Similarity:%.4f\n", neighbor.getYLabel(), sim));
-				_SparseFeature[] sfs = neighbor.getSparse();
+				_SparseFeature[] sfs = neighbor.getProjectedFv();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.
 				while(pointer1 < dsfs.length && pointer2 < sfs.length){
 					_SparseFeature tmp1 = dsfs[pointer1];
 					_SparseFeature tmp2 = sfs[pointer2];
 					if(tmp1.getIndex() == tmp2.getIndex()){
-						String feature = m_IndexFeature.get(tmp1.getIndex());
-						m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
+						if( m_POSTagging !=4 ){
+							String feature = m_IndexFeature.get(tmp2.getIndex());
+							m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
+						} else
+							m_debugWriter.write(String.format("(%d %.2f),", tmp2.getIndex(), tmp2.getValue()));
+						
 						pointer1++;
 						pointer2++;
 					} else if(tmp1.getIndex() < tmp2.getIndex())
@@ -277,15 +272,19 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				sim = item.m_value/wijSumU;
 				
 				m_debugWriter.write(String.format("True Label:%d, f_u:%.4f, Similarity:%.4f\n", neighbor.getYLabel(), m_fu[neighbor.getID()], sim));
-				_SparseFeature[] sfs = neighbor.getSparse();
+				_SparseFeature[] sfs = neighbor.getProjectedFv();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.
 				while(pointer1 < dsfs.length && pointer2 < sfs.length){
 					_SparseFeature tmp1 = dsfs[pointer1];
 					_SparseFeature tmp2 = sfs[pointer2];
 					if(tmp1.getIndex() == tmp2.getIndex()){
-						String feature = m_IndexFeature.get(tmp1.getIndex());
-						m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
+						if( m_POSTagging !=4 ){
+							String feature = m_IndexFeature.get(tmp2.getIndex());
+							m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
+						} else
+							m_debugWriter.write(String.format("(%d %.2f),", tmp2.getIndex(), tmp2.getValue()));
+						
 						pointer1++;
 						pointer2++;
 					} else if(tmp1.getIndex() < tmp2.getIndex())

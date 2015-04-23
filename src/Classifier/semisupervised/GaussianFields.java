@@ -46,6 +46,7 @@ public class GaussianFields extends BaseClassifier {
 	
 	double m_discount = 0.5; // default similarity discount if across different products
 	double[][] m_A; //The matrix used to store the result of metric learning.
+	int m_POSTagging; //If postagging is non-zero and projected features are used to do similarity calculation.
 	
 	HashMap<Integer, String> m_IndexFeature;//For debug purpose.
 	//Randomly pick 10% of all the training documents.
@@ -61,7 +62,7 @@ public class GaussianFields extends BaseClassifier {
 		m_labeled = new ArrayList<_Doc>();
 		m_pY = new double[classNumber];
 		m_pYSum = new double[classNumber];
-		
+		m_POSTagging = 0;
 		setClassifier(classifier);
 	}	
 	
@@ -78,8 +79,11 @@ public class GaussianFields extends BaseClassifier {
 		m_labeled = new ArrayList<_Doc>();
 		m_pY = new double[classNumber];
 		m_pYSum = new double[classNumber];
-		
+		m_POSTagging = 0;
 		setClassifier(classifier);
+	}
+	public void setPOSTagging(int a){
+		m_POSTagging = a;
 	}
 	
 	@Override
@@ -155,8 +159,10 @@ public class GaussianFields extends BaseClassifier {
 	}
 	
 	protected double getSimilarity(_Doc di, _Doc dj) {
-		return Utils.calculateSimilarity(di, dj);
-//		return Utils.calculateProjSimilarity(di, dj);
+		if(m_POSTagging == 0)
+			return Utils.calculateSimilarity(di, dj);
+		else 
+			return Utils.calculateProjSimilarity(di, dj);
 //		return Math.random();//just for debugging purpose
 //		return Utils.calculateMetricLearning(di, dj, m_A);
 	}

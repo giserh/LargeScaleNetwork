@@ -10,6 +10,7 @@ import Analyzer.jsonAnalyzer;
 import Classifier.metricLearning.LinearSVMMetricLearning;
 import Classifier.semisupervised.GaussianFields;
 import Classifier.semisupervised.GaussianFieldsByRandomWalk;
+import Classifier.supervised.KNN;
 import Classifier.supervised.LogisticRegression;
 import Classifier.supervised.NaiveBayes;
 import Classifier.supervised.SVM;
@@ -30,9 +31,9 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SEMI";//"SUP", "SEMI"
+		String style = "SUP";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "GF-RW"; //Which classifier to use.
+		String classifier = "KNN"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;
 		
@@ -58,7 +59,7 @@ public class AmazonReviewMain {
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
 		String vctFile = String.format(path + "vct_%s.dat", pattern);
-		String debugOutput = path + classifier + ".csv";
+		String debugOutput = path + classifier + "_noPOS.csv";
 		
 		/*****Parameters in time series analysis.*****/
 		int window = 0;
@@ -82,8 +83,11 @@ public class AmazonReviewMain {
 		
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
-//		corpus.save2File(vctFile);
 		
+		/**Paramters in KNN.**/
+		int[] kArray = {2, 3, 4, 5, 6, 7};
+		int[] lArray = {1, 2, 3, 4};
+//		corpus.save2File(vctFile);
 //		String plotFile = path + "pairData_" + lengthThreshold + ".dat";
 //		analyzer.printPlotData2OneFile(plotFile);
 		
@@ -124,7 +128,19 @@ public class AmazonReviewMain {
 				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
 				myPR.train(corpus.getCollection());
 				
-			} else System.out.println("Classifier has not developed yet!");
+			} else if(classifier.equals("KNN")){
+				System.out.println("Start KNN, wait...");
+				for(int k: kArray){
+					for(int l: lArray){
+						System.out.print(String.format("k=%d, l=%d\n", k, l));
+						KNN myKNN = new KNN(corpus, classNumber, featureSize, k, l);
+						myKNN.crossValidation(CVFold, corpus);
+					}
+				}
+				
+				
+			} else 
+				System.out.println("Classifier has not developed yet!");
 		}
 		else if (style.equals("SEMI")) {
 			if (classifier.equals("GF")) {

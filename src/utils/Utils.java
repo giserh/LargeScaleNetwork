@@ -36,6 +36,18 @@ public class Utils {
 		return maxIndex;
 	}
 	
+	public static int maxOfArrayIndex(int[] count){
+		int maxIndex = 0;
+		int maxValue = count[0];
+		for(int i = 0; i < count.length; i++){
+			if(count[i] > maxValue){
+				maxValue = count[i];
+				maxIndex = i;
+			}
+		}
+		return maxIndex;
+	}
+	
 	public static int minOfArrayIndex(double[] probs){
 		return minOfArrayIndex(probs, probs.length);
 	}
@@ -510,5 +522,33 @@ public class Utils {
 			distance += sf.getValue() * tmpArray[index];
 		} //(x_i - x_j)^T * A * (x_i - x_j)
 		return Math.exp(-distance);
+	}
+	
+	//Dot product of the random vector and document sparse vector.
+	public static double dotProduct(double[] vct, _SparseFeature[] sf){
+		double value = 0;
+		if(sf[sf.length-1].getIndex() > vct.length)
+			System.err.print("Error in computing dot product");
+		
+		for(int i = 0; i < sf.length; i++){
+			int index = sf[i].getIndex();
+			value += vct[index] * sf[i].getValue();
+		}
+		return value;
+	}
+	
+	//Sgn function: >= 0 1; < 0; 0.
+	public static int sgn(double a){
+		if (a >= 0) return 1;
+		else return 0;
+	}
+	
+	//Encode the hash value after getting the hash array.
+	public static int encode(int[] hash){
+		int value = 0;
+		for(int i = 0; i < hash.length; i++){
+			value += hash[i] * Math.pow(2, (hash.length-1-i));
+		}
+		return value;
 	}
 }

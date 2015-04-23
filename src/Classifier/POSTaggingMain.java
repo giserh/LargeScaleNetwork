@@ -53,7 +53,7 @@ public class POSTaggingMain {
 		String suffix = ".json";
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
-		String debugOutput = path + classifier + ".csv";
+		
 
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
@@ -64,9 +64,10 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/****Parameters related with POS Tagging.***/
-		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 4; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
+		String debugOutput = path + classifier + "_POS" + posTaggingMethod + ".csv";
 		
 		//With the given CV, build the projected vectors for all documents.
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, featureLocation, Ngram, lengthThreshold, posTaggingMethod);
@@ -127,7 +128,9 @@ public class POSTaggingMain {
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
 				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
-				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifer for debugging purpose.
+				//With pos tagging, we need the look-up table for projected features.
+				mySemi.setFeaturesLookup(analyzer.getProjFeaturesLookup());
+				mySemi.setPOSTagging(posTaggingMethod);
 				mySemi.setDebugOutput(debugOutput);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
