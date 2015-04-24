@@ -79,6 +79,7 @@ public class KNN extends BaseClassifier{
 	
 	@Override
 	public int predict(_Doc doc) {
+		boolean flag = false;
 		int hashCode = getHashCode(doc);
 		ArrayList<_Doc> docs = m_buckets.get(hashCode);
 		if(docs.size() < m_k){
@@ -89,36 +90,19 @@ public class KNN extends BaseClassifier{
 			_RankItem[] similarities = new _RankItem[docs.size()];
 			for(int i = 0; i < docs.size(); i++){
 				double similarity = Utils.calculateCosineSimilarity(docs.get(i), doc);
+//				if (similarity == 1){
+//					flag = true;
+//				}
 				similarities[i] = new _RankItem(i,similarity, docs.get(i).getYLabel());
 			}
+//			if (flag) m_count++;
 			Arrays.sort(similarities);
 			return findMajority(similarities, m_k);
 		}
 	}
 	
-	public String[] predictRandomProjection(_Doc doc) {
-		long start = System.currentTimeMillis();
-		String[] kNeighbors = new String[m_k];
-		int hashCode = getHashCode(doc);
-		ArrayList<_Doc> docs = m_buckets.get(hashCode);
-		_RankItem[] similarities = new _RankItem[docs.size()];
-		for(int i = 0; i < docs.size(); i++){
-			double similarity = Utils.calculateCosineSimilarity(docs.get(i), doc);
-			similarities[i] = new _RankItem(i,similarity, docs.get(i).getYLabel());
-		}
-		Arrays.sort(similarities);
-		for(int i=0; i < m_k; i++){
-			int index = docs.size()-1-i;
-			String content = docs.get(similarities[index].m_index).getSource();
-			kNeighbors[i] = content;
-		}
-		long end = System.currentTimeMillis();
-		System.out.println("It takes "+(end-start)+" million seconds to find " + m_k + " nearest neighbors for one review.");
-		return kNeighbors;
-	}
-	
-	public String[] predictBruteForce(_Doc doc){
-		long start = System.currentTimeMillis();
+	public int predictBruteForce(_Doc doc){
+//		long start = System.currentTimeMillis();
 		int size = m_trainSet.size();
 		String[] kNeighbors = new String[m_k];
 		_RankItem[] neighbors = new _RankItem[size];
@@ -132,9 +116,9 @@ public class KNN extends BaseClassifier{
 			String content = m_trainSet.get(neighbors[index].m_index).getSource();
 			kNeighbors[i] = content;
 		}
-		long end = System.currentTimeMillis();
-		System.out.println("It takes "+(end-start)+" million seconds to find " + m_k + " nearest neighbors for one review.");
-		return kNeighbors;
+//		long end = System.currentTimeMillis();
+//		System.out.println("It takes "+(end-start)+" million seconds to find " + m_k + " nearest neighbors for one review.");
+		return findMajority(neighbors, m_k);
 	}
 
 	public int findMajority(_RankItem[] similarities, int k){

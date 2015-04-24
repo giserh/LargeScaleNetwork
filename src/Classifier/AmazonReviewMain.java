@@ -31,7 +31,7 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "FV";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
 		String classifier = "KNN"; //Which classifier to use.
 		String multipleLearner = "SVM";
@@ -85,8 +85,8 @@ public class AmazonReviewMain {
 		featureSize = analyzer.getFeatureSize();
 		
 		/**Paramters in KNN.**/
-		int[] kArray = {2, 3, 4, 5, 6};
-		int[] lArray = {1, 2, 3, 4, 5, 6, 7, 8 ,9, 10};
+//		int[] kArray = {2, 3, 4, 5, 6};
+//		int[] lArray = {1, 2, 3, 4, 5, 6, 7, 8 ,9, 10};
 //		corpus.save2File(vctFile);
 //		String plotFile = path + "pairData_" + lengthThreshold + ".dat";
 //		analyzer.printPlotData2OneFile(plotFile);
@@ -130,15 +130,14 @@ public class AmazonReviewMain {
 				
 			} else if(classifier.equals("KNN")){
 				System.out.println("Start KNN, wait...");
-				for(int k: kArray){
-					for(int l: lArray){
+//				for(int k: kArray){
+//					for(int l: lArray){
+						int k=10, l=1;
 						System.out.print(String.format("k=%d, l=%d\n", k, l));
 						KNN myKNN = new KNN(corpus, classNumber, featureSize, k, l);
 						myKNN.crossValidation(CVFold, corpus);
-					}
-				}
-				
-				
+//					}
+//				}
 			} else 
 				System.out.println("Classifier has not developed yet!");
 		}
@@ -147,9 +146,9 @@ public class AmazonReviewMain {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0.1, 1e-4, 1, false);
 				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifer for debugging purpose.
-				mySemi.setDebugOutput(debugOutput);
+//				mySemi.setDebugOutput(debugOutput);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {

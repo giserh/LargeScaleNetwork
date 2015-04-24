@@ -29,7 +29,6 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 	public GaussianFieldsByRandomWalk(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime, double alhpa, double beta, double delta, double eta, boolean storeGraph){
 		super(c, classNumber, featureSize, classifier, ratio, k, kPrime);
 		
-		m_eta = 0.1;
 		m_alpha = alhpa;
 		m_beta = beta;
 		m_delta = delta;

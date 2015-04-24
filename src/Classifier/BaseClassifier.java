@@ -31,7 +31,7 @@ public abstract class BaseClassifier {
 	protected BufferedWriter m_debugWriter; // debug output writer
 	
 	protected PrintWriter m_printWriter; //Writer for overlapping features.
-	
+
 	public void train() {
 		train(m_trainSet);
 	}
@@ -43,7 +43,8 @@ public abstract class BaseClassifier {
 	
 	public double test() {
 		double acc = 0;
-		for(_Doc doc: m_testSet){
+		for(int i = 0; i < m_testSet.size(); i++){
+			_Doc doc = m_testSet.get(i);
 			doc.setPredictLabel(predict(doc)); //Set the predict label according to the probability of different classes.
 			int pred = doc.getPredictLabel(), ans = doc.getYLabel();
 			m_TPTable[pred][ans] += 1; //Compare the predicted label and original label, construct the TPTable.
@@ -54,6 +55,7 @@ public abstract class BaseClassifier {
 			} else 
 				acc ++;
 		}
+//		System.out.println("The percentage of repeated reviews is:" + (double) m_count/ m_testSet.size());
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 		return acc /m_testSet.size();
 	}
