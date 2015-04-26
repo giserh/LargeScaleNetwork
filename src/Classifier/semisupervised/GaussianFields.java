@@ -185,8 +185,8 @@ public class GaussianFields extends BaseClassifier {
 			for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
 				dj = m_testSet.get(j);
 				similarity = getSimilarity(di, dj);
-				if (similarity == 1)
-					System.out.println("Same review!!");
+//				if (similarity == 1)
+//					System.out.println("Same review!!");
 				similarity = similarity * di.getWeight() * dj.getWeight();
 //				if (!di.sameProduct(dj))
 //					similarity *= m_discount;// differentiate reviews from different products
@@ -196,8 +196,8 @@ public class GaussianFields extends BaseClassifier {
 			for (int j = 0; j < m_L; j++) {
 				dj = m_labeled.get(j);
 				similarity = getSimilarity(di, dj);
-				if (similarity == 1)
-					System.out.println("Same review!!");
+//				if (similarity == 1)
+//					System.out.println("Same review!!");
 				similarity = similarity * di.getWeight() * dj.getWeight();
 //				if (!di.sameProduct(m_labeled.get(j)))
 //					similarity *= m_discount;// differentiate reviews from different products
@@ -205,7 +205,8 @@ public class GaussianFields extends BaseClassifier {
 			}
 			
 			//set up the Y vector for unlabeled data
-			m_Y[i] = 4; //Multiple learner.//
+//			m_Y[i] = 4; //Multiple learner.//
+			m_Y[i] = m_classifier.predict(m_testSet.get(i));
 		}	
 		
 		//set up the Y vector for labeled data

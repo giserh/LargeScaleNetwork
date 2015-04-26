@@ -38,6 +38,7 @@ public abstract class Analyzer {
 	protected HashMap<String, _stat> m_projFeatureStat;
 	protected HashMap<String, ArrayList<_Doc>> m_repReviews;
 	protected HashSet<String> m_uniqueReviews;
+	protected HashMap<String, ArrayList<Integer>> m_uniReviewsLabels;
 	
 	/* Indicate if we can allow new features.After loading the CV file, the flag is set to true, 
 	 * which means no new features will be allowed.*/
@@ -68,6 +69,7 @@ public abstract class Analyzer {
 		m_similar = new ArrayList<Double>();
 		m_repReviews = new HashMap<String, ArrayList<_Doc>>();
 		m_uniqueReviews = new HashSet<String>();
+		m_uniReviewsLabels = new HashMap<String, ArrayList<Integer>>();
 	}	
 	
 	public void reset() {
@@ -526,5 +528,27 @@ public abstract class Analyzer {
 		}
 		int unique = m_repReviews.size();
 		System.out.print(String.format("There are %d reviews in total, %d of them do not repeat, the percentage is %.3f.", totalSize, unique, (double) unique/totalSize));
+	}
+	
+	public void calcRepLabelBaseContent(){
+		for(_Doc d: m_corpus.getCollection()){
+			if(m_uniReviewsLabels.containsKey(d.getSource()))
+				m_uniReviewsLabels.get(d.getSource()).add(d.getYLabel());
+			else {
+				ArrayList<Integer> labels = new ArrayList<Integer>();
+				labels.add(d.getYLabel());
+				m_uniReviewsLabels.put(d.getSource(), labels);
+			}
+		}
+		for(String s: m_uniReviewsLabels.keySet()){
+			ArrayList<Integer> labels = m_uniReviewsLabels.get(s);
+			if(labels.size() > 1){
+				int pre = labels.get(0);
+				for(int i = 1; i < labels.size(); i++){
+					if(labels.get(i) != pre)
+						System.out.println("Different Labels!");
+				}
+			}
+		}
 	}
 }

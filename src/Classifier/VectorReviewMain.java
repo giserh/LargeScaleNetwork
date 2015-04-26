@@ -10,6 +10,7 @@ import Analyzer.VctAnalyzer;
 import Classifier.metricLearning.LinearSVMMetricLearning;
 import Classifier.semisupervised.GaussianFields;
 import Classifier.semisupervised.GaussianFieldsByRandomWalk;
+import Classifier.supervised.KNN;
 import Classifier.supervised.LogisticRegression;
 import Classifier.supervised.NaiveBayes;
 import Classifier.supervised.PRLogisticRegression;
@@ -19,7 +20,7 @@ public class VectorReviewMain {
 
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before run the classifiers.*****/
-		int classNumber = 5; //Define the number of classes in this Naive Bayes.
+		int classNumber = 2; //Define the number of classes in this Naive Bayes.
 		int lengthThreshold = 0; //Document length threshold
 		int CVFold = 10; //k fold-cross validation
 
@@ -33,8 +34,8 @@ public class VectorReviewMain {
 		/*****The parameters used in loading files.*****/
 		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
-		String featureLocation = String.format("%sfv_1gram_BM25_CHI_%s.txt", path, diffFolder);
-		String vctfile = String.format("%svct_1gram_BM25_CHI_%s.dat", path, diffFolder);
+		String featureLocation = String.format("%sfv_2gram_BM25_CHI_%s.txt", path, diffFolder);
+		String vctfile = String.format("%svct_2gram_BM25_CHI_%s.dat", path, diffFolder);
 		
 		String matrixFile = path + "matrixA.dat";
 		String debugOutput = "data/debug/GF-RW.output";
@@ -51,6 +52,9 @@ public class VectorReviewMain {
 		
 		_Corpus corpus = analyzer.getCorpus();
 		int featureSize = corpus.getFeatureSize();
+		
+		/**Paramters in KNN.**/
+		int k = 1, l = 0;//l > 0, random projection; else brute force.
 		
 //		//Print the distance vs similar(dissimilar pairs)
 //		String simFile = path + "similarPlot.csv";
@@ -89,14 +93,20 @@ public class VectorReviewMain {
 				System.out.println("Start PageRank, wait...");
 				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
 				myPR.train(corpus.getCollection());
-				
-			} else System.out.println("Classifier has not been developed yet!");
+			
+			} else if(classifier.equals("KNN")){
+				System.out.println(String.format("Start KNN, k=%d, l=%d, wait...", k, l));
+				KNN myKNN = new KNN(corpus, classNumber, featureSize, k, l);
+				myKNN.crossValidation(CVFold, corpus);
+			}
+			else System.out.println("Classifier has not been developed yet!");
 		} else if (style.equals("SEMI")) {
 			if (classifier.equals("GF")) {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0, 1e-4, 1, false);
+				//GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0, 1e-4, 1, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {

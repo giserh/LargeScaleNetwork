@@ -73,7 +73,10 @@ public class jsonAnalyzer extends DocAnalyzer{
 						content = post.getTitle() + ". " + post.getContent();
 					if(!m_uniqueReviews.contains(content)){
 						m_uniqueReviews.add(content);
-						_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
+						int label = 0;
+						if(post.getLabel() >= 3) label = 1;
+						_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), label, timeStamp);
+//						_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
 						if(this.m_tagger != null && this.m_stnDetector!=null)
 							AnalyzeDocWithPOSTagging(review);
 						else

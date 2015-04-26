@@ -78,8 +78,8 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			
 			if(wijSumL!=0 || wijSumU!=0){
 				double a = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
-				m_fu[i] = a;
-				System.out.println(a + "\t" + m_fu[i]);
+//				m_fu[i] = a;
+//				System.out.println(a + "\t" + m_fu[i]);
 			}
 				
 				
