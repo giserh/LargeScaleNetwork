@@ -31,7 +31,7 @@ public abstract class BaseClassifier {
 	protected BufferedWriter m_debugWriter; // debug output writer
 	
 	protected PrintWriter m_printWriter; //Writer for overlapping features.
-
+	protected int m_count;
 	public void train() {
 		train(m_trainSet);
 	}
@@ -55,7 +55,6 @@ public abstract class BaseClassifier {
 			} else 
 				acc ++;
 		}
-//		System.out.println("The percentage of repeated reviews is:" + (double) m_count/ m_testSet.size());
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 		return acc /m_testSet.size();
 	}

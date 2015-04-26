@@ -100,9 +100,7 @@ public class VectorReviewMain {
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
-				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner,
-						0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false,
-						3, 0.01);
+				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
 				lMetricLearner.setDebugOutput(debugOutput);
 				lMetricLearner.crossValidation(CVFold, corpus);
 			} else System.out.println("Classifier has not been developed yet!");

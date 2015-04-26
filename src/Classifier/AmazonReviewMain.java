@@ -31,9 +31,9 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "FV";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "KNN"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;
 		
@@ -83,13 +83,10 @@ public class AmazonReviewMain {
 		
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
+		corpus.save2File(vctFile);
 		
 		/**Paramters in KNN.**/
-//		int[] kArray = {2, 3, 4, 5, 6};
-//		int[] lArray = {1, 2, 3, 4, 5, 6, 7, 8 ,9, 10};
-//		corpus.save2File(vctFile);
-//		String plotFile = path + "pairData_" + lengthThreshold + ".dat";
-//		analyzer.printPlotData2OneFile(plotFile);
+		int k = 1, l = 2;//l > 0, random projection; else brute force.
 		
 		//String matrixFile = path + "matrixA0321.dat";
 //		/***Print the matrix of X and Y for metric learning.***/
@@ -129,15 +126,10 @@ public class AmazonReviewMain {
 				myPR.train(corpus.getCollection());
 				
 			} else if(classifier.equals("KNN")){
-				System.out.println("Start KNN, wait...");
-//				for(int k: kArray){
-//					for(int l: lArray){
-						int k=10, l=1;
-						System.out.print(String.format("k=%d, l=%d\n", k, l));
-						KNN myKNN = new KNN(corpus, classNumber, featureSize, k, l);
-						myKNN.crossValidation(CVFold, corpus);
-//					}
-//				}
+				System.out.println(String.format("Start KNN, k=%d, l=%d, wait...\n", k, l));
+				KNN myKNN = new KNN(corpus, classNumber, featureSize, k, l);
+				myKNN.crossValidation(CVFold, corpus);
+
 			} else 
 				System.out.println("Classifier has not developed yet!");
 		}
@@ -146,10 +138,10 @@ public class AmazonReviewMain {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0.1, 1e-4, 1, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0, 1e-4, 1, false);
 				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifer for debugging purpose.
 //				mySemi.setDebugOutput(debugOutput);
-				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+//				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
 				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);

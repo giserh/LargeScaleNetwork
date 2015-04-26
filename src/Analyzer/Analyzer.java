@@ -9,8 +9,10 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 
@@ -34,6 +36,9 @@ public abstract class Analyzer {
 	protected HashMap<String, Integer> m_projFeatureNameIndex;
 	protected HashMap<String, Double> m_projFeatureScore;
 	protected HashMap<String, _stat> m_projFeatureStat;
+	protected HashMap<String, ArrayList<_Doc>> m_repReviews;
+	protected HashSet<String> m_uniqueReviews;
+	
 	/* Indicate if we can allow new features.After loading the CV file, the flag is set to true, 
 	 * which means no new features will be allowed.*/
 	protected boolean m_isCVLoaded;
@@ -50,19 +55,19 @@ public abstract class Analyzer {
 	
 	public Analyzer(int classNo, int minDocLength) {
 		m_corpus = new _Corpus();
-		
 		m_classNo = classNo;
 		m_classMemberNo = new int[classNo];
 		
 		m_featureNames = new ArrayList<String>();
 		m_featureNameIndex = new HashMap<String, Integer>();//key: content of the feature; value: the index of the feature
 		m_featureStat = new HashMap<String, _stat>();
-		
 		m_lengthThreshold = minDocLength;
 		
 		m_preDocs = new LinkedList<_Doc>();
 		m_dissimilar = new ArrayList<Double>();
 		m_similar = new ArrayList<Double>();
+		m_repReviews = new HashMap<String, ArrayList<_Doc>>();
+		m_uniqueReviews = new HashSet<String>();
 	}	
 	
 	public void reset() {
@@ -71,6 +76,7 @@ public abstract class Analyzer {
 		m_featureNameIndex.clear();
 		m_featureStat.clear();
 		m_corpus.reset();
+		m_uniqueReviews.clear();
 	}
 	
 	//Load the features from a file and store them in the m_featurNames.@added by Lin.
@@ -488,5 +494,37 @@ public abstract class Analyzer {
 	
 	public HashMap<String, Integer> getProjFeaturesLookup(){
 		return m_projFeatureNameIndex;
+	}
+	
+	public void calcRepBaseReviewID() {
+		m_repReviews.clear();
+		int totalSize = m_corpus.getCollection().size();
+		for(_Doc d: m_corpus.getCollection()){
+			if(m_repReviews.containsKey(d.getName()))
+				m_repReviews.get(d.getName()).add(d);
+			else {
+				ArrayList<_Doc> reviews = new ArrayList<_Doc>();
+				reviews.add(d);
+				m_repReviews.put(d.getName(), reviews);
+			}
+		}
+		int unique = m_repReviews.size();
+		System.out.print(String.format("There are %d reviews in total, %d of them do not repeat, the percentage is %.3f.", totalSize, unique, (double) unique/totalSize));
+	}
+	
+	public void calcRepBaseContent(){
+		m_repReviews.clear();
+		int totalSize = m_corpus.getCollection().size();
+		for(_Doc d: m_corpus.getCollection()){
+			if(m_repReviews.containsKey(d.getSource()))
+				m_repReviews.get(d.getSource()).add(d);
+			else {
+				ArrayList<_Doc> reviews = new ArrayList<_Doc>();
+				reviews.add(d);
+				m_repReviews.put(d.getSource(), reviews);
+			}
+		}
+		int unique = m_repReviews.size();
+		System.out.print(String.format("There are %d reviews in total, %d of them do not repeat, the percentage is %.3f.", totalSize, unique, (double) unique/totalSize));
 	}
 }

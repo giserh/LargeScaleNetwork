@@ -71,13 +71,15 @@ public class jsonAnalyzer extends DocAnalyzer{
 						content = post.getTitle() + " " + post.getContent();
 					else
 						content = post.getTitle() + ". " + post.getContent();
-					_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
-					
-					if(this.m_tagger != null && this.m_stnDetector!=null)
-						AnalyzeDocWithPOSTagging(review);
-					else
-						AnalyzeDoc(review);
-				}
+					if(!m_uniqueReviews.contains(content)){
+						m_uniqueReviews.add(content);
+						_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
+						if(this.m_tagger != null && this.m_stnDetector!=null)
+							AnalyzeDocWithPOSTagging(review);
+						else
+							AnalyzeDoc(review);
+						}
+					}
 			} catch (ParseException e) {
 				System.out.print('T');
 			} catch (JSONException e) {
