@@ -63,7 +63,7 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/****Parameters related with POS Tagging.***/
-		int posTaggingMethod = 4; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		String debugOutput = path + classifier + "_POS" + posTaggingMethod + ".csv";
