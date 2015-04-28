@@ -176,7 +176,7 @@ public abstract class BaseClassifier {
 		
 		System.out.print("\nF1");
 		for(int i=0; i<m_classNo; i++){
-			avgF1 += 0.4 * columnSum[i] * prec[i] / (columnSum[i] + prec[i] + 0.0001); // 0.4 = 0.2 * 2, 0.2 is class avg probability.
+			avgF1 += 2.0 / m_classNo * columnSum[i] * prec[i] / (columnSum[i] + prec[i] + 0.0001); // 0.4 = 0.2 * 2, 0.2 is class avg probability.
 			weightedF1 += totalClassProbs[i] * (2.0 * columnSum[i] * prec[i] / (columnSum[i] + prec[i] + 0.0001));
 			System.out.format("\t%.4f", 2.0 * columnSum[i] * prec[i] / (columnSum[i] + prec[i] + 0.0001));
 		}

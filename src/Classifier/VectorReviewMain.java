@@ -20,14 +20,14 @@ public class VectorReviewMain {
 
 	public static void main(String[] args) throws IOException, ParseException{
 		/*****Set these parameters before run the classifiers.*****/
-		int classNumber = 2; //Define the number of classes in this Naive Bayes.
+		int classNumber = 5; //Define the number of classes in this Naive Bayes.
 		int lengthThreshold = 0; //Document length threshold
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SEMI";//"SUP", "SEMI"
+		String style = "SUP";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "GF-RW"; //Which classifier to use.
+		String classifier = "SVM"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 

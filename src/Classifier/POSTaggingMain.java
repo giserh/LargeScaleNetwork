@@ -41,9 +41,9 @@ public class POSTaggingMain {
 		/*****Parameters in feature selection.*****/
 		String featureSelection = "CHI"; //Feature selection method.
 		String stopwords = "./data/Model/stopwords.dat";
-		double startProb = 0.3; // Used in feature selection, the starting point of the features.
+		double startProb = 0.0; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
-		int DFthreshold = 50; // Filter the features with DFs smaller than this threshold.
+		int DFthreshold = 5; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
@@ -53,7 +53,6 @@ public class POSTaggingMain {
 		String suffix = ".json";
 		String pattern = String.format("%dgram_%s_%s_%s", Ngram, featureValue, featureSelection, diffFolder);
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
-		
 
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String stnModel = "./data/Model/en-sent.bin"; //Sentence model.
