@@ -20,7 +20,6 @@ public abstract class BaseClassifier {
 	protected _Corpus m_corpus;
 	protected ArrayList<_Doc> m_trainSet; //All the documents used as the training set.
 	protected ArrayList<_Doc> m_testSet; //All the documents used as the testing set.
-	
 	protected double[] m_cProbs;
 	
 	//for cross-validation
@@ -30,7 +29,11 @@ public abstract class BaseClassifier {
 	protected String m_debugOutput; // set up debug output (default: no debug output)
 	protected BufferedWriter m_debugWriter; // debug output writer
 	
-	protected PrintWriter m_printWriter; //Writer for overlapping features.
+	protected BufferedWriter m_writerWrongRW; //This is used to print out reivews RW predicts incorrectly, SVM predict correctly.
+	protected BufferedWriter m_writerWrongSVM; //This is used to print out reivews RW predicts correctly, SVM predict incorrectly.
+	protected BufferedWriter m_writerFuSVM; //This is used to compare the final result of fu and SVM.
+	
+//	protected PrintWriter m_printWriter; //Writer for overlapping features.
 	protected int m_count;
 	public void train() {
 		train(m_trainSet);
@@ -93,8 +96,8 @@ public abstract class BaseClassifier {
 		try {
 			if (m_debugOutput!=null)
 				m_debugWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(m_debugOutput, false), "UTF-8"));
-			c.shuffle(k);
-//			c.maskInOrder(k);
+//			c.shuffle(k);
+			c.maskInOrder(k);
 			int[] masks = c.getMasks();
 			ArrayList<_Doc> docs = c.getCollection();
 			//Use this loop to iterate all the ten folders, set the train set and test set.
@@ -119,8 +122,15 @@ public abstract class BaseClassifier {
 			}
 			calculateMeanVariance(m_precisionsRecalls);	
 		
-			if (m_debugOutput!=null)
+			if (m_debugOutput !=null )
 				m_debugWriter.close();
+			if(m_writerWrongRW !=null )
+				m_writerWrongRW.close();
+			if(m_writerWrongSVM !=null )
+				m_writerWrongSVM.close();
+			if(m_writerFuSVM !=null )
+				m_writerFuSVM.close();
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

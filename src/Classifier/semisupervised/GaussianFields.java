@@ -1,6 +1,13 @@
 package Classifier.semisupervised;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,6 +90,12 @@ public class GaussianFields extends BaseClassifier {
 	}
 	public void setPOSTagging(int a){
 		m_POSTagging = a;
+	}
+	
+	public void setDebugPrinters(String wrongRW, String wrongSVM, String FuSVM) throws FileNotFoundException, UnsupportedEncodingException {
+		m_writerWrongRW = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(wrongRW, false), "UTF-8"));
+		m_writerWrongSVM = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(wrongSVM, false), "UTF-8"));
+		m_writerFuSVM = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(FuSVM, false), "UTF-8"));
 	}
 	
 	@Override
@@ -185,8 +198,6 @@ public class GaussianFields extends BaseClassifier {
 			for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
 				dj = m_testSet.get(j);
 				similarity = getSimilarity(di, dj);
-//				if (similarity == 1)
-//					System.out.println("Same review!!");
 				similarity = similarity * di.getWeight() * dj.getWeight();
 //				if (!di.sameProduct(dj))
 //					similarity *= m_discount;// differentiate reviews from different products
@@ -196,8 +207,6 @@ public class GaussianFields extends BaseClassifier {
 			for (int j = 0; j < m_L; j++) {
 				dj = m_labeled.get(j);
 				similarity = getSimilarity(di, dj);
-//				if (similarity == 1)
-//					System.out.println("Same review!!");
 				similarity = similarity * di.getWeight() * dj.getWeight();
 //				if (!di.sameProduct(m_labeled.get(j)))
 //					similarity *= m_discount;// differentiate reviews from different products
@@ -376,13 +385,14 @@ public class GaussianFields extends BaseClassifier {
 			
 			/****Get the top 5 elements from kUL******/
 			m_debugWriter.write("*************************Labeled data*************************************\n");
-			for(int k=0; k < 10; k++){
+			for(int k=0; k < 5; k++){
 				item = m_kUL.get(k);
 				neighbor = m_labeled.get(item.m_index);
 				sim = item.m_value/wijSumL;
 				
 				//Print out the sparse vectors of the neighbors.
 				m_debugWriter.write(String.format("Label:%d, Similarity:%.4f\n", neighbor.getYLabel(), sim));
+//				m_debugWriter.write(neighbor.getSource()+"\n");
 				_SparseFeature[] sfs = neighbor.getSparse();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.
@@ -391,6 +401,8 @@ public class GaussianFields extends BaseClassifier {
 					_SparseFeature tmp2 = sfs[pointer2];
 					if(tmp1.getIndex() == tmp2.getIndex()){
 						String feature = m_IndexFeature.get(tmp1.getIndex());
+						if(feature.equals(""))
+							System.out.println("empty overlapping!!");
 						m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
 						pointer1++;
 						pointer2++;
@@ -416,12 +428,13 @@ public class GaussianFields extends BaseClassifier {
 			
 			/****Get the top 5 elements from k'UU******/
 			m_debugWriter.write("*************************Unlabeled data*************************************\n");
-			for(int k=0; k<10; k++){
+			for(int k=0; k<5; k++){
 				item = m_kUU.get(k);
 				neighbor = m_testSet.get(item.m_index);
 				sim = item.m_value/wijSumU;
 				
 				m_debugWriter.write(String.format("True Label:%d, f_u:%.4f, Similarity:%.4f\n", neighbor.getYLabel(), m_fu[neighbor.getID()], sim));
+//				m_debugWriter.write(neighbor.getSource()+"\n");
 				_SparseFeature[] sfs = neighbor.getSparse();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.
@@ -444,7 +457,7 @@ public class GaussianFields extends BaseClassifier {
 			e.printStackTrace();
 		}
 	} 
-	
+
 	@Override
 	public int predict(_Doc doc) {
 		return -1; //we don't support this in transductive learning

@@ -18,6 +18,7 @@ import Classifier.supervised.SVM;
 public class AmazonReviewMain {
 
 	public static void main(String[] args) throws IOException, ParseException{
+		
 		/*****Set these parameters before running the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
 		int Ngram = 1; //The default value is bigram. 
@@ -31,9 +32,9 @@ public class AmazonReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "SVM"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;
 		
@@ -59,7 +60,16 @@ public class AmazonReviewMain {
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
 		String vctFile = String.format(path + "vct_%s.dat", pattern);
-		String debugOutput = path + classifier + "_noPOS.csv";
+		
+		/***The parameters used in GF-RW and debugging.****/
+		double eta = 0.1, sr = 0.1;
+		String debugOutput = path + classifier + eta + "_noPOS.csv";
+		String WrongRWfile= path + classifier + eta + "_WrongRW.csv";
+		String WrongSVMfile= path + classifier + eta + "_WrongSVM.csv";
+		String FuSVM = path + classifier + eta + "_FuSVMResults.csv";
+		
+		/**Parameters in KNN.**/
+		int k = 1, l = 2;//l > 0, random projection; else brute force.
 		
 		/*****Parameters in time series analysis.*****/
 		int window = 0;
@@ -67,16 +77,16 @@ public class AmazonReviewMain {
 		System.out.println("--------------------------------------------------------------------------------------");
 		
 		/****Feature selection*****/
-		System.out.println("Performing feature selection, wait...");
-		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
-		analyzer.LoadStopwords(stopwords);
-		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
-		analyzer.resetStopwords();
+//		System.out.println("Performing feature selection, wait...");
+//		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
+//		analyzer.LoadStopwords(stopwords);
+//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+//		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
+//		analyzer.resetStopwords();
 		
 		/****Create feature vectors*****/
 		System.out.println("Creating feature vectors, wait...");
-//		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
+		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
@@ -87,75 +97,73 @@ public class AmazonReviewMain {
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
 		corpus.save2File(vctFile);
-		
-		/**Paramters in KNN.**/
-		int k = 1, l = 2;//l > 0, random projection; else brute force.
-		
-		//String matrixFile = path + "matrixA0321.dat";
+
+//		//String matrixFile = path + "matrixA0321.dat";
 //		/***Print the matrix of X and Y for metric learning.***/
 //		String xFile = path + diffFolder + "X.csv";
 //		String yFile = path + diffFolder + "Y.csv";
 //		analyzer.printXY(xFile, yFile);
-		
-		//temporal code to add pagerank weights
+//		
+//		//temporal code to add pagerank weights
 //		PageRank tmpPR = new PageRank(corpus, classNumber, featureSize + window, C, 100, 50, 1e-6);
 //		tmpPR.train(corpus.getCollection());
 		
-//		/********Choose different classification methods.*********/
-//		if (style.equals("SUP")) {
-//			if(classifier.equals("NB")){
-//				//Define a new naive bayes with the parameters.
-//				System.out.println("Start naive bayes, wait...");
-//				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize);
-//				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
-//				
-//			} else if(classifier.equals("LR")){
-//				//Define a new logistics regression with the parameters.
-//				System.out.println("Start logistic regression, wait...");
-//				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
-//				myLR.setDebugOutput(debugOutput);//Save debug information into file.
-//				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
-//				//myLR.saveModel(modelPath + "LR.model");
-//			} else if(classifier.equals("SVM")){
-//				//Define a new SVM with the parameters.
-//				System.out.println("Start SVM, wait...");
-//				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.01);//default eps value from Lin's implementation
-//				mySVM.crossValidation(CVFold, corpus);
-//				
-//			} else if (classifier.equals("PR")){
-//				//Define a new Pagerank with parameters.
-//				System.out.println("Start PageRank, wait...");
-//				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
-//				myPR.train(corpus.getCollection());
-//				
-//			} else if(classifier.equals("KNN")){
-//				System.out.println(String.format("Start KNN, k=%d, l=%d, wait...\n", k, l));
-//				KNN myKNN = new KNN(corpus, classNumber, featureSize, k, l);
-//				myKNN.crossValidation(CVFold, corpus);
-//
-//			} else 
-//				System.out.println("Classifier has not developed yet!");
-//		}
-//		else if (style.equals("SEMI")) {
-//			if (classifier.equals("GF")) {
-//				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
-//				mySemi.crossValidation(CVFold, corpus);
-//			} else if (classifier.equals("GF-RW")) {
-////				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0, 1e-4, 1, false);
-//				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
-//				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifer for debugging purpose.
-////				mySemi.setDebugOutput(debugOutput);
-////				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
-//				mySemi.crossValidation(CVFold, corpus);
-//			} else if (classifier.equals("GF-RW-ML")) {
-//				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
-//				lMetricLearner.setDebugOutput(debugOutput);
-//				lMetricLearner.crossValidation(CVFold, corpus);
-//			} else System.out.println("Classifier has not been developed yet!");
-//		} else if (style.equals("FV")) {
-//			corpus.save2File(vctFile);
-//			System.out.format("Vectors saved to %s...\n", vctFile);
-//		} else 
-//			System.out.println("Learning paradigm has not developed yet!");
+		/********Choose different classification methods.*********/
+		if (style.equals("SUP")) {
+			if(classifier.equals("NB")){
+				//Define a new naive bayes with the parameters.
+				System.out.println("Start naive bayes, wait...");
+				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize);
+				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
+				
+			} else if(classifier.equals("LR")){
+				//Define a new logistics regression with the parameters.
+				System.out.println("Start logistic regression, wait...");
+				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
+				myLR.setDebugOutput(debugOutput);//Save debug information into file.
+				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
+				//myLR.saveModel(modelPath + "LR.model");
+			} else if(classifier.equals("SVM")){
+				//Define a new SVM with the parameters.
+				System.out.println("Start SVM, wait...");
+				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.01);//default eps value from Lin's implementation
+				mySVM.crossValidation(CVFold, corpus);
+				
+			} else if (classifier.equals("PR")){
+				//Define a new Pagerank with parameters.
+				System.out.println("Start PageRank, wait...");
+				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
+				myPR.train(corpus.getCollection());
+				
+			} else if(classifier.equals("KNN")){
+				System.out.println(String.format("Start KNN, k=%d, l=%d, wait...\n", k, l));
+				KNN myKNN = new KNN(corpus, classNumber, featureSize, k, l);
+				myKNN.crossValidation(CVFold, corpus);
+
+			} else 
+				System.out.println("Classifier has not developed yet!");
+		}
+		else if (style.equals("SEMI")) {
+			if (classifier.equals("GF")) {
+				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
+				mySemi.crossValidation(CVFold, corpus);
+			} else if (classifier.equals("GF-RW")) {
+//				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0, 1e-4, 1, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, sr, 100, 50, 1, 0.1, 1e-4, eta, false);
+				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifier for debugging purpose.
+				mySemi.setDebugOutput(debugOutput);
+				mySemi.setDebugPrinters(WrongRWfile, WrongSVMfile, FuSVM);
+//				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+				mySemi.crossValidation(CVFold, corpus);
+			} else if (classifier.equals("GF-RW-ML")) {
+				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
+				lMetricLearner.setDebugOutput(debugOutput);
+				lMetricLearner.crossValidation(CVFold, corpus);
+			} else System.out.println("Classifier has not been developed yet!");
+		} else if (style.equals("FV")) {
+			corpus.save2File(vctFile);
+			System.out.format("Vectors saved to %s...\n", vctFile);
+		} else 
+			System.out.println("Learning paradigm has not developed yet!");
 	}
 }

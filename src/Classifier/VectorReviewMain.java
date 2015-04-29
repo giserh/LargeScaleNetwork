@@ -25,25 +25,31 @@ public class VectorReviewMain {
 		int CVFold = 10; //k fold-cross validation
 
 		//"SUP", "SEMI", "FV: save features and vectors to files"
-		String style = "SUP";//"SUP", "SEMI"
+		String style = "SEMI";//"SUP", "SEMI"
 		//Supervised: "NB", "LR", "PR-LR", "SVM"; Semi-supervised: "GF", "GF-RW", "GF-RW-ML"**/
-		String classifier = "SVM"; //Which classifier to use.
+		String classifier = "GF-RW"; //Which classifier to use.
 		String multipleLearner = "SVM";
 		double C = 1.0;		
 
 		/*****The parameters used in loading files.*****/
 		String diffFolder = "small";
 		String path = "data/" + diffFolder + "/";
-		String featureLocation = String.format("%sfv_2gram_BM25_CHI_%s.txt", path, diffFolder);
-		String vctfile = String.format("%svct_2gram_BM25_CHI_%s.dat", path, diffFolder);
+		String featureLocation = String.format("%sfv_1gram_BM25_CHI_%s.txt", path, diffFolder);
+		String vctfile = String.format("%svct_1gram_BM25_CHI_%s.dat", path, diffFolder);
 		
 		String matrixFile = path + "matrixA.dat";
-		String debugOutput = "data/debug/GF-RW.output";
 		
 		/****Pre-process the data.*****/
 		System.out.println("Loading vectors from file, wait...");
 		VctAnalyzer analyzer = new VctAnalyzer(classNumber, lengthThreshold, featureLocation);
 		analyzer.LoadDoc(vctfile); //Load all the documents as the data set.
+		
+		/***The parameters used in GF-RW and debugging.****/
+		double eta = 0.1, sr = 0.1;
+		String debugOutput = path + classifier + eta + "_noPOS.csv";
+		String WrongRWfile= path + classifier + eta + "_WrongRW.csv";
+		String WrongSVMfile= path + classifier + eta + "_WrongSVM.csv";
+		String FuSVM = path + classifier + eta + "_FuSVMResults.csv";
 		
 //		//We can also print the matrix of X and Y with vectors.
 //		String xFile = path + diffFolder + "X.csv";
@@ -105,9 +111,12 @@ public class VectorReviewMain {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				//GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0, 1e-4, 1, false);
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 100, 50, 1, 0.1, 1e-4, 0.1, false);
-				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+//				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 1, 5, 1, 0, 1e-4, 1, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, sr, 100, 50, 1, 0.1, 1e-4, eta, false);
+				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifier for debugging purpose.
+				mySemi.setDebugOutput(debugOutput);
+				mySemi.setDebugPrinters(WrongRWfile, WrongSVMfile, FuSVM);
+//				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {
 				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
