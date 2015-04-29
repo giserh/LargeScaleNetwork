@@ -159,8 +159,33 @@ public class GaussianFields extends BaseClassifier {
 			i = j;
 			j = t;
 		}
-		double a = (2*(m_U+m_L-1)-i)/2*(i+1) - ((m_U+m_L)-j);
-		return (2*(m_U+m_L-1)-i)/2*(i+1) - ((m_U+m_L)-j);//specialized for the current matrix structure
+		int sum = 0;
+		if(i == 0) 
+			sum = j;
+		else{
+			for(int m = 0; m < i; m++){
+				sum += m_U + m_L - m - 1;
+			}
+			sum += j - i;
+		}
+		return sum;//specialized for the current matrix structure
+	}
+	
+	public void debugEncoder() {
+		m_U = 15;
+		m_L = 5;
+		
+		for(int i=0; i<m_U; i++) {
+			for(int j=i+1; j<m_U; j++) {
+				System.out.print(encode(i,j) + " ");
+			}
+			
+			for(int j=0; j<m_L; j++) {
+				System.out.print(encode(i,m_U+j) + " ");
+			}
+			
+			System.out.println();
+		}
 	}
 	
 	void setCache(int i, int j, double v) {
@@ -487,5 +512,10 @@ public class GaussianFields extends BaseClassifier {
 	@Override
 	public void saveModel(String modelLocation){
 		
+	}
+	
+	public static void main(String[] args) {
+		GaussianFields test = new GaussianFields(null, 1, 1, "NB");
+		test.debugEncoder();
 	}
 }
