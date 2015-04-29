@@ -159,6 +159,7 @@ public class GaussianFields extends BaseClassifier {
 			i = j;
 			j = t;
 		}
+		double a = (2*(m_U+m_L-1)-i)/2*(i+1) - ((m_U+m_L)-j);
 		return (2*(m_U+m_L-1)-i)/2*(i+1) - ((m_U+m_L)-j);//specialized for the current matrix structure
 	}
 	
@@ -199,25 +200,35 @@ public class GaussianFields extends BaseClassifier {
 				dj = m_testSet.get(j);
 				similarity = getSimilarity(di, dj);
 				similarity = similarity * di.getWeight() * dj.getWeight();
+			
 //				if (!di.sameProduct(dj))
 //					similarity *= m_discount;// differentiate reviews from different products
 				setCache(i, j, similarity);
+				if(getCache(60, 17052) != 0)
+					System.out.println("bug: " + i + "," + j);
 			}
 
 			for (int j = 0; j < m_L; j++) {
 				dj = m_labeled.get(j);
+				if(i== 60 && j==15344)
+					System.out.println("error!!");
 				similarity = getSimilarity(di, dj);
 				similarity = similarity * di.getWeight() * dj.getWeight();
 //				if (!di.sameProduct(m_labeled.get(j)))
 //					similarity *= m_discount;// differentiate reviews from different products
 				setCache(i, m_U + j, similarity);
+				double b = getCache(i, m_U + j);
+				if(getCache(60, 17052) != 0)
+					System.out.println("bug: " + i + "," + j);
 			}
+			
 			
 			//set up the Y vector for unlabeled data
 //			m_Y[i] = 4; //Multiple learner.//
 			m_Y[i] = m_classifier.predict(m_testSet.get(i));
 		}	
 		
+		System.out.println(getCache(60, 17052));
 		//set up the Y vector for labeled data
 		for(int i=m_U; i<m_L+m_U; i++)
 			m_Y[i] = m_labeled.get(i-m_U).getYLabel();
@@ -376,8 +387,16 @@ public class GaussianFields extends BaseClassifier {
 			
 			//find top five labeled
 			/****Construct the top k labeled data for the current data.****/
-			for (int j = 0; j < m_L; j++)
+			for (int j = 0; j < m_L; j++){
 				m_kUL.add(new _RankItem(j, getCache(id, m_U + j)));
+				if(id == 60 && j==15344){
+					double a = getCache(id, m_U + j);
+					String s = m_labeled.get(j).getSource();
+					double b = Utils.calculateSimilarity(d, m_labeled.get(j));
+					System.out.println("catch it!!");
+				}
+			}
+				
 			
 			/****Get the sum of kUL******/
 			for(_RankItem n: m_kUL)
@@ -389,6 +408,7 @@ public class GaussianFields extends BaseClassifier {
 				item = m_kUL.get(k);
 				neighbor = m_labeled.get(item.m_index);
 				sim = item.m_value/wijSumL;
+				double a = getCache(id, m_U + item.m_index);
 				
 				//Print out the sparse vectors of the neighbors.
 				m_debugWriter.write(String.format("Label:%d, Similarity:%.4f\n", neighbor.getYLabel(), sim));

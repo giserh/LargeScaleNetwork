@@ -86,6 +86,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			if(Double.isNaN(m_fu[i]))
 				System.out.println("NaN detected!!!");
 		}
+		System.out.println(getCache(60, 15344));
 	}
 	
 	//based on the precomputed sparse graph
@@ -189,6 +190,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				}	
 				if (pred != ans) {
 					m_count++;
+					System.out.println(getCache(60, 17052));
 					if (m_debugOutput!=null){
 						if (m_POSTagging != 0)
 							debugWithPOSTagging(m_testSet.get(i));

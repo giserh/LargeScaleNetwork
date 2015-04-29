@@ -62,7 +62,7 @@ public class AmazonReviewMain {
 		String vctFile = String.format(path + "vct_%s.dat", pattern);
 		
 		/***The parameters used in GF-RW and debugging.****/
-		double eta = 0.1, sr = 0.1;
+		double eta = 0.1, sr = 1;
 		String debugOutput = path + classifier + eta + "_noPOS.csv";
 		String WrongRWfile= path + classifier + eta + "_WrongRW.csv";
 		String WrongSVMfile= path + classifier + eta + "_WrongSVM.csv";
