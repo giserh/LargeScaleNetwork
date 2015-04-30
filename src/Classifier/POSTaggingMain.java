@@ -63,10 +63,20 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/****Parameters related with POS Tagging.***/
-		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 4; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
-		String debugOutput = path + classifier + "_POS" + posTaggingMethod + ".csv";
+		
+		/***The parameters used in GF-RW and debugging.****/
+		double eta = 0.1, sr = 1;
+		String debugOutput = path + classifier + "_POS" + posTaggingMethod + ".txt";
+		String WrongRWfile= path + classifier + eta + "_POS" + posTaggingMethod + "_WrongRW.txt";
+		String WrongSVMfile= path + classifier + eta + "_POS" + posTaggingMethod + "_WrongSVM.txt";
+		String FuSVM = path + classifier + eta + "_POS" + posTaggingMethod + "_FuSVMResults.txt";
+		
+		/***The parameter used in the sentiwordnet analysis.***/
+		String scoreFile = path + classifier + "_POS" + posTaggingMethod + "_SentiWordNetScore.txt";
+		String projFeatureFile = path + classifier + "_POS" + posTaggingMethod + "_OverlapFeatures.txt";
 		
 		//With the given CV, build the projected vectors for all documents.
 		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, stnModel, tagModel, classNumber, featureLocation, Ngram, lengthThreshold, posTaggingMethod);
@@ -76,7 +86,7 @@ public class POSTaggingMain {
 		if( posTaggingMethod == 4) { // Load the SNW with scores.
 			int k = 10;
 			analyzer.LoadSNWWithScore(SNWfile);
-			analyzer.saveSentiWordNetFeatures("./data/sentiwordnet_score.csv");
+			analyzer.saveSentiWordNetFeatures(scoreFile);
 			analyzer.setFeatureDimension(k);
 		}
 
@@ -85,7 +95,7 @@ public class POSTaggingMain {
 		analyzer.setTimeFeatures(window);
 		
 		if(posTaggingMethod == 4 )
-			analyzer.saveProjFeaturesScores("./data/overlapFeatures.csv");
+			analyzer.saveProjFeaturesScores(projFeatureFile);
 		
 		featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.getCorpus();
@@ -126,11 +136,12 @@ public class POSTaggingMain {
 				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, 1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false);
+				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, sr, 100, 50, 1.0, 0.1, 1e-4, eta, false);
 				//With pos tagging, we need the look-up table for projected features.
 				mySemi.setFeaturesLookup(analyzer.getProjFeaturesLookup());
 				mySemi.setPOSTagging(posTaggingMethod);
 				mySemi.setDebugOutput(debugOutput);
+				mySemi.setDebugPrinters(WrongRWfile, WrongSVMfile, FuSVM);
 				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
 			} else if (classifier.equals("GF-RW-ML")) {

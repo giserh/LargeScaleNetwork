@@ -86,7 +86,6 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			if(Double.isNaN(m_fu[i]))
 				System.out.println("NaN detected!!!");
 		}
-		System.out.println(getCache(60, 15344));
 	}
 	
 	//based on the precomputed sparse graph
@@ -190,7 +189,6 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				}	
 				if (pred != ans) {
 					m_count++;
-					System.out.println(getCache(60, 17052));
 					if (m_debugOutput!=null){
 						if (m_POSTagging != 0)
 							debugWithPOSTagging(m_testSet.get(i));
@@ -204,8 +202,6 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 		} catch (IOException e){
 			e.printStackTrace();
 		}
-		
-//		System.out.println("count is " + count);
 		m_precisionsRecalls.add(calculatePreRec(m_TPTable));
 		return acc/m_U;
 	}
@@ -250,7 +246,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			
 			//Print out the sparse vectors of the neighbors.
 			writer.write(String.format("Label:%d, Similarity:%.4f\n", neighbor.getYLabel(), sim));
-//			writer.write(neighbor.getSource()+"\n");
+			writer.write(neighbor.getSource()+"\n");
 			_SparseFeature[] sfs = neighbor.getSparse();
 			int pointer1 = 0, pointer2 = 0;
 			//Find out all the overlapping features and print them out.
@@ -290,7 +286,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			sim = item.m_value/wijSumU;
 			
 			writer.write(String.format("True Label:%d, f_u:%.4f, Similarity:%.4f\n", neighbor.getYLabel(), m_fu[neighbor.getID()], sim));
-//			writer.write(neighbor.getSource()+"\n");
+			writer.write(neighbor.getSource()+"\n");
 			_SparseFeature[] sfs = neighbor.getSparse();
 			int pointer1 = 0, pointer2 = 0;
 			//Find out all the overlapping features and print them out.
@@ -350,6 +346,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				
 				//Print out the sparse vectors of the neighbors.
 				m_debugWriter.write(String.format("Label:%d, Similarity:%.4f\n", neighbor.getYLabel(), sim));
+				m_debugWriter.write(neighbor.getSource()+"\n");
 				_SparseFeature[] sfs = neighbor.getProjectedFv();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.
@@ -393,6 +390,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 				sim = item.m_value/wijSumU;
 				
 				m_debugWriter.write(String.format("True Label:%d, f_u:%.4f, Similarity:%.4f\n", neighbor.getYLabel(), m_fu[neighbor.getID()], sim));
+				m_debugWriter.write(neighbor.getSource()+"\n");
 				_SparseFeature[] sfs = neighbor.getProjectedFv();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.

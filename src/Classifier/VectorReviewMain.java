@@ -45,11 +45,11 @@ public class VectorReviewMain {
 		analyzer.LoadDoc(vctfile); //Load all the documents as the data set.
 		
 		/***The parameters used in GF-RW and debugging.****/
-		double eta = 0.1, sr = 0.1;
-		String debugOutput = path + classifier + eta + "_noPOS.csv";
-		String WrongRWfile= path + classifier + eta + "_WrongRW.csv";
-		String WrongSVMfile= path + classifier + eta + "_WrongSVM.csv";
-		String FuSVM = path + classifier + eta + "_FuSVMResults.csv";
+		double eta = 0.1, sr = 1;
+		String debugOutput = path + classifier + eta + "_noPOS.txt";
+		String WrongRWfile= path + classifier + eta + "_WrongRW.txt";
+		String WrongSVMfile= path + classifier + eta + "_WrongSVM.txt";
+		String FuSVM = path + classifier + eta + "_FuSVMResults.txt";
 		
 //		//We can also print the matrix of X and Y with vectors.
 //		String xFile = path + diffFolder + "X.csv";

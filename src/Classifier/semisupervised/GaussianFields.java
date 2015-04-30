@@ -161,18 +161,18 @@ public class GaussianFields extends BaseClassifier {
 		}
 		int sum = 0;
 		if(i == 0) 
-			sum = j;
+			sum = j - 1;
 		else{
 			for(int m = 0; m < i; m++){
 				sum += m_U + m_L - m - 1;
 			}
-			sum += j - i;
+			sum += j - i - 1;
 		}
 		return sum;//specialized for the current matrix structure
 	}
 	
 	public void debugEncoder() {
-		m_U = 15;
+		m_U = 10;
 		m_L = 5;
 		
 		for(int i=0; i<m_U; i++) {
@@ -229,31 +229,22 @@ public class GaussianFields extends BaseClassifier {
 //				if (!di.sameProduct(dj))
 //					similarity *= m_discount;// differentiate reviews from different products
 				setCache(i, j, similarity);
-				if(getCache(60, 17052) != 0)
-					System.out.println("bug: " + i + "," + j);
 			}
 
 			for (int j = 0; j < m_L; j++) {
 				dj = m_labeled.get(j);
-				if(i== 60 && j==15344)
-					System.out.println("error!!");
 				similarity = getSimilarity(di, dj);
 				similarity = similarity * di.getWeight() * dj.getWeight();
 //				if (!di.sameProduct(m_labeled.get(j)))
 //					similarity *= m_discount;// differentiate reviews from different products
 				setCache(i, m_U + j, similarity);
-				double b = getCache(i, m_U + j);
-				if(getCache(60, 17052) != 0)
-					System.out.println("bug: " + i + "," + j);
 			}
-			
 			
 			//set up the Y vector for unlabeled data
 //			m_Y[i] = 4; //Multiple learner.//
 			m_Y[i] = m_classifier.predict(m_testSet.get(i));
 		}	
-		
-		System.out.println(getCache(60, 17052));
+
 		//set up the Y vector for labeled data
 		for(int i=m_U; i<m_L+m_U; i++)
 			m_Y[i] = m_labeled.get(i-m_U).getYLabel();
@@ -282,7 +273,6 @@ public class GaussianFields extends BaseClassifier {
 			for(int j=0; j<m_U; j++) {
 				if (j==i)
 					continue;
-				
 				m_kUU.add(new _RankItem(j, getCache(i,j)));
 			}
 			
@@ -414,15 +404,8 @@ public class GaussianFields extends BaseClassifier {
 			/****Construct the top k labeled data for the current data.****/
 			for (int j = 0; j < m_L; j++){
 				m_kUL.add(new _RankItem(j, getCache(id, m_U + j)));
-				if(id == 60 && j==15344){
-					double a = getCache(id, m_U + j);
-					String s = m_labeled.get(j).getSource();
-					double b = Utils.calculateSimilarity(d, m_labeled.get(j));
-					System.out.println("catch it!!");
-				}
 			}
-				
-			
+	
 			/****Get the sum of kUL******/
 			for(_RankItem n: m_kUL)
 				wijSumL += n.m_value; //get the similarity between two nodes.
@@ -433,11 +416,10 @@ public class GaussianFields extends BaseClassifier {
 				item = m_kUL.get(k);
 				neighbor = m_labeled.get(item.m_index);
 				sim = item.m_value/wijSumL;
-				double a = getCache(id, m_U + item.m_index);
 				
 				//Print out the sparse vectors of the neighbors.
 				m_debugWriter.write(String.format("Label:%d, Similarity:%.4f\n", neighbor.getYLabel(), sim));
-//				m_debugWriter.write(neighbor.getSource()+"\n");
+				m_debugWriter.write(neighbor.getSource()+"\n");
 				_SparseFeature[] sfs = neighbor.getSparse();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.
@@ -446,8 +428,6 @@ public class GaussianFields extends BaseClassifier {
 					_SparseFeature tmp2 = sfs[pointer2];
 					if(tmp1.getIndex() == tmp2.getIndex()){
 						String feature = m_IndexFeature.get(tmp1.getIndex());
-						if(feature.equals(""))
-							System.out.println("empty overlapping!!");
 						m_debugWriter.write(String.format("(%s %.4f),", feature, tmp2.getValue()));
 						pointer1++;
 						pointer2++;
@@ -479,7 +459,7 @@ public class GaussianFields extends BaseClassifier {
 				sim = item.m_value/wijSumU;
 				
 				m_debugWriter.write(String.format("True Label:%d, f_u:%.4f, Similarity:%.4f\n", neighbor.getYLabel(), m_fu[neighbor.getID()], sim));
-//				m_debugWriter.write(neighbor.getSource()+"\n");
+				m_debugWriter.write(neighbor.getSource()+"\n");
 				_SparseFeature[] sfs = neighbor.getSparse();
 				int pointer1 = 0, pointer2 = 0;
 				//Find out all the overlapping features and print them out.

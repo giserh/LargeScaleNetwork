@@ -62,11 +62,11 @@ public class AmazonReviewMain {
 		String vctFile = String.format(path + "vct_%s.dat", pattern);
 		
 		/***The parameters used in GF-RW and debugging.****/
-		double eta = 0.1, sr = 1;
-		String debugOutput = path + classifier + eta + "_noPOS.csv";
-		String WrongRWfile= path + classifier + eta + "_WrongRW.csv";
-		String WrongSVMfile= path + classifier + eta + "_WrongSVM.csv";
-		String FuSVM = path + classifier + eta + "_FuSVMResults.csv";
+		double eta = 0.5, sr = 1;
+		String debugOutput = path + classifier + eta + "_noPOS.txt";
+		String WrongRWfile= path + classifier + eta + "_WrongRW.txt";
+		String WrongSVMfile= path + classifier + eta + "_WrongSVM.txt";
+		String FuSVM = path + classifier + eta + "_FuSVMResults.txt";
 		
 		/**Parameters in KNN.**/
 		int k = 1, l = 2;//l > 0, random projection; else brute force.
