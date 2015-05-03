@@ -10,11 +10,13 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
-
+import java.util.TreeMap;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.sentdetect.SentenceDetectorME;
@@ -23,13 +25,11 @@ import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.InvalidFormatException;
-
 import org.tartarus.snowball.SnowballStemmer;
 import org.tartarus.snowball.ext.englishStemmer;
-
 import structures._Doc;
+import structures._RankItem;
 import structures._SparseFeature;
-import structures._stat;
 import utils.Utils;
 
 public class DocAnalyzer extends Analyzer {
@@ -45,7 +45,8 @@ public class DocAnalyzer extends Analyzer {
 	protected int m_posTaggingMethod;
 	protected Set<String> m_dictionary;//The set for storing sentinet word.
     protected HashMap<String, Double> m_dictMap; //The map stores the strings and corrresponding scores.
-    protected int m_featureDimension;
+    protected ArrayList<_RankItem> m_sentiwords;
+    protected HashMap<String, Integer> m_sentiIndex;
     
 	//Constructor with ngram and fValue.
 	public DocAnalyzer(String tokenModel, int classNo, String providedCV, int Ngram, int threshold) throws InvalidFormatException, FileNotFoundException, IOException{
@@ -96,11 +97,6 @@ public class DocAnalyzer extends Analyzer {
 		m_filter = new HashMap<Integer, String>();
 		m_releaseContent = true;
 		m_posTaggingMethod = posTaggingMethod;
-		
-		m_projFeatureNameIndex = new HashMap<String, Integer>();
-		m_projFeatureStat = new HashMap<String, _stat>();
-		m_featureDimension = 10; //Default value for feature dimension.
-		m_projFeatureScore = new HashMap<String, Double>();
 	}
 	
 	public void setReleaseContent(boolean release) {
@@ -244,11 +240,9 @@ public class DocAnalyzer extends Analyzer {
 	 * The second is if the term is in the sparseVector.
 	 * In the case CV is loaded, we still need two if loops to check.*/
 	protected void AnalyzeDoc(_Doc doc) {
-		
 		String[] tokens = TokenizerNormalizeStemmer(doc.getSource());// Three-step analysis.
 		//When we load the docuemnts for selecting CV, we ignore the documents.
-		if (tokens.length< m_lengthThreshold)
-			return;
+		if (tokens.length< m_lengthThreshold) return;
 
 		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
 		int index = 0;
@@ -297,6 +291,57 @@ public class DocAnalyzer extends Analyzer {
 //					doc.clearSource();
 				return;
 			} else return;
+		} else return;
+	}
+	
+	protected void AnalyzeDocWithProjFeatures(_Doc doc){
+	
+		String[] tokens = TokenizerNormalizeStemmer(doc.getSource());// Three-step analysis.
+		//When we load the docuemnts for selecting CV, we ignore the documents.
+		if (tokens.length< m_lengthThreshold) return;
+
+		int index = 0, projIndex = 0; 
+		double value = 0, projValue = 0;
+		HashMap<Integer, Double> spVct = new HashMap<Integer, Double>(); // Collect the index and counts of features.
+		HashMap<Integer, Double> projectedVct = new HashMap<Integer, Double>();//Collect the index and counts of projected features.
+		// Construct the sparse vector.
+		for (String token : tokens) {
+			if (m_featureNameIndex.containsKey(token)) {// Check if the word in the CV.
+				index = m_featureNameIndex.get(token);
+				if (spVct.containsKey(index)) {
+					value = spVct.get(index) + 1;
+					spVct.put(index, value);
+				} else {
+					spVct.put(index, 1.0);
+					m_featureStat.get(token).addOneDF(doc.getYLabel());
+				}
+				m_featureStat.get(token).addOneTTF(doc.getYLabel());
+			}
+			if(m_projFeatureNameIndex.containsKey(token)){// Check if the word in the projected CV.
+				projIndex = m_projFeatureNameIndex.get(token);
+				if(projectedVct.containsKey(projIndex)){
+					projValue = projectedVct.get(projIndex) + 1;
+					projectedVct.put(projIndex, projValue);
+				} else{
+					projectedVct.put(projIndex, 1.0);
+					//m_projFeatureStat.get(tmpToken).addOneTTF(doc.getYLabel());
+				}
+			} else{
+				projIndex = m_projFeatureNameIndex.size();
+				m_projFeatureNameIndex.put(token, projIndex);
+				projectedVct.put(projIndex, 1.0);
+			}
+		}
+		
+		m_classMemberNo[doc.getYLabel()]++;
+		if (spVct.size()>= 1) {//temporary code for debugging purpose
+			doc.createSpVct(spVct);
+			if(projectedVct.size() >=1 ) //If it has projected vector, create it.
+				doc.createProjVct(projectedVct);
+			m_corpus.addDoc(doc);
+//			if (m_releaseContent)
+//				doc.clearSource();
+			return;
 		} else return;
 	}
 	
@@ -452,17 +497,20 @@ public class DocAnalyzer extends Analyzer {
 									m_projFeatureNameIndex.put(tmpToken, projIndex);
 									projectedVct.put(projIndex, 1.0);
 								}
-							} else if(m_posTaggingMethod == 4){
-								if(m_dictMap.containsKey(tmpToken)){
-									
-									double score = m_dictMap.get(tmpToken);
-									if(score != 0){
-										m_projFeatureScore.put(tmpToken, score);
-										int ind = findIndex(score);
-										featureArray[ind]++;
-									}
-									
-								}
+							} 
+//							else if(m_posTaggingMethod == 4){
+//								if(m_dictMap.containsKey(tmpToken)){
+//									double score = m_dictMap.get(tmpToken);
+////									if(score != 0){
+//										m_projFeatureScore.put(tmpToken, score);
+//										int ind = findIndex(score);
+//										featureArray[ind]++;
+////									}
+//								}
+//							}
+							else if(m_posTaggingMethod == 4){
+								if(m_sentiIndex.containsKey(tmpToken))
+									featureArray[m_sentiIndex.get(tmpToken)]++;
 							}
 						}
 					}
@@ -638,7 +686,6 @@ public class DocAnalyzer extends Analyzer {
 
 			// Go through all the terms.
 			Set<String> synTerms = tempDictionary.keySet();
-
 			for (String synTerm : synTerms) {
 				double score = 0;
 				int count = 0;
@@ -655,8 +702,7 @@ public class DocAnalyzer extends Analyzer {
 				String[] termMarker = synTerm.split("#");
 				m_dictMap.put(SnowballStemming(Normalize(termMarker[0])) + "#" + termMarker[1], score);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+			
 		} finally {
 			if (csv != null) {
 				csv.close();
@@ -664,6 +710,74 @@ public class DocAnalyzer extends Analyzer {
 		}
 	}
 	
+	//Sort the m_dictMap by values.
+	public void AssignFeatureIndexes(){
+		//Sort projected features according to their values.
+		ArrayList<String> keys = new ArrayList<String>();
+		keys.addAll(m_projFeatureScore.keySet());
+		Collections.sort(keys, new Comparator<String>() {
+			public int compare(String s1, String s2){
+				double d1 = m_projFeatureScore.get(s1);
+				double d2 = m_projFeatureScore.get(s2);
+				if(d1 > d2)
+					return -1;
+				else if(d1 < d2)
+					return 1;
+				else return 0;
+			}
+		});
+		
+		int dictSize = m_projFeatureScore.size(), interval = 0;
+		m_sentiIndex = new HashMap<String, Integer>();
+	
+		if (dictSize % m_featureDimension == 0)
+			interval = m_projFeatureScore.size() / m_featureDimension;
+		else 
+			interval = m_projFeatureScore.size() / m_featureDimension + 1;
+		
+		for(int i = 0; i < m_featureDimension; i++ ){
+			for(int j = 0; j < interval; j++){
+				int index = i * interval + j;
+				if(index < dictSize){
+					String word = keys.get(index);
+					m_sentiIndex.put(word, m_featureDimension -1 -i);
+//					System.out.print(String.format("%s, %.3f, %d\n", word, m_projFeatureScore.get(word), (m_featureDimension -1 -i)));
+				}
+			}
+		}
+	}
+	//General methods of sorting hashMap by values.
+	public HashMap<String, Double> SortHashMapByValues(final HashMap<String, Double> map){
+		ArrayList<String> keys = new ArrayList<String>();
+		HashMap<String, Double> sortedMap = new HashMap<String, Double>();
+		keys.addAll(map.keySet());
+		Collections.sort(keys, new Comparator<String>() {
+			public int compare(String s1, String s2){
+				double d1 = map.get(s1);
+				double d2 = map.get(s2);
+				if(d1 > d2)
+					return 1;
+				else if(d1 < d2)
+					return -1;
+				else return 0;
+			}
+		});
+		for(String s: keys){
+			sortedMap.put(s, map.get(s));
+			System.out.println(s + "\t" + map.get(s));
+		}
+		return sortedMap;
+	}
+//	public static void main(String[] args){
+//		HashMap<String, Double> test = new HashMap<String, Double>();
+//		test.put("a", 1.0);
+//		test.put("b", 1.0);
+//		test.put("c", 0.1);
+//		test.put("d", 0.5);
+//		test.put("mm", -1.0);
+//		sortHashMap(test);
+//	}
+
 	public void setFeatureDimension(int k){
 		m_featureDimension = k;
 	}
@@ -681,7 +795,8 @@ public class DocAnalyzer extends Analyzer {
 	public void saveProjFeaturesScores(String filename) throws FileNotFoundException{
 		PrintWriter writer = new PrintWriter(new File(filename));
 		for(String s: m_projFeatureScore.keySet())
-			writer.format("%s,%.3f\n", s, m_dictMap.get(s));
+			writer.format("%s,%.3f\n", s, m_projFeatureScore.get(s));
+		System.out.println(m_projFeatureScore.size() + " proj features are saves.");
 		writer.close();
 	}
 	

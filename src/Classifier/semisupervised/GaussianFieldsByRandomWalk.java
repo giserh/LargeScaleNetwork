@@ -10,6 +10,7 @@ import structures._Corpus;
 import structures._Doc;
 import structures._RankItem;
 import structures._SparseFeature;
+import utils.Utils;
 
 public class GaussianFieldsByRandomWalk extends GaussianFields {
 	double m_difference; //The difference between the previous labels and current labels.
@@ -18,7 +19,6 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 	
 	double m_delta; // convergence criterion for random walk
 	boolean m_storeGraph; // shall we precompute and store the graph
-//	int count = 0;
 	//Default constructor without any default parameters.
 	public GaussianFieldsByRandomWalk(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize, classifier);
@@ -52,6 +52,7 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 		
 		/**** Construct the C+scale*\Delta matrix and Y vector. ****/
 		for (int i = 0; i < m_U; i++) {
+			double[] stat = new double[m_classNo];
 			double wijSumU = 0, wijSumL = 0;
 			double fSumU = 0, fSumL = 0;
 			
@@ -68,20 +69,37 @@ public class GaussianFieldsByRandomWalk extends GaussianFields {
 			/****Get the sum of k'UU******/
 			for(_RankItem n: m_kUU){
 				wijSumU += n.m_value; //get the similarity between two nodes.
-//				fSumU += n.m_value * m_fu_last[n.m_index];
+				int labelFu = (int) m_fu[n.m_index]; //Get its current label.
+
+//				stat[label]++; 
+				//Every unlabeled data get two votes from SVM and previous votes.
+/**				stat[labelFu] += m_eta * n.m_value;
+				int labelSVM = (int) m_Y[n.m_index];
+				stat[labelSVM] += (1-m_eta) * n.m_value;
+				//stat[label] += label * n.m_value;
+				 */
 				fSumU += n.m_value * m_fu[n.m_index];
+//				stat[label] += n.m_value * m_fu[n.m_index];
 			}
 			m_kUU.clear();
 			
 			/****Get the sum of kUL******/
 			for(_RankItem n: m_kUL){
 				wijSumL += n.m_value;
+//				stat[n.m_label]++;
+			/*	int label = (int) m_Y[n.m_index];
+				stat[label] += n.m_value;
+				**/
 				fSumL += n.m_value * m_Y[n.m_index];
+//				stat[n.m_label] += n.m_value * m_Y[n.m_index];
 			}
 			m_kUL.clear();
 			
 			if(wijSumL!=0 || wijSumU!=0){
+				//Different ways of getting m_fu.
 				m_fu[i] = m_eta * (fSumL*wL + fSumU*wU) / (wijSumL*wL + wijSumU*wU) + (1-m_eta) * m_Y[i];
+				//This is just the majority of the both labeled and unlabeled data.
+//				m_fu[i] = Utils.maxOfArrayIndex(stat);
 			}
 			if(Double.isNaN(m_fu[i]))
 				System.out.println("NaN detected!!!");

@@ -51,7 +51,7 @@ public class AmazonReviewMain {
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
-		String diffFolder = "small";
+		String diffFolder = "20json";
 		String path = "data/" + diffFolder + "/";
 		String folder = path + "RawData";
 		String suffix = ".json";
@@ -60,14 +60,15 @@ public class AmazonReviewMain {
 		String tokenModel = "./data/Model/en-token.bin"; //Token model.
 		String featureLocation = String.format(path + "fv_%s.txt", pattern);//feature location
 		String vctFile = String.format(path + "vct_%s.dat", pattern);
+		String matrixFile = path + "matrixA.dat";
 		
 		/***The parameters used in GF-RW and debugging.****/
-		double eta = 0.5, sr = 1;
+		double eta = 0.3, sr = 1;
 		String debugOutput = path + classifier + eta + "_noPOS.txt";
 		String WrongRWfile= path + classifier + eta + "_WrongRW.txt";
 		String WrongSVMfile= path + classifier + eta + "_WrongSVM.txt";
 		String FuSVM = path + classifier + eta + "_FuSVMResults.txt";
-		
+		String reviewStatFile = path + classifier + eta + "_reviewStat.txt";
 		/**Parameters in KNN.**/
 		int k = 1, l = 2;//l > 0, random projection; else brute force.
 		
@@ -77,16 +78,16 @@ public class AmazonReviewMain {
 		System.out.println("--------------------------------------------------------------------------------------");
 		
 		/****Feature selection*****/
-//		System.out.println("Performing feature selection, wait...");
-//		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
-//		analyzer.LoadStopwords(stopwords);
-//		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
-//		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
-//		analyzer.resetStopwords();
+		System.out.println("Performing feature selection, wait...");
+		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber, "", Ngram, lengthThreshold);
+		analyzer.LoadStopwords(stopwords);
+		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
+		analyzer.featureSelection(featureLocation, featureSelection, startProb, endProb, DFthreshold); //Select the features.
+		analyzer.resetStopwords();
 		
 		/****Create feature vectors*****/
 		System.out.println("Creating feature vectors, wait...");
-		jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
+		//jsonAnalyzer analyzer = new jsonAnalyzer(tokenModel, classNumber,featureLocation, Ngram, lengthThreshold);
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents as the data set.
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
@@ -96,14 +97,14 @@ public class AmazonReviewMain {
 	
 		_Corpus corpus = analyzer.getCorpus();
 		featureSize = analyzer.getFeatureSize();
-		corpus.save2File(vctFile);
+//		corpus.save2File(vctFile);
 
-//		//String matrixFile = path + "matrixA0321.dat";
-//		/***Print the matrix of X and Y for metric learning.***/
+		//String matrixFile = path + "matrixA0321.dat";
+		/***Print the matrix of X and Y for metric learning.***/
 //		String xFile = path + diffFolder + "X.csv";
 //		String yFile = path + diffFolder + "Y.csv";
 //		analyzer.printXY(xFile, yFile);
-//		
+		
 //		//temporal code to add pagerank weights
 //		PageRank tmpPR = new PageRank(corpus, classNumber, featureSize + window, C, 100, 50, 1e-6);
 //		tmpPR.train(corpus.getCollection());
@@ -153,8 +154,9 @@ public class AmazonReviewMain {
 				mySemi.setFeaturesLookup(analyzer.getFeaturesLookup()); //give the look up to the classifier for debugging purpose.
 				mySemi.setDebugOutput(debugOutput);
 				mySemi.setDebugPrinters(WrongRWfile, WrongSVMfile, FuSVM);
-//				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+				mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
 				mySemi.crossValidation(CVFold, corpus);
+				mySemi.printReviewStat(reviewStatFile);
 			} else if (classifier.equals("GF-RW-ML")) {
 				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
 				lMetricLearner.setDebugOutput(debugOutput);

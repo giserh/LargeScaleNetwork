@@ -63,12 +63,12 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/****Parameters related with POS Tagging.***/
-		int posTaggingMethod = 4; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		
 		/***The parameters used in GF-RW and debugging.****/
-		double eta = 0.1, sr = 1;
+		double eta = 0.3, sr = 1;
 		String debugOutput = path + classifier + "_POS" + posTaggingMethod + ".txt";
 		String WrongRWfile= path + classifier + eta + "_POS" + posTaggingMethod + "_WrongRW.txt";
 		String WrongSVMfile= path + classifier + eta + "_POS" + posTaggingMethod + "_WrongSVM.txt";
@@ -83,19 +83,28 @@ public class POSTaggingMain {
 		if( posTaggingMethod == 3) // Load the SNW file first.
 			analyzer.LoadSNW(SNWfile);
 		
+//		if( posTaggingMethod == 4) { // Load the SNW with scores.
+//			int k = 10;
+//			analyzer.LoadSNWWithScore(SNWfile);
+//			analyzer.saveSentiWordNetFeatures(scoreFile);
+//			analyzer.setFeatureDimension(k);
+//		}
+		
 		if( posTaggingMethod == 4) { // Load the SNW with scores.
 			int k = 10;
 			analyzer.LoadSNWWithScore(SNWfile);
-			analyzer.saveSentiWordNetFeatures(scoreFile);
+			analyzer.LoadProjFeaturesWithScores(projFeatureFile);
+//			analyzer.saveSentiWordNetFeatures(scoreFile);
 			analyzer.setFeatureDimension(k);
+			analyzer.AssignFeatureIndexes();
 		}
 
 		analyzer.LoadDirectory(folder, suffix); //Load all the documents to build the sparse vectors and projected vectors.
 		analyzer.setFeatureValues(featureValue, norm);
 		analyzer.setTimeFeatures(window);
 		
-		if(posTaggingMethod == 4 )
-			analyzer.saveProjFeaturesScores(projFeatureFile);
+//		if(posTaggingMethod == 4 )
+//			analyzer.saveProjFeaturesScores(projFeatureFile);
 		
 		featureSize = analyzer.getFeatureSize();
 		_Corpus corpus = analyzer.getCorpus();

@@ -60,6 +60,18 @@ public class FeatureSelector {
 			}
 		}
 	}
+	
+	//Feature Selection -- TTF.
+	public void TF(HashMap<String, _stat> featureStat){
+		for(String f: featureStat.keySet()){
+			//Filter the features which have smaller DFs.
+			double sumDF = Utils.sumOfArray(featureStat.get(f).getDF());
+			if(sumDF > m_DFThreshold){
+				double sumTTF = Utils.sumOfArray(featureStat.get(f).getTTF());
+				m_selectedFeatures.add(new _RankItem(f, sumTTF));
+			}
+		}
+	}
 		
 	//Feature Selection -- IG.
 	public void IG(HashMap<String, _stat> featureStat, int[] classMemberNo){

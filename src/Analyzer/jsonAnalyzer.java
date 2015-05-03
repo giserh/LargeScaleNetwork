@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import json.JSONArray;
 import json.JSONException;
@@ -60,7 +62,8 @@ public class jsonAnalyzer extends DocAnalyzer{
 			System.out.print('X');
 			return;
 		}	
-		
+			
+ 		//Previous Analyze Method.
 		for(int i=0; i<jarray.length(); i++) {
 			try {
 				Post post = new Post(jarray.getJSONObject(i));
@@ -79,6 +82,8 @@ public class jsonAnalyzer extends DocAnalyzer{
 						_Doc review = new _Doc(m_corpus.getSize(), post.getID(), content, prod.getID(), post.getLabel()-1, timeStamp);
 						if(this.m_tagger != null && this.m_stnDetector!=null)
 							AnalyzeDocWithPOSTagging(review);
+						else if(this.m_projFlag)
+							AnalyzeDocWithProjFeatures(review);
 						else
 							AnalyzeDoc(review);
 						}

@@ -33,9 +33,10 @@ public abstract class Analyzer {
 	protected HashMap<String, Integer> m_featureNameIndex;//key: content of the feature; value: the index of the feature
 	protected HashMap<String, _stat> m_featureStat; //Key: feature Name; value: the stat of the feature
 	
+	protected ArrayList<String> m_projFeatureNames;
 	protected HashMap<String, Integer> m_projFeatureNameIndex;
 	protected HashMap<String, Double> m_projFeatureScore;
-	protected HashMap<String, _stat> m_projFeatureStat;
+//	protected HashMap<String, _stat> m_projFeatureStat;
 	protected HashMap<String, ArrayList<_Doc>> m_repReviews;
 	protected HashSet<String> m_uniqueReviews;
 	protected HashMap<String, ArrayList<Integer>> m_uniReviewsLabels;
@@ -43,16 +44,15 @@ public abstract class Analyzer {
 	/* Indicate if we can allow new features.After loading the CV file, the flag is set to true, 
 	 * which means no new features will be allowed.*/
 	protected boolean m_isCVLoaded;
-	
-	//minimal length of indexed document
-	protected int m_lengthThreshold;
-	
+	protected int m_lengthThreshold; //minimal length of indexed document
+
 	/** for time-series features **/
-	//The length of the window which means how many labels will be taken into consideration.
-	private LinkedList<_Doc> m_preDocs;	
-	
+	private LinkedList<_Doc> m_preDocs;	//The length of the window which means how many labels will be taken into consideration.
 	private ArrayList<Double> m_similar;
 	private ArrayList<Double> m_dissimilar;
+	
+    protected int m_featureDimension; //Used in postagging 4.
+	protected boolean m_projFlag; //Indicate whether the projected features are loaded or not. 
 	
 	public Analyzer(int classNo, int minDocLength) {
 		m_corpus = new _Corpus();
@@ -70,6 +70,13 @@ public abstract class Analyzer {
 		m_repReviews = new HashMap<String, ArrayList<_Doc>>();
 		m_uniqueReviews = new HashSet<String>();
 		m_uniReviewsLabels = new HashMap<String, ArrayList<Integer>>();
+		
+		m_projFlag = false; //Set to be false if it is not loaded.
+		m_projFeatureNames = new ArrayList<String>();
+		m_projFeatureNameIndex = new HashMap<String, Integer>();
+//		m_projFeatureStat = new HashMap<String, _stat>();
+		m_featureDimension = 10; //Default value for feature dimension.
+		m_projFeatureScore = new HashMap<String, Double>();
 	}	
 	
 	public void reset() {
@@ -111,6 +118,62 @@ public abstract class Analyzer {
 		} catch (IOException e) {
 			System.err.format("[Error]Failed to open file %s!!", filename);
 			return false;
+		}
+	}
+	
+	protected void LoadProjFeatures(String filename){
+		System.out.println("--------------------------------------------------------------------------------------");
+		if (filename==null || filename.isEmpty())
+			return;
+		
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
+			String line;
+			if((line = reader.readLine()) == null) 
+				System.err.println("Empty line detected!!");
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith("#")){
+					if (line.startsWith("#NGram")) {//has to be decoded
+						int pos = line.indexOf(':');
+						m_Ngram = Integer.valueOf(line.substring(pos+1));
+					}
+						
+				} else
+					expandProjVocabulary(line);
+			}
+			reader.close();
+			
+			System.out.format("%d projected feature words loaded from %s...\n", m_projFeatureNames.size(), filename);
+			m_projFlag = true;
+			
+			return;
+		} catch (IOException e) {
+			System.err.format("[Error]Failed to open file %s!!", filename);
+			return;
+		}
+	}
+	
+	public void LoadProjFeaturesWithScores(String filename){
+		System.out.println("--------------------------------------------------------------------------------------");
+		if (filename==null || filename.isEmpty())
+			return;
+		
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
+			String line;
+			if((line = reader.readLine()) == null) 
+				System.err.println("Empty line detected!!");
+			while ((line = reader.readLine()) != null) {
+				String[] projFeature = line.split(",");
+				m_projFeatureScore.put(projFeature[0], Double.valueOf(projFeature[1]));
+			}
+			reader.close();
+			System.out.format("%d projected feature words loaded from %s...\n", m_projFeatureScore.size(), filename);
+			
+			return;
+		} catch (IOException e) {
+			System.err.format("[Error]Failed to open file %s!!", filename);
+			return;
 		}
 	}
 	
@@ -182,6 +245,13 @@ public abstract class Analyzer {
 		m_featureStat.put(token, new _stat(m_classNo));
 	}
 		
+	//Add one more token to the current projected vocabulary.
+	protected void expandProjVocabulary(String token) {
+		m_projFeatureNameIndex.put(token, m_projFeatureNames.size()); // set the index of the new feature.
+		m_projFeatureNames.add(token); // Add the new feature.
+//		m_projFeatureStat.put(token, new _stat(m_classNo));
+	}
+
 	//Return corpus without parameter and feature selection.
 	public _Corpus returnCorpus(String finalLocation) throws FileNotFoundException {
 		SaveCVStat(finalLocation);
@@ -291,6 +361,8 @@ public abstract class Analyzer {
 		System.out.println("--------------------------------------------------------------------------------------");
 		if (featureSelection.equals("DF"))
 			selector.DF(m_featureStat);
+		else if (featureSelection.equals("TF"))
+			selector.TF(m_featureStat);
 		else if (featureSelection.equals("IG"))
 			selector.IG(m_featureStat, m_classMemberNo);
 		else if (featureSelection.equals("MI"))

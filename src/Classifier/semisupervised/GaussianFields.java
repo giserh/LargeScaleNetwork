@@ -39,7 +39,7 @@ public class GaussianFields extends BaseClassifier {
 	
 	int m_U, m_L;
 	double[] m_cache; // cache the similarity computation results given the similarity metric is symmetric
-	double[] m_fu; // predicted labels for unlabeled data.
+	double[] m_fu;
 	double[] m_Y; // true label for the labeled data and pseudo label from base learner
 	SparseDoubleMatrix2D m_graph;
 	
@@ -51,11 +51,12 @@ public class GaussianFields extends BaseClassifier {
 	double[] m_pY;//p(Y), the probabilities of different classes.
 	double[] m_pYSum; //\sum_i exp(-|c-fu(i)|)
 	
-	double m_discount = 0.5; // default similarity discount if across different products
+	double m_discount = 0; // default similarity discount if across different products
 	double[][] m_A; //The matrix used to store the result of metric learning.
 	int m_POSTagging; //If postagging is non-zero and projected features are used to do similarity calculation.
-	
+	ArrayList<int[][]> m_reviewsStat; //For one review, the number of reviews of the same producte ID, the number of reviews of similarity > 0.
 	HashMap<Integer, String> m_IndexFeature;//For debug purpose.
+	
 	//Randomly pick 10% of all the training documents.
 	public GaussianFields(_Corpus c, int classNumber, int featureSize, String classifier){
 		super(c, classNumber, featureSize);
@@ -71,6 +72,7 @@ public class GaussianFields extends BaseClassifier {
 		m_pYSum = new double[classNumber];
 		m_POSTagging = 0;
 		setClassifier(classifier);
+		m_reviewsStat = new ArrayList<int[][]>();
 	}	
 	
 	public GaussianFields(_Corpus c, int classNumber, int featureSize, String classifier, double ratio, int k, int kPrime){
@@ -87,7 +89,10 @@ public class GaussianFields extends BaseClassifier {
 		m_pYSum = new double[classNumber];
 		m_POSTagging = 0;
 		setClassifier(classifier);
+		m_reviewsStat = new ArrayList<int[][]>();
+
 	}
+	
 	public void setPOSTagging(int a){
 		m_POSTagging = a;
 	}
@@ -197,23 +202,25 @@ public class GaussianFields extends BaseClassifier {
 	}
 	
 	protected double getSimilarity(_Doc di, _Doc dj) {
-		if(m_POSTagging == 0)
-			return Utils.calculateSimilarity(di, dj);
-		else 
-			return Utils.calculateProjSimilarity(di, dj);
+//		if(m_POSTagging == 0)
+//			return Utils.calculateSimilarity(di, dj);
+//		else 
+//			return Utils.calculateProjSimilarity(di, dj);
 //		return Math.random();//just for debugging purpose
-//		return Utils.calculateMetricLearning(di, dj, m_A);
+		return Utils.calculateMetricLearning(di, dj, m_A);
 	}
 	
 	protected void constructGraph(boolean createSparseGraph) {
 		double similarity = 0;
 		m_L = m_labeled.size();
 		m_U = m_testSet.size();
+		int[][] oneReviewsStat = new int[m_U][4];
 		
 		/*** Set up cache structure for efficient computation. ****/
 		initCache();
 		if (m_fu==null || m_fu.length<m_U)
-			m_fu = new double[m_U]; //otherwise we can reuse the current memory
+//			m_fu = new double[m_U]; //otherwise we can reuse the current memory
+			m_fu = new double[m_U];
 		if (m_Y==null || m_Y.length<m_U+m_L)
 			m_Y = new double[m_U+m_L];
 		
@@ -223,11 +230,18 @@ public class GaussianFields extends BaseClassifier {
 			di = m_testSet.get(i);
 			for (int j = i + 1; j < m_U; j++) {// to save computation since our similarity metric is symmetric
 				dj = m_testSet.get(j);
-				similarity = getSimilarity(di, dj);
-				similarity = similarity * di.getWeight() * dj.getWeight();
+				similarity = getSimilarity(di, dj) * di.getWeight() * dj.getWeight();
 			
 //				if (!di.sameProduct(dj))
-//					similarity *= m_discount;// differentiate reviews from different products
+//					similarity *= m_discount;// differentiate reviews from different products have similarities 0.
+//				else {
+//					oneReviewsStat[i][0]++; // If there are same product, then add one for neighbors under one product.
+//					oneReviewsStat[j][0]++; // If there are same product, then add one for neighbors under one product.
+//				}
+//				if (similarity != 0){
+//					oneReviewsStat[i][1]++;
+//					oneReviewsStat[j][1]++;
+//				}
 				setCache(i, j, similarity);
 			}
 
@@ -236,15 +250,21 @@ public class GaussianFields extends BaseClassifier {
 				similarity = getSimilarity(di, dj);
 				similarity = similarity * di.getWeight() * dj.getWeight();
 //				if (!di.sameProduct(m_labeled.get(j)))
-//					similarity *= m_discount;// differentiate reviews from different products
+//					similarity *= m_discount;// differentiate reviews from different products have similarities 0.
+//				else {
+//					oneReviewsStat[i][2]++; // If there are same product, then add one for neighbors under one product.
+//				}
+//				if (similarity != 0){
+//					oneReviewsStat[i][3]++;
+//				}
 				setCache(i, m_U + j, similarity);
 			}
 			
 			//set up the Y vector for unlabeled data
-//			m_Y[i] = 4; //Multiple learner.//
+//			m_Y[i] = 1; //Multiple learner.//
 			m_Y[i] = m_classifier.predict(m_testSet.get(i));
 		}	
-
+		m_reviewsStat.add(oneReviewsStat);
 		//set up the Y vector for labeled data
 		for(int i=m_U; i<m_L+m_U; i++)
 			m_Y[i] = m_labeled.get(i-m_U).getYLabel();
@@ -494,8 +514,28 @@ public class GaussianFields extends BaseClassifier {
 		
 	}
 	
-	public static void main(String[] args) {
-		GaussianFields test = new GaussianFields(null, 1, 1, "NB");
-		test.debugEncoder();
+//	public static void main(String[] args) {
+//		GaussianFields test = new GaussianFields(null, 1, 1, "NB");
+//		test.debugEncoder();
+//	}
+	
+	//Print out the stat data of reviews of the same product.
+	public void printReviewStat(String filename) throws FileNotFoundException{
+		if (filename==null || filename.isEmpty())
+			return;
+		
+		PrintWriter writer = new PrintWriter(new File(filename));
+		if(m_reviewsStat.size() != 10){
+			System.out.println("Error!!");
+			return;
+		}
+		
+		for(int i = 0; i < m_reviewsStat.size(); i++){
+			int[][] tmp = m_reviewsStat.get(i);
+			writer.write("unlabeled neighbors, unlabled non-zero sim, labeled neigbors, labeled non-zero\n");
+			for(int j = 0; j < tmp.length; j++)
+				writer.write(String.format("%d, %d, %d, %d\n", tmp[j][0], tmp[j][1], tmp[j][2], tmp[j][3]));
+		}
+		writer.close();
 	}
 }

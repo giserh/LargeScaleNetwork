@@ -28,6 +28,7 @@ public class _RankItem implements Comparable<_RankItem> {
 		m_index = index;
 		m_label = label;
 	}
+
 	@Override
 	public int compareTo(_RankItem it) {
 		if (this.m_value < it.m_value)
