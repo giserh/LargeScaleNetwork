@@ -202,12 +202,14 @@ public class GaussianFields extends BaseClassifier {
 	}
 	
 	protected double getSimilarity(_Doc di, _Doc dj) {
-//		if(m_POSTagging == 0)
-//			return Utils.calculateSimilarity(di, dj);
-//		else 
-//			return Utils.calculateProjSimilarity(di, dj);
+		if(m_A != null)
+			return Utils.calculateMetricLearning(di, dj, m_A);
+		else if(m_POSTagging == 0)
+			return Utils.calculateSimilarity(di, dj);
+		else 
+			return Utils.calculateProjSimilarity(di, dj);
 //		return Math.random();//just for debugging purpose
-		return Utils.calculateMetricLearning(di, dj, m_A);
+		
 	}
 	
 	protected void constructGraph(boolean createSparseGraph) {
@@ -247,8 +249,8 @@ public class GaussianFields extends BaseClassifier {
 
 			for (int j = 0; j < m_L; j++) {
 				dj = m_labeled.get(j);
-				similarity = getSimilarity(di, dj);
-				similarity = similarity * di.getWeight() * dj.getWeight();
+				similarity = getSimilarity(di, dj) * di.getWeight() * dj.getWeight();
+				
 //				if (!di.sameProduct(m_labeled.get(j)))
 //					similarity *= m_discount;// differentiate reviews from different products have similarities 0.
 //				else {
