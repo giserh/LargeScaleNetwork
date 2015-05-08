@@ -63,12 +63,12 @@ public class POSTaggingMain {
 		System.out.println("Window length: " + window);
 		
 		/****Parameters related with POS Tagging.***/
-		int posTaggingMethod = 1; //Which way to use to build features with pos tagging.
+		int posTaggingMethod = 4; //Which way to use to build features with pos tagging.
 		String SNWfile = "data/Model/SentiWordNet_3.0.0_20130122.txt";
 		System.out.format("Postagging method: %d\n", posTaggingMethod);
 		
 		/***The parameters used in GF-RW and debugging.****/
-		double eta = 0.3, sr = 1;
+		double eta = 0.1, sr = 1;
 		String debugOutput = path + classifier + "_POS" + posTaggingMethod + ".txt";
 		String WrongRWfile= path + classifier + eta + "_POS" + posTaggingMethod + "_WrongRW.txt";
 		String WrongSVMfile= path + classifier + eta + "_POS" + posTaggingMethod + "_WrongSVM.txt";
@@ -94,7 +94,7 @@ public class POSTaggingMain {
 			int k = 10;
 			analyzer.LoadSNWWithScore(SNWfile);
 			analyzer.LoadProjFeaturesWithScores(projFeatureFile);
-//			analyzer.saveSentiWordNetFeatures(scoreFile);
+			analyzer.saveSentiWordNetFeatures(scoreFile);
 			analyzer.setFeatureDimension(k);
 			analyzer.AssignFeatureIndexes();
 		}
@@ -106,63 +106,63 @@ public class POSTaggingMain {
 //		if(posTaggingMethod == 4 )
 //			analyzer.saveProjFeaturesScores(projFeatureFile);
 		
-		featureSize = analyzer.getFeatureSize();
-		_Corpus corpus = analyzer.getCorpus();
-		String vctFile = String.format(path + "vct_%s.dat", pattern);
-		String projectedVctFile = String.format(path + "vct_projected_%s.dat", pattern);
-
-		/********Choose different classification methods.*********/
-		if (style.equals("SUP")) {
-			if(classifier.equals("NB")){
-				//Define a new naive bayes with the parameters.
-				System.out.println("Start naive bayes, wait...");
-				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize);
-				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
-				
-			} else if(classifier.equals("LR")){
-				//Define a new logistics regression with the parameters.
-				System.out.println("Start logistic regression, wait...");
-				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
-				myLR.setDebugOutput(debugOutput);//Save debug information into file.
-				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
-				//myLR.saveModel(modelPath + "LR.model");
-			} else if(classifier.equals("SVM")){
-				//Define a new SVM with the parameters.
-				System.out.println("Start SVM, wait...");
-				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.01);//default eps value from Lin's implementation
-				mySVM.crossValidation(CVFold, corpus);
-				
-			} else if (classifier.equals("PR")){
-				//Define a new Pagerank with parameters.
-				System.out.println("Start PageRank, wait...");
-				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
-				myPR.train(corpus.getCollection());
-				
-			} else System.out.println("Classifier has not developed yet!");
-		}
-		else if (style.equals("SEMI")) {
-			if (classifier.equals("GF")) {
-				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
-				mySemi.crossValidation(CVFold, corpus);
-			} else if (classifier.equals("GF-RW")) {
-				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, sr, 100, 50, 1.0, 0.1, 1e-4, eta, false);
-				//With pos tagging, we need the look-up table for projected features.
-				mySemi.setFeaturesLookup(analyzer.getProjFeaturesLookup());
-				mySemi.setPOSTagging(posTaggingMethod);
-				mySemi.setDebugOutput(debugOutput);
-				mySemi.setDebugPrinters(WrongRWfile, WrongSVMfile, FuSVM);
-				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
-				mySemi.crossValidation(CVFold, corpus);
-			} else if (classifier.equals("GF-RW-ML")) {
-				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
-				lMetricLearner.setDebugOutput(debugOutput);
-				lMetricLearner.crossValidation(CVFold, corpus);
-			} else System.out.println("Classifier has not been developed yet!");
-		} else if (style.equals("FV")) {
-			corpus.save2File(vctFile);
-			corpus.save2FileProjectSpVct(projectedVctFile);
-			System.out.format("Vectors saved to %s...\n", vctFile);
-		} else 
-			System.out.println("Learning paradigm has not developed yet!");
+//		featureSize = analyzer.getFeatureSize();
+//		_Corpus corpus = analyzer.getCorpus();
+//		String vctFile = String.format(path + "vct_%s.dat", pattern);
+//		String projectedVctFile = String.format(path + "vct_projected_%s.dat", pattern);
+//
+//		/********Choose different classification methods.*********/
+//		if (style.equals("SUP")) {
+//			if(classifier.equals("NB")){
+//				//Define a new naive bayes with the parameters.
+//				System.out.println("Start naive bayes, wait...");
+//				NaiveBayes myNB = new NaiveBayes(corpus, classNumber, featureSize);
+//				myNB.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
+//				
+//			} else if(classifier.equals("LR")){
+//				//Define a new logistics regression with the parameters.
+//				System.out.println("Start logistic regression, wait...");
+//				LogisticRegression myLR = new LogisticRegression(corpus, classNumber, featureSize, C);
+//				myLR.setDebugOutput(debugOutput);//Save debug information into file.
+//				myLR.crossValidation(CVFold, corpus);//Use the movie reviews for testing the codes.
+//				//myLR.saveModel(modelPath + "LR.model");
+//			} else if(classifier.equals("SVM")){
+//				//Define a new SVM with the parameters.
+//				System.out.println("Start SVM, wait...");
+//				SVM mySVM = new SVM(corpus, classNumber, featureSize, C, 0.01);//default eps value from Lin's implementation
+//				mySVM.crossValidation(CVFold, corpus);
+//				
+//			} else if (classifier.equals("PR")){
+//				//Define a new Pagerank with parameters.
+//				System.out.println("Start PageRank, wait...");
+//				PageRank myPR = new PageRank(corpus, classNumber, featureSize, C, 100, 50, 1e-6);
+//				myPR.train(corpus.getCollection());
+//				
+//			} else System.out.println("Classifier has not developed yet!");
+//		}
+//		else if (style.equals("SEMI")) {
+//			if (classifier.equals("GF")) {
+//				GaussianFields mySemi = new GaussianFields(corpus, classNumber, featureSize, multipleLearner);
+//				mySemi.crossValidation(CVFold, corpus);
+//			} else if (classifier.equals("GF-RW")) {
+//				GaussianFields mySemi = new GaussianFieldsByRandomWalk(corpus, classNumber, featureSize, multipleLearner, sr, 100, 50, 1.0, 0.1, 1e-4, eta, false);
+//				//With pos tagging, we need the look-up table for projected features.
+//				mySemi.setFeaturesLookup(analyzer.getProjFeaturesLookup());
+//				mySemi.setPOSTagging(posTaggingMethod);
+//				mySemi.setDebugOutput(debugOutput);
+//				mySemi.setDebugPrinters(WrongRWfile, WrongSVMfile, FuSVM);
+//				//mySemi.setMatrixA(analyzer.loadMatrixA(matrixFile));
+//				mySemi.crossValidation(CVFold, corpus);
+//			} else if (classifier.equals("GF-RW-ML")) {
+//				LinearSVMMetricLearning lMetricLearner = new LinearSVMMetricLearning(corpus, classNumber, featureSize, multipleLearner, 0.1, 100, 50, 1.0, 0.1, 1e-4, 0.1, false, 3, 0.01);
+//				lMetricLearner.setDebugOutput(debugOutput);
+//				lMetricLearner.crossValidation(CVFold, corpus);
+//			} else System.out.println("Classifier has not been developed yet!");
+//		} else if (style.equals("FV")) {
+//			corpus.save2File(vctFile);
+//			corpus.save2FileProjectSpVct(projectedVctFile);
+//			System.out.format("Vectors saved to %s...\n", vctFile);
+//		} else 
+//			System.out.println("Learning paradigm has not developed yet!");
 	}
 }
