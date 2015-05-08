@@ -21,7 +21,7 @@ public class AmazonReviewMain {
 		
 		/*****Set these parameters before running the classifiers.*****/
 		int featureSize = 0; //Initialize the fetureSize to be zero at first.
-		int Ngram = 1; //The default value is bigram. 
+		int Ngram = 2; //The default value is bigram. 
 		
 		//"TF", "TFIDF", "BM25", "PLN"
 		String featureValue = "BM25"; //The way of calculating the feature value, which can also be "TFIDF", "BM25"
@@ -47,7 +47,7 @@ public class AmazonReviewMain {
 		String stopwords = "./data/Model/stopwords.dat";
 		double startProb = 0.0; // Used in feature selection, the starting point of the features.
 		double endProb = 0.999; // Used in feature selection, the ending point of the features.
-		int DFthreshold = 5; // Filter the features with DFs smaller than this threshold.
+		int DFthreshold = 25; // Filter the features with DFs smaller than this threshold.
 		System.out.println("Feature Seleciton: " + featureSelection + "\tStarting probability: " + startProb + "\tEnding probability:" + endProb);
 		
 		/*****The parameters used in loading files.*****/
@@ -63,7 +63,7 @@ public class AmazonReviewMain {
 		String matrixFile = path + "matrixA.dat";
 		
 		/***The parameters used in GF-RW and debugging.****/
-		double eta = 0.6, sr = 1;
+		double eta = 0.7, sr = 1;
 		String debugOutput = path + classifier + eta + "_noPOS.txt";
 		String WrongRWfile= path + classifier + eta + "_WrongRW.txt";
 		String WrongSVMfile= path + classifier + eta + "_WrongSVM.txt";
